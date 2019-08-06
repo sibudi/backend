@@ -1,0 +1,1195 @@
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.utils.StringUtils;
+import java.util.List;
+
+global  List ruleSetResultList;
+
+// 手机使用时长（单位：天）
+rule "PHONE_USED_DAY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PHONE_USED_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PHONE_USED_DAY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($diffTime:diffTime,RuleUtils.lessThan(RuleUtils.valueOfStr(diffTime),
+                                                     RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.PHONE_USED_DAY.getMessage()))));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.PHONE_USED_DAY.getMessage(),RuleUtils.valueOfStr($diffTime),"手机使用时长小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "PHONE_USED_DAY_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PHONE_USED_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PHONE_USED_DAY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($diffTime:diffTime,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(diffTime),
+                                                     RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.PHONE_USED_DAY.getMessage()))));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PHONE_USED_DAY.getMessage(),RuleUtils.valueOfStr($diffTime),"手机使用时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+/*通话时长*/
+// 近180天通话时长
+rule "RECENT_180_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180Time:recent180Time,RuleUtils.lessThan(RuleUtils.valueOfStr(recent180Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage(),RuleUtils.valueOfStr($recent180Time),"近180天通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180Time:recent180Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent180Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_TIME.getMessage(),RuleUtils.valueOfStr($recent180Time),"近180天通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天通话时长
+rule "RECENT_90_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90Time:recent90Time,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage(),RuleUtils.valueOfStr($recent90Time),"近90天通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90Time:recent90Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_TIME.getMessage(),RuleUtils.valueOfStr($recent90Time),"近90天通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+/*通话次数*/
+// 近180天通话次数
+rule "RECENT_180_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180Count:recent180Count,RuleUtils.lessThan(RuleUtils.valueOfStr(recent180Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($recent180Count),"近180天通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180Count:recent180Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent180Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($recent180Count),"近180天通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天通话次数
+rule "RECENT_90_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90Count:recent90Count,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($recent90Count),"近90天通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90Count:recent90Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($recent90Count),"近90天通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天通话次数
+rule "RECENT_30_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30Count:recent30Count,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($recent30Count),"近30天通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30Count:recent30Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($recent30Count),"近30天通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+/*打入通话时长*/
+// 近180天打入通话时长
+rule "RECENT_180_CALL_IN_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InTime:recent180InTime,RuleUtils.lessThan(RuleUtils.valueOfStr(recent180InTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage(),RuleUtils.valueOfStr($recent180InTime),"近180天打入通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_IN_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InTime:recent180InTime,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent180InTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_IN_TIME.getMessage(),RuleUtils.valueOfStr($recent180InTime),"近180天打入通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天打入通话时长
+rule "RECENT_90_CALL_IN_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InTime:recent90InTime,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90InTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage(),RuleUtils.valueOfStr($recent90InTime),"近90天打入通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_IN_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InTime:recent90InTime,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90InTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_IN_TIME.getMessage(),RuleUtils.valueOfStr($recent90InTime),"近90天打入通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天打入通话时长
+rule "RECENT_30_CALL_IN_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InTime:recent30InTime,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30InTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage(),RuleUtils.valueOfStr($recent30InTime),"近30天打入通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_IN_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InTime:recent30InTime,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30InTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_IN_TIME.getMessage(),RuleUtils.valueOfStr($recent30InTime),"近30天打入通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+/*打入通话次数*/
+// 近180天打入通话时长
+rule "RECENT_180_CALL_IN_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InCount:recent180InCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent180InCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent180InCount),"近180天打入通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_IN_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InCount:recent180InCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent180InCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent180InCount),"近180天打入通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天打入通话时长
+rule "RECENT_90_CALL_IN_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InCount:recent90InCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90InCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent90InCount),"近90天打入通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_IN_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InCount:recent90InCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90InCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent90InCount),"近90天打入通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天打入通话时长
+rule "RECENT_30_CALL_IN_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InCount:recent30InCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30InCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent30InCount),"近30天打入通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_IN_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InCount:recent30InCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30InCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent30InCount),"近30天打入通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+/*打出通话时长*/
+// 近180天打出通话时长
+rule "RECENT_180_CALL_OUT_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180OutTime:recent180OutTime,RuleUtils.lessThan(RuleUtils.valueOfStr(recent180OutTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage(),RuleUtils.valueOfStr($recent180OutTime),"近180天打出通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_OUT_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180OutTime:recent180OutTime,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent180OutTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_OUT_TIME.getMessage(),RuleUtils.valueOfStr($recent180OutTime),"近180天打出通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天打出通话时长
+rule "RECENT_90_CALL_OUT_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90OutTime:recent90OutTime,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90OutTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage(),RuleUtils.valueOfStr($recent90OutTime),"近90天打出通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_OUT_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90OutTime:recent90OutTime,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90OutTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_OUT_TIME.getMessage(),RuleUtils.valueOfStr($recent90OutTime),"近90天打出通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天打出通话时长
+rule "RECENT_30_CALL_OUT_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30OutTime:recent30OutTime,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30OutTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage(),RuleUtils.valueOfStr($recent30OutTime),"近30天打出通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_OUT_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30OutTime:recent30OutTime,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30OutTime),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_OUT_TIME.getMessage(),RuleUtils.valueOfStr($recent30OutTime),"近30天打出通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+/*打出通话次数*/
+// 近180天打出通话次数
+rule "RECENT_180_CALL_OUT_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180OutCount:recent180OutCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent180OutCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage(),RuleUtils.valueOfStr($recent180OutCount),"近180天打出通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_OUT_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180OutCount:recent180OutCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent180OutCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_OUT_COUNT.getMessage(),RuleUtils.valueOfStr($recent180OutCount),"近180天打出通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天打出通话次数
+rule "RECENT_90_CALL_OUT_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90OutCount:recent90OutCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90OutCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage(),RuleUtils.valueOfStr($recent90OutCount),"近90天打出通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_OUT_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90OutCount:recent90OutCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90OutCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_OUT_COUNT.getMessage(),RuleUtils.valueOfStr($recent90OutCount),"近90天打出通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天打出通话次数
+rule "RECENT_30_CALL_OUT_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30OutCount:recent30OutCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30OutCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage(),RuleUtils.valueOfStr($recent30OutCount),"近30天打出通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_OUT_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30OutCount:recent30OutCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30OutCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_OUT_COUNT.getMessage(),RuleUtils.valueOfStr($recent30OutCount),"近30天打出通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 最后一次跟第一联系人有效通话时间距提交订单的天数 >
+rule "FIRST_CONTACT_LAST_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstContactDiffDay:firstContactDiffDay,firstContactDiffDay==null||RuleUtils.greatThan(RuleUtils.valueOfStr(firstContactDiffDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage(),String.valueOf($firstContactDiffDay),"最后一次跟第一联系人有效通话时间距提交订单的天数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "FIRST_CONTACT_LAST_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstContactDiffDay:firstContactDiffDay,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(firstContactDiffDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FIRST_CONTACT_LAST_TIME.getMessage(),String.valueOf($firstContactDiffDay),"最后一次跟第一联系人有效通话时间距提交订单的天数小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 最后一次跟第二联系人有效通话时间距提交订单的天数
+rule "SECOND_CONTACT_LAST_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondContactDiffDay:secondContactDiffDay,secondContactDiffDay==null||RuleUtils.greatThan(RuleUtils.valueOfStr(secondContactDiffDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage(),String.valueOf($secondContactDiffDay),"最后一次跟第二联系人有效通话时间距提交订单的天数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "SECOND_CONTACT_LAST_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondContactDiffDay:secondContactDiffDay,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(secondContactDiffDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SECOND_CONTACT_LAST_TIME.getMessage(),String.valueOf($secondContactDiffDay),"最后一次跟第二联系人有效通话时间距提交订单的天数小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 最后一次通话距提交订单日期的天数
+rule "CONTACT_LAST_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($lastContactDiffDay:lastContactDiffDay,RuleUtils.greatThan(RuleUtils.valueOfStr(lastContactDiffDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage(),RuleUtils.valueOfStr($lastContactDiffDay),"最后一次通话距提交订单日期的天数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "CONTACT_LAST_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($lastContactDiffDay:lastContactDiffDay,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(lastContactDiffDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CONTACT_LAST_TIME.getMessage(),RuleUtils.valueOfStr($lastContactDiffDay),"最后一次通话距提交订单日期的天数小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+// 近90天呼入占比
+rule "CALL_90_IN_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_90_IN_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_90_IN_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InRate:recent90InRate,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90InRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_90_IN_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.CALL_90_IN_RATE.getMessage(),RuleUtils.valueOfStr($recent90InRate),"近90天呼入占比小于阈值").addToResultList(ruleSetResultList);
+end
+rule "CALL_90_IN_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_90_IN_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_90_IN_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InRate:recent90InRate,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90InRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_90_IN_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_90_IN_RATE.getMessage(),RuleUtils.valueOfStr($recent90InRate),"近90天呼入占比大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天呼出占比
+rule "CALL_90_OUT_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90OutRate:recent90OutRate,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90OutRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage(),RuleUtils.valueOfStr($recent90OutRate),"近90天呼出占比小于阈值").addToResultList(ruleSetResultList);
+end
+rule "CALL_90_OUT_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90OutRate:recent90OutRate,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90OutRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_90_OUT_RATE.getMessage(),RuleUtils.valueOfStr($recent90OutRate),"近90天呼出占比大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天呼入占比
+rule "CALL_30_IN_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_30_IN_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_30_IN_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InRate:recent30InRate,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30InRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_30_IN_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.CALL_30_IN_RATE.getMessage(),RuleUtils.valueOfStr($recent30InRate),"近30天呼入占比小于阈值").addToResultList(ruleSetResultList);
+end
+rule "CALL_30_IN_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_30_IN_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_30_IN_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InRate:recent30InRate,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30InRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_30_IN_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_30_IN_RATE.getMessage(),RuleUtils.valueOfStr($recent30InRate),"近30天呼入占比大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天呼出占比
+rule "CALL_30_OUT_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30OutRate:recent30OutRate,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30OutRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage(),RuleUtils.valueOfStr($recent30OutRate),"近30天呼出占比小于阈值").addToResultList(ruleSetResultList);
+end
+rule "CALL_30_OUT_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30OutRate:recent30OutRate,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30OutRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_30_OUT_RATE.getMessage(),RuleUtils.valueOfStr($recent30OutRate),"近30天呼出占比大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近180天打入未接通通话次数
+rule "RECENT_180_CALL_NO_CONNECT_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InNoCount:recent180InNoCount,RuleUtils.greatThan(RuleUtils.valueOfStr(recent180InNoCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage(),RuleUtils.valueOfStr($recent180InNoCount),"近180天打入未接通通话次数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_NO_CONNECT_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InNoCount:recent180InNoCount,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent180InNoCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_COUNT.getMessage(),RuleUtils.valueOfStr($recent180InNoCount),"近180天打入未接通通话次数小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天打入未接通通话次数
+rule "RECENT_90_CALL_NO_CONNECT_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InNoCount:recent90InNoCount,RuleUtils.greatThan(RuleUtils.valueOfStr(recent90InNoCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage(),RuleUtils.valueOfStr($recent90InNoCount),"近90天打入未接通通话次数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_NO_CONNECT_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InNoCount:recent90InNoCount,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent90InNoCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_COUNT.getMessage(),RuleUtils.valueOfStr($recent90InNoCount),"近90天打入未接通通话次数小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天打入未接通通话次数
+rule "RECENT_30_CALL_NO_CONNECT_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InNoCount:recent30InNoCount,RuleUtils.greatThan(RuleUtils.valueOfStr(recent30InNoCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage(),RuleUtils.valueOfStr($recent30InNoCount),"近30天打入未接通通话次数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_NO_CONNECT_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InNoCount:recent30InNoCount,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent30InNoCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_COUNT.getMessage(),RuleUtils.valueOfStr($recent30InNoCount),"近30天打入未接通通话次数小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近180天打入未接通占比
+rule "RECENT_180_CALL_NO_CONNECT_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InNoRate:recent180InNoRate,RuleUtils.greatThan(RuleUtils.valueOfStr(recent180InNoRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage(),RuleUtils.valueOfStr($recent180InNoRate),"近180天打入未接通占比大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_NO_CONNECT_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180InNoRate:recent180InNoRate,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent180InNoRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_NO_CONNECT_RATE.getMessage(),RuleUtils.valueOfStr($recent180InNoRate),"近180天打入未接通占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天打入未接通占比
+rule "RECENT_90_CALL_NO_CONNECT_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InNoRate:recent90InNoRate,RuleUtils.greatThan(RuleUtils.valueOfStr(recent90InNoRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage(),RuleUtils.valueOfStr($recent90InNoRate),"近90天打入未接通占比大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_NO_CONNECT_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90InNoRate:recent90InNoRate,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent90InNoRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_NO_CONNECT_RATE.getMessage(),RuleUtils.valueOfStr($recent90InNoRate),"近90天打入未接通占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天打入未接通占比
+rule "RECENT_30_CALL_NO_CONNECT_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InNoRate:recent30InNoRate,RuleUtils.greatThan(RuleUtils.valueOfStr(recent30InNoRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage(),RuleUtils.valueOfStr($recent30InNoRate),"近30天打入未接通占比大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_NO_CONNECT_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30InNoRate:recent30InNoRate,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent30InNoRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_NO_CONNECT_RATE.getMessage(),RuleUtils.valueOfStr($recent30InNoRate),"近30天打入未接通占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天内夜间活跃占比
+rule "NIGHT_CALL_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($nightCallRate:nightCallRate,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(nightCallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage(),RuleUtils.valueOfStr($nightCallRate),"近30天内夜间活跃占比大于等于阈值")
+        .addToResultList(ruleSetResultList);
+end
+rule "NIGHT_CALL_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($nightCallRate:nightCallRate,RuleUtils.lessThan(RuleUtils.valueOfStr(nightCallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NIGHT_CALL_RATE.getMessage(),RuleUtils.valueOfStr($nightCallRate),"近30天内夜间活跃占比小于阈值").addToResultList(ruleSetResultList);
+end
+// 近180天内未接通电话占比
+rule "RECENT_180_CALL_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180CallRate:recent180CallRate,RuleUtils.greatThan(RuleUtils.valueOfStr(recent180CallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage(),RuleUtils.valueOfStr($recent180CallRate),"近180天内未接通电话占比大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_CALL_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent180CallRate:recent180CallRate,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent180CallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_CALL_RATE.getMessage(),RuleUtils.valueOfStr($recent180CallRate),"近180天内未接通电话占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天内未接通电话占比
+rule "RECENT_90_CALL_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90CallRate:recent90CallRate,RuleUtils.greatThan(RuleUtils.valueOfStr(recent90CallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage(),RuleUtils.valueOfStr($recent90CallRate),"近90天内未接通电话占比大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_CALL_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90CallRate:recent90CallRate,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent90CallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_CALL_RATE.getMessage(),RuleUtils.valueOfStr($recent90CallRate),"近90天内未接通电话占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天内未接通电话占比
+rule "RECENT_30_CALL_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30CallRate:recent30CallRate,RuleUtils.greatThan(RuleUtils.valueOfStr(recent30CallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage(),RuleUtils.valueOfStr($recent30CallRate),"近30天内未接通电话占比大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30CallRate:recent30CallRate,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent30CallRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_RATE.getMessage(),RuleUtils.valueOfStr($recent30CallRate),"近30天内未接通电话占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天的通话记录中，出现在通讯录中的有效去重通话号码个数 RE_COUNT_NUM
+rule "RE_COUNT_NUM"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RE_COUNT_NUM.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RE_COUNT_NUM.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($contacts:contacts,hasContact && RuleUtils.lessThan(RuleUtils.valueOfStr(contacts),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RE_COUNT_NUM.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RE_COUNT_NUM.getMessage(),RuleUtils.valueOfStr($contacts),"近30天的通话记录中，出现在通讯录中的有效去重通话号码个数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RE_COUNT_NUM_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RE_COUNT_NUM.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RE_COUNT_NUM.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($contacts:contacts,
+                contacts == null || hasContact && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(contacts),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RE_COUNT_NUM.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RE_COUNT_NUM.getMessage(),RuleUtils.valueOfStr($contacts),"近30天的通话记录中，出现在通讯录中的有效去重通话号码个数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天的通话记录中，出现在通讯录中的有效去重通话号码占比 RE_COUNT_RATE
+rule "RE_COUNT_RATE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RE_COUNT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RE_COUNT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($contactsRate:contactsRate,hasContact && RuleUtils.lessThan(RuleUtils.valueOfStr(contactsRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RE_COUNT_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RE_COUNT_RATE.getMessage(),RuleUtils.valueOfStr($contactsRate),"近30天的通话记录中，出现在通讯录中的有效去重通话号码占比小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RE_COUNT_RATE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RE_COUNT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RE_COUNT_RATE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($contactsRate:contactsRate,
+                contactsRate==null || hasContact && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(contactsRate),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RE_COUNT_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RE_COUNT_RATE.getMessage(),RuleUtils.valueOfStr($contactsRate),"近30天的通话记录中，出现在通讯录中的有效去重通话号码占比大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天内与亲属称谓联系人的通话次数 RELATIVES_CALL_90_IN_COUNT
+rule "RELATIVES_CALL_90_IN_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90CallRelaCount:recent90CallRelaCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent90CallRelaCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent90CallRelaCount),"近90天内与亲属称谓联系人的通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RELATIVES_CALL_90_IN_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90CallRelaCount:recent90CallRelaCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90CallRelaCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RELATIVES_CALL_90_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent90CallRelaCount),"近90天内与亲属称谓联系人的通话次数比大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天内与亲属称谓联系人的通话次数
+rule "RELATIVES_CALL_30_IN_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30CallRelaCount:recent30CallRelaCount,RuleUtils.lessThan(RuleUtils.valueOfStr(recent30CallRelaCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent30CallRelaCount),"近30天内与亲属称谓联系人的通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RELATIVES_CALL_30_IN_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30CallRelaCount:recent30CallRelaCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30CallRelaCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RELATIVES_CALL_30_IN_COUNT.getMessage(),RuleUtils.valueOfStr($recent30CallRelaCount),"近30天内与亲属称谓联系人的通话次数比大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近30天无通话记录总天数 RECENT_30_NO_CALL_DAY
+rule "RECENT_30_NO_CALL_DAY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30NoCallDay:recent30NoCallDay,RuleUtils.greatThan(RuleUtils.valueOfStr(recent30NoCallDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage(),RuleUtils.valueOfStr($recent30NoCallDay),"近30天无通话记录总天数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_NO_CALL_DAY_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent30NoCallDay:recent30NoCallDay,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent30NoCallDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_NO_CALL_DAY.getMessage(),RuleUtils.valueOfStr($recent30NoCallDay),"近30天无通话记录总天数小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 近90天无通话记录总天数 RECENT_90_NO_CALL_DAY
+rule "RECENT_90_NO_CALL_DAY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90NoCallDay:recent90NoCallDay,RuleUtils.greatThan(RuleUtils.valueOfStr(recent90NoCallDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage(),RuleUtils.valueOfStr($recent90NoCallDay),"近90天无通话记录总天数大于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_NO_CALL_DAY_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($recent90NoCallDay:recent90NoCallDay,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(recent90NoCallDay),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_NO_CALL_DAY.getMessage(),RuleUtils.valueOfStr($recent90NoCallDay),"近90天无通话记录总天数小于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第一联系人,近180天,通话时长
+rule "RECENT_180_FIRST_CONTACT_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall180Time:firstCall180Time,RuleUtils.lessThan(RuleUtils.valueOfStr(firstCall180Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($firstCall180Time),"第一联系人,近180天,通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_FIRST_CONTACT_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall180Time:firstCall180Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(firstCall180Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($firstCall180Time),"第一联系人,近180天,通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第一联系人,近180天,通话次数
+rule "RECENT_180_FIRST_CONTACT_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall180Count:firstCall180Count,RuleUtils.lessThan(RuleUtils.valueOfStr(firstCall180Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($firstCall180Count),"第一联系人,近180天,通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_FIRST_CONTACT_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall180Count:firstCall180Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(firstCall180Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_FIRST_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($firstCall180Count),"第一联系人,近180天,通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第一联系人,近90天,通话时长
+rule "RECENT_90_FIRST_CONTACT_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall90Time:firstCall90Time,RuleUtils.lessThan(RuleUtils.valueOfStr(firstCall90Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($firstCall90Time),"第一联系人,近90天,通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_FIRST_CONTACT_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall90Time:firstCall90Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(firstCall90Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($firstCall90Time),"第一联系人,近90天,通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第一联系人,近90天,通话次数
+rule "RECENT_90_FIRST_CONTACT_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall90Count:firstCall90Count,RuleUtils.lessThan(RuleUtils.valueOfStr(firstCall90Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($firstCall90Count),"第一联系人,近90天,通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_FIRST_CONTACT_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall90Count:firstCall90Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(firstCall90Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_FIRST_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($firstCall90Count),"第一联系人,近90天,通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第一联系人,近30天,通话时长
+rule "RECENT_30_FIRST_CONTACT_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall30Time:firstCall30Time,RuleUtils.lessThan(RuleUtils.valueOfStr(firstCall30Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($firstCall30Time),"第一联系人,近30天,通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_FIRST_CONTACT_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall30Time:firstCall30Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(firstCall30Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($firstCall30Time),"第一联系人,近30天,通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第一联系人,近30天,通话次数
+rule "RECENT_30_FIRST_CONTACT_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall30Count:firstCall30Count,RuleUtils.lessThan(RuleUtils.valueOfStr(firstCall30Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($firstCall30Count),"第一联系人,近30天,通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_FIRST_CONTACT_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($firstCall30Count:firstCall30Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(firstCall30Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_FIRST_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($firstCall30Count),"第一联系人,近30天,通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第二联系人,近180天,通话时长
+rule "RECENT_180_SECD_CONTACT_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall180Time:secondCall180Time,RuleUtils.lessThan(RuleUtils.valueOfStr(secondCall180Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($secondCall180Time),"第二联系人,近180天,通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_SECD_CONTACT_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall180Time:secondCall180Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(secondCall180Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($secondCall180Time),"第二联系人,近180天,通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第二联系人,近180天,通话次数
+rule "RECENT_180_SECD_CONTACT_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall180Count:secondCall180Count,RuleUtils.lessThan(RuleUtils.valueOfStr(secondCall180Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($secondCall180Count),"第二联系人,近180天,通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_180_SECD_CONTACT_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall180Count:secondCall180Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(secondCall180Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_SECD_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($secondCall180Count),"第二联系人,近180天,通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第二联系人,近90天,通话时长
+rule "RECENT_90_SECD_CONTACT_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall90Time:secondCall90Time,RuleUtils.lessThan(RuleUtils.valueOfStr(secondCall90Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($secondCall90Time),"第二联系人,近90天,通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_SECD_CONTACT_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall90Time:secondCall90Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(secondCall90Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($secondCall90Time),"第二联系人,近90天,通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第二联系人,近90天,通话次数
+rule "RECENT_90_SECD_CONTACT_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall90Count:secondCall90Count,RuleUtils.lessThan(RuleUtils.valueOfStr(secondCall90Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($secondCall90Count),"第二联系人,近90天,通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_90_SECD_CONTACT_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall90Count:secondCall90Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(secondCall90Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_90_SECD_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($secondCall90Count),"第二联系人,近90天,通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第二联系人,近30天,通话时长
+rule "RECENT_30_SECD_CONTACT_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall30Time:secondCall30Time,RuleUtils.lessThan(RuleUtils.valueOfStr(secondCall30Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($secondCall30Time),"第二联系人,近30天,通话时长小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_SECD_CONTACT_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall30Time:secondCall30Time,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(secondCall30Time),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_TIME.getMessage(),RuleUtils.valueOfStr($secondCall30Time),"第二联系人,近30天,通话时长大于等于阈值").addToResultList(ruleSetResultList);
+end
+// 第二联系人,近30天,通话次数
+rule "RECENT_30_SECD_CONTACT_CALL_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall30Count:secondCall30Count,RuleUtils.lessThan(RuleUtils.valueOfStr(secondCall30Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($secondCall30Count),"第二联系人,近30天,通话次数小于阈值").addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_SECD_CONTACT_CALL_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($secondCall30Count:secondCall30Count,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(secondCall30Count),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_SECD_CONTACT_CALL_COUNT.getMessage(),RuleUtils.valueOfStr($secondCall30Count),"第二联系人,近30天,通话次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+
+rule "USER_CALL_RECORD_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_NOT_IN_CALLRECORD.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_NOT_IN_CALLRECORD.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $callRecord:UserCallRecordsModel();
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_NOT_IN_CALLRECORD.getMessage(),
+                                      RuleUtils.valueOfStr(!$callRecord.getFirstLinkManIn()&&!$callRecord.getSecondLinkManIn()),
+                                      "两个紧急联系人均不在通话记录中").addToResultList(ruleSetResultList);
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_RECORD_RECENT30_DISTINCT_NUMBERS.getMessage(),
+                                       RuleUtils.valueOfStr($callRecord.getRecent30DistinctCallNumbers()),
+                                       "近30天通话号码去重个数").addToResultList(ruleSetResultList);
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_RECORD_RECENT90_DISTINCT_NUMBERS.getMessage(),
+                                       RuleUtils.valueOfStr($callRecord.getRecent90DistinctCallNumbers()),
+                                       "近90天通话号码去重个数").addToResultList(ruleSetResultList);
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_RECORD_RECENT30_CALL_IN_DISTINCT_NUMBERS.getMessage(),
+                                       RuleUtils.valueOfStr($callRecord.getRecent30DistinctCallInNumbers()),
+                                       "近30天被叫号码去重个数").addToResultList(ruleSetResultList);
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_RECORD_RECENT90_CALL_IN_DISTINCT_NUMBERS.getMessage(),
+                                       RuleUtils.valueOfStr($callRecord.getRecent90DistinctCallInNumbers()),
+                                       "近90天被叫号码去重个数").addToResultList(ruleSetResultList);
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_RECORD_RECENT90_STRANGE_NOT_CONNECT_RATIO.getMessage(),
+                                       RuleUtils.valueOfStr($callRecord.getRecent90StrangeNumberMissedCallRatio()),
+                                       "近90天通话记录中陌生号码打入未接通占比").addToResultList(ruleSetResultList);
+end
+
+
+
+
+// 数据为空
+rule "USER_CALL_RECORDS_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_CALL_RECORDS_KEY_INfO_EMPTY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_CALL_RECORDS_KEY_INfO_EMPTY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        not UserCallRecordsModel();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.USER_CALL_RECORDS_KEY_INfO_EMPTY.getMessage(),
+                                          $thresholdValues.getRuleDesc(BlackListTypeEnum.USER_CALL_RECORDS_KEY_INfO_EMPTY.getMessage()),
+                                          "手机通话记录为空").addToResultList(ruleSetResultList);
+end
+
+
+//// 数据为空
+//rule "USER_CALL_RECORDS_CONTACT_INFO_EMPTY"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage()))
+//    when
+//        UserCallRecordsModel(hasContact==false);
+//    then
+//        RuleUtils.buildHitRuleResult(BlackListTypeEnum.KEY_INfO_EMPTY.getMessage(),
+//                                           "用户通讯录为空",
+//                                           "用户通讯录为空").addToResultList(ruleSetResultList);
+//end

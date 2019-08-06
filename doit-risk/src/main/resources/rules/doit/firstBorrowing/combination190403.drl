@@ -1,0 +1,135 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "SCORE_MODEL_PRODUCT_600_SEX_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage()]);
+        RUserInfo($sex: sex);
+        ModelScoreResult($product600Score: product600Score);
+        eval(RuleUtils.equalTo(RuleUtils.valueOfStr($sex),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage(),
+                                                        "true",
+                                                        "600产品分数大于女性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "SCORE_MODEL_PRODUCT_600_SEX_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage()]);
+        RUserInfo($sex: sex);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($sex),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_SEX.getMessage(),
+                                                        "false",
+                                                        "为命中600产品分数大于女性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+rule "GOJEK_WHATSAPP_WHATSAPPRATIO_SEX_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage()]);
+         RUserInfo($sex: sex,$whatsAppCheckResult:whatsAppCheckResult,$gojekVerified: gojekVerified,$whatsAppYesRadio: whatsAppYesRadio);
+         eval(RuleUtils.equalString(RuleUtils.valueOfStr($gojekVerified),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppCheckResult),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppYesRadio),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($sex),RuleUtils.getRuleParam($threshData,3))
+             )
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage(),
+                                        "true",
+                                        "命中验证了gojek&本人whatsapp开通&联系人Whatsapp开通占比&女性")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "GOJEK_WHATSAPP_WHATSAPPRATIO_SEX_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage()]);
+         RUserInfo($sex: sex,$whatsAppCheckResult:whatsAppCheckResult,$gojekVerified: gojekVerified,$whatsAppYesRadio: whatsAppYesRadio);
+         eval(!(RuleUtils.equalString(RuleUtils.valueOfStr($gojekVerified),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppCheckResult),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppYesRadio),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($sex),RuleUtils.getRuleParam($threshData,3))
+             ))
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.GOJEK_WHATSAPP_WHATSAPPRATIO_SEX.getMessage(),
+                                        "false",
+                                        "未命中验证了gojek&本人whatsapp开通&联系人Whatsapp开通占比&女性")
+                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage()]);
+         RUserInfo($sex: sex,$iziPhoneVerifyResult: iziPhoneVerifyResult,$whatsappAccount: whatsappAccount, $mobileNumber: mobileNumber);
+         eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+              && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==IziPhoneVerifyResult.PhoneVerifyStatusEnum.OK
+              && RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"MATCH")
+              && $whatsappAccount!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+             )
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage(),
+                                        "true",
+                                        "命中IZI手机实名&whatsapp账号是本人手机号&女性")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage()]);
+         RUserInfo($sex: sex,$iziPhoneVerifyResult: iziPhoneVerifyResult,$whatsappAccount: whatsappAccount, $mobileNumber: mobileNumber);
+         eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+              && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==IziPhoneVerifyResult.PhoneVerifyStatusEnum.OK
+              && RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"MATCH")
+              && $whatsappAccount!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+         ))
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IZIPHONEVERIFY_WHATSAPPANDOWNERTELSAME_SEX.getMessage(),
+                                        "false",
+                                        "未命中IZI手机实名&whatsapp账号是本人手机号&女性")
+                                    .addToResultList(ruleSetResultList);
+end
+

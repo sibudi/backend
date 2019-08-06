@@ -1,0 +1,121 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.LoanInfo.LoanPurpose;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+
+
+rule "COMB_190620_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneAgeResult:iziPhoneAgeResult, $gojekVerified: gojekVerified);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce,$appCountForCreditCard: appCountForCreditCard);
+        ModelScoreResult($product50Score: product50Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,1))
+             && $iziPhoneAgeResult!=null && $iziPhoneAgeResult.getAge()!=null && RuleUtils.containsString( Arrays.asList("1","2","3"),RuleUtils
+             .valueOfStr($iziPhoneAgeResult.getAge()))
+             && $gojekVerified!=null && $gojekVerified==false
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product50Score),RuleUtils.getRuleParam($threshData,2))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage(),
+                                                        "true",
+                                                        "命中男性&电商类app个数&信用卡类app个数&IZI在网时长&未验证gojek&50产品模型评分")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190620_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneAgeResult:iziPhoneAgeResult, $gojekVerified: gojekVerified);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce,$appCountForCreditCard: appCountForCreditCard);
+        ModelScoreResult($product50Score: product50Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,1))
+             && $iziPhoneAgeResult!=null && $iziPhoneAgeResult.getAge()!=null && RuleUtils.containsString( Arrays.asList("1","2","3"),RuleUtils
+             .valueOfStr($iziPhoneAgeResult.getAge()))
+             && $gojekVerified!=null && $gojekVerified==false
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product50Score),RuleUtils.getRuleParam($threshData,2))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEAGE_GOJEK_MODEL50SCORE.getMessage(),
+                                                        "false",
+                                                        "未命中男性&电商类app个数&信用卡类app个数&IZI在网时长&未验证gojek&50产品模型评分")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190620_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult:iziPhoneVerifyResult, $gojekVerified: gojekVerified);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce,$appCountForCreditCard: appCountForCreditCard);
+        ModelScoreResult($product50Score: product50Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,1))
+             && $iziPhoneVerifyResult!=null && (PhoneVerifyStatusEnum.NOT_FOUND == $iziPhoneVerifyResult.getStatus()
+                     || RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+                   )
+             && $gojekVerified!=null && $gojekVerified==false
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product50Score),RuleUtils.getRuleParam($threshData,2))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage(),
+                                                        "true",
+                                                        "命中男性&电商类app个数&信用卡类app个数&IZI实名认证&未验证gojek&50产品模型评分")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190620_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult:iziPhoneVerifyResult, $gojekVerified: gojekVerified);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce,$appCountForCreditCard: appCountForCreditCard);
+        ModelScoreResult($product50Score: product50Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalString(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,1))
+             && $iziPhoneVerifyResult!=null && (PhoneVerifyStatusEnum.NOT_FOUND == $iziPhoneVerifyResult.getStatus()
+                     || RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+                   )
+             && $gojekVerified!=null && $gojekVerified==false
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product50Score),RuleUtils.getRuleParam($threshData,2))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_ECOMMERCE_CREDIT_CARD_APPCOUNT_IZIPHONEVERIFY_GOJEK_MODEL50SCORE.getMessage(),
+                                                        "false",
+                                                        "未命中男性&电商类app个数&信用卡类app个数&IZI实名认证&未验证gojek&50产品模型评分")
+                                                        .addToResultList(ruleSetResultList);
+end

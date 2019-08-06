@@ -1,0 +1,164 @@
+
+import com.yqg.drools.model.TokopediaModel;
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import java.util.List
+import com.yqg.drools.utils.RuleUtils;
+
+global java.util.List ruleSetResultList;
+
+rule "TOKOPEDIA_001"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_180_TOTAL_AMOUNT.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_180_TOTAL_AMOUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $model: TokopediaModel()
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_TOTAL_AMOUNT.getMessage(),
+                                 RuleUtils.valueOfStr($model.getRecent180TotalAmount()),
+                                 "最近180天tokopedia金额合计")
+                                 .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_TOTAL_AMOUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getRecent30TotalAmount()),
+                                       "最近30天tokopedia金额合计")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_180_TOTAL_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getRecent180TotalCount()),
+                                       "最近180天tokopedia交易次数合计")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_TOTAL_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getRecent30TotalCount()),
+                                       "最近30天tokopedia交易次数合计")
+                                       .addToResultList(ruleSetResultList);
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AVG_ORDER_NUM.getMessage(),
+                                       RuleUtils.valueOfStr($model.getAverageCountPerMonth()),
+                                       "月平均订单次数")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AVG_ORDER_AMOUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getAverageAmountPerMonth()),
+                                       "月平均订单金额")
+                                       .addToResultList(ruleSetResultList);
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MIN_AOUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getMinAmountPerOrder()),
+                                       "单笔订单的最低价格")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MAX_AOUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getMaxAmountPerOrder()),
+                                       "单笔订单的最高价格")
+                                       .addToResultList(ruleSetResultList);
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AVG_AMOUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getAverageAmountPerOrder()),
+                                       "单笔订单平均价格")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MID_AMOUNT.getMessage(),
+                                             RuleUtils.valueOfStr($model.getMedianAmount()),
+                                             "单笔订单价格的中位数")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MODE_AMOUNT.getMessage(),
+                                             $model.getModeAmount(),
+                                             "单笔订单价格的众数")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.END_DIFF_APPLY_DAY.getMessage(),
+                                             RuleUtils.valueOfStr($model.getDiffDaysBetweenLastTransDayAndApplyDate()),
+                                             "尾笔订单距提交申请的天数")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FIRST_DIFFAPPLY_DAY.getMessage(),
+                                             RuleUtils.valueOfStr($model.getDiffDaysBetweenFirstTransDayAndApplyDate()),
+                                             "首笔订单距提交申请的天数")
+                                       .addToResultList(ruleSetResultList);
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CROSS_DAY.getMessage(),
+                                                   RuleUtils.valueOfStr($model.getCrossDays()),
+                                                   "订单的累计跨越天数")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AVG_DAY.getMessage(),
+                                                   RuleUtils.valueOfStr($model.getAverageDiffDaysPerOrder()),
+                                                   "订单的平均间隔天数")
+                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ADDRESS_SET.getMessage(),
+                                                   RuleUtils.valueOfStr($model.getOrderAddressCount()),
+                                                   "订单的地址个数")
+                                       .addToResultList(ruleSetResultList);
+
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SHOP_URL_SET.getMessage(),
+//                                                   RuleUtils.valueOfStr($model.getShopCount()),
+//                                                   "tokopedia购买的店铺个数")
+//                                       .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IN_OUT_RATE.getMessage(),
+                                                   RuleUtils.valueOfStr($model.getExpenditureIncomeRatio()),
+                                                   "支出占收入的比例")
+                                       .addToResultList(ruleSetResultList);
+
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TOKOPEDIA_BIRTHDAY.getMessage(),
+//                                                         RuleUtils.valueOfStr($model.getIsSameBirthday()),
+//                                                         "tokopedia生日与订单用户生日比对")
+//                                       .addToResultList(ruleSetResultList);
+
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TOKOPEDIA_EMAIL.getMessage(),
+                                                               RuleUtils.valueOfStr($model.getEmailNotSame()),
+                                                               "tokopedia email与订单用户email比对")
+                                       .addToResultList(ruleSetResultList);
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TOKOPEDIA_MOBILE.getMessage(),
+                                                               RuleUtils.valueOfStr($model.getMobileNumberNotSame()),
+                                                               "tokopedia手机号与订单用户手机号比对")
+                                       .addToResultList(ruleSetResultList);
+
+        // 2018-01-31 新增需求
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.DIFF_PHONE_NUM_COUNT.getMessage(),
+                                                                     RuleUtils.valueOfStr($model.getDiffPhoneNumCount()),
+                                                                     "tokopedia去重手机号码个数")
+                                             .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MATCH_PHONE_COUNT.getMessage(),
+                                                                           RuleUtils.valueOfStr($model.getMatchPhoneCount()),
+                                                                           "用户手机号匹配到tokopedia收货地址中手机号的次数")
+                                                   .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TO_ORDER_COUNT.getMessage(),
+                                                                                 RuleUtils.valueOfStr($model.getToOrderCount()),
+                                                                                 "用户手机号在toko累计下单次数")
+                                                         .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.REGISTER_DIFF_DAYS.getMessage(),
+                                                                                 RuleUtils.valueOfStr($model.getRegisterDiffDays()),
+                                                                                 "tokopedia账号注册距提交订单的天数")
+                                                         .addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MATCH_NUM.getMessage(),
+                                                                                       RuleUtils.valueOfStr($model.getMatchNum()),
+                                                                                       "tokopedia用户名匹配到用户姓名单词的个数")
+                                                               .addToResultList(ruleSetResultList);
+
+RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.BIG_DIRECT_COUNT.getMessage(),
+                                                                     RuleUtils.valueOfStr($model.getDiffPhoneNumCount()),
+                                                                     "大区出现的次数")
+                                             .addToResultList(ruleSetResultList);
+RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMALL_DIRECT_COUNT.getMessage(),
+                                                                     RuleUtils.valueOfStr($model.getDiffPhoneNumCount()),
+                                                                     "小区出现的次数")
+                                             .addToResultList(ruleSetResultList);
+RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.DETAILED_COUNT.getMessage(),
+                                                                     RuleUtils.valueOfStr($model.getDiffPhoneNumCount()),
+                                                                     "详细地址的单词匹配到至少1个的次数")
+                                             .addToResultList(ruleSetResultList);
+RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ADDR_FLAG.getMessage(),
+                                                                     RuleUtils.valueOfStr($model.getDiffPhoneNumCount()),
+                                                                     "大区、小区、详细地址未同时出现")
+                                             .addToResultList(ruleSetResultList);
+end
+
+
+rule "TOKOPEDIA_002"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TOKOPEDIA_DATA_EMPTY.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TOKOPEDIA_DATA_EMPTY.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      not TokopediaModel()
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.TOKOPEDIA_DATA_EMPTY.getMessage(),
+                                        $thresholdValues.getRuleDesc(BlackListTypeEnum.TOKOPEDIA_DATA_EMPTY.getMessage()),
+                                         "Tokopedia的相关数据为空").addToResultList(ruleSetResultList);
+end

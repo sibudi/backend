@@ -1,0 +1,293 @@
+package com.yqg.externalChannel.dao;
+
+import com.yqg.externalChannel.entity.ExternalOrderRelation;
+import org.apache.ibatis.annotations.*;
+
+import java.util.List;
+
+/*****
+ * @Author zengxiangcai
+ * Created at 2018/3/8
+ * @Email zengxiangcai@yishufu.com
+ *
+ ****/
+
+@Mapper
+public interface ExternalOrderRelationDao {
+
+    @Insert(
+        "insert into externalOrderRelation(externalOrderNo,orderNo,userUuid,channel,createTime,updateTime) "
+            + "   values(#{externalOrderNo},#{orderNo},#{userUuid},#{channel},now(),now())")
+    int insert(ExternalOrderRelation relation);
+
+    @Select("select id, externalOrderNo,orderNo,userUuid,channel,disabled from externalOrderRelation where externalOrderNo=#{externalOrderNo} and disabled=0")
+    ExternalOrderRelation selectByExternalOrderNo(@Param("externalOrderNo") String externalOrderNo);
+
+    @Select("select id, externalOrderNo,orderNo,userUuid,channel,disabled from externalOrderRelation where orderNo=#{orderNo} and disabled=0")
+    ExternalOrderRelation selectByOrderNo(@Param("orderNo") String orderNo);
+
+    @Select("select * from (select id, externalOrderNo,orderNo,userUuid,channel,disabled from externalOrderRelation where userUuid=#{userUuid} and disabled=0 order by id desc) limit 1")
+    ExternalOrderRelation selectLatestByoUserUuid(@Param("userUuid") String userUuid);
+
+    @Update("update externalOrderRelation set disabled=1 where id =#{id}")
+    int disableRelation(@Param("id") Integer id);
+
+
+    @Select("select *from externalOrderRelation e where userUuid in (\n" +
+            "    'A58E24534CB845C3BAB286DC27AC39CC',\n" +
+            "    '2C8628EC7ACB4466B4E7E2594021D5C1',\n" +
+            "    'DD0E28CD394F4EDE9DCDBA00C824059E',\n" +
+            "    'DC0C024F1DBE41328C6A3B0A726FDE5B',\n" +
+            "    '97C6FCCDAF8C4058B62112474BBF9198',\n" +
+            "    '50C715B205D84B8FA93194BA617EF39C',\n" +
+            "    '06DF490E6B07481EB9A9E7A1266AC894',\n" +
+            "    'D768242B6FD1495C836D36CCB325EC28',\n" +
+            "    'EC5EAE8EC4104E0990DBCEF5AB5501FB',\n" +
+            "    'B69A68DD55164C428862872621D101A3',\n" +
+            "    '5FDDFD763CE34364981CBB116FDB29CE',\n" +
+            "    '2EF46B4C6FE04D35B6F85B2912C07591',\n" +
+            "    '93CD4BD0597343D291B78528B68E9706',\n" +
+            "    '1D8B07EC3B474B0AA99E15C875D4CEF1',\n" +
+            "    'F8838E8C16194DF89B7907F7C49F5424',\n" +
+            "    '89C25CB4341644FCB54F1CCB77B99434',\n" +
+            "    'FCF663B73D994AB4A4203E78AB94D605',\n" +
+            "    '5AD2D80516B34E65BF34EAFF718E47A1',\n" +
+            "    '3D54EF0B1C534553A57F94D390B1CB09',\n" +
+            "    '626F74AD47D142D2A26B774E95D310ED',\n" +
+            "    'ECB34328EA03495894514E630ADDCB9E',\n" +
+            "    '5639871152A948F5AACA60C541580BFD',\n" +
+            "    '6A940422BED74E2FB0A9600D14B5FCFE',\n" +
+            "    'AA9E232B0E5B4372BAB9ED6521AC089A',\n" +
+            "    '95A36F76EC724A72A080AC29BEA0AB5C',\n" +
+            "    '8AA8E3C61AC64BA980CA202FD646C5AC',\n" +
+            "    '65E83D550A2C44CDAF75FFDBAB0790F0',\n" +
+            "    '54526F6E71FB4A129E3522D28E891D2D',\n" +
+            "    '826C769A299743FAA0A8FEA9CD1347E5',\n" +
+            "    'F76EA3F8B27F4C0FB5A7D703478E70CE',\n" +
+            "    '01777F4ABBDD473CA809FC64302E34C7',\n" +
+            "    'F5A5518F448A4D4AB18DF425935C33B6',\n" +
+            "    '5F70F73AF251497A82BB37FB03C3910F',\n" +
+            "    '569B2D7EEE8B45E7AC8AD24FD3256704',\n" +
+            "    'A50D6E45D6534FE78D466F4C84E7E103',\n" +
+            "    '9FFC55388AB44A7891102F52B4096BAA',\n" +
+            "    'D83CC8D062264FA59D529BEB9EF791AA',\n" +
+            "    '49DADA12CE1940CF83D68910D0C62137',\n" +
+            "    '3A8290F70C0348DF8D87B93A24B9837F',\n" +
+            "    '9791DFA05AEE456F9369AAE7681D526A',\n" +
+            "    '91EC374EBFEF428FAF5F56A137E0B822',\n" +
+            "    'C7A1AC9028B7473BAFBFEF94BA54DDD3',\n" +
+            "    'B309459E0D5A4D2BB7118AE6279C0D0F',\n" +
+            "    'CB52020DDCC247CDAB13161FA74E3E40',\n" +
+            "    '2D70182FA7604B488E1907350A913D02',\n" +
+            "    '252AF5D30704419090EC79874FAE8A01',\n" +
+            "    '90473E6B27F9432FBB43E0222367BD6C',\n" +
+            "    '1B1077D84EAC42A6B17CCC2333B265DC',\n" +
+            "    '40144B52BCC045C090E5353D0FCF4865',\n" +
+            "    '56144743406349069A0E4D4712D23DA4',\n" +
+            "    '5F33A77074FA4DA7B3FC3A3C47F4B88D',\n" +
+            "    'DAFCB79DCEE1466FB1EAEB7E19502D08',\n" +
+            "    'C439C5C5A4694A0CA89563DA93CC2A5E',\n" +
+            "    '3179154EC56A48CD93EF202D0A40F1F3',\n" +
+            "    'E0334986FC4B4A53972B9FBCADEB9D37',\n" +
+            "    'AD351A4AEBEB423487E6570459F0E787',\n" +
+            "    'A67A1FF7F69E44059A4962CD2BF3B243',\n" +
+            "    'F028F40797C74818B92D55B7B6D4DE27',\n" +
+            "    'C4E6A869F9B640C6A4B38EE1E0C888CE',\n" +
+            "    'E6EBF5E80398403F8DD8B40963FAB04A',\n" +
+            "    '14F7FCF194C047B69392CFB5E197BE74',\n" +
+            "    '2FE8C11F74604FF695723DE391D0BBE2',\n" +
+            "    '1994C17EB54D4533B49912943E38CD92',\n" +
+            "    'D099B4D087734D679557025242ED2CC7',\n" +
+            "    '5BCC8608FA524ECC9C0F5E220FBEFDC5',\n" +
+            "    'C8549DEF5F54480B931ED33FE3BB1199',\n" +
+            "    'B57444DA86F2443086697BC56A80EB15',\n" +
+            "    '09CC0B36CF934BBCAD071D827E0DEB2C',\n" +
+            "    '92DF228F3B724C5C8EEA4A687AEABF9F',\n" +
+            "    '5337D89C611F4D6A9BE19D218AFF092F',\n" +
+            "    'CF60BB95348B47CBAF42D6DECEBA1610',\n" +
+            "    '04B921AE31AA44AD91D4715DAE3FD697',\n" +
+            "    '15B41F6E9F484640A611542EBA4DF6ED',\n" +
+            "    '832A72EDD502404FB48B3AD60B6B0135',\n" +
+            "    '6AABB9908AA74B839084661F07660DF7',\n" +
+            "    'D374E20C98054EA8BEF815010DF02682',\n" +
+            "    '4972939B357F48A9AD933D6D6CB9318C',\n" +
+            "    '1C0C3773B6E84DEA904BFA9570623587',\n" +
+            "    'EE5D0AF69F2C4AA39C8AF1F68A51884F',\n" +
+            "    'E1F325629C9E49D681F80A6FC906FC21',\n" +
+            "    '9984DC6CDF3246ACA268E69E3BEBE94C',\n" +
+            "    'CC3A75E97E7B478FBC074379E6FAFB81',\n" +
+            "    'DE5AF3E2D4CC4A65A30ABCD6AB5DE9B2',\n" +
+            "    '621DFBC853A44A3EA347698B48EE0400',\n" +
+            "    '753EDF05B23D44C992B17ED46F410818',\n" +
+            "    '6D9EFCAEEFE24153900F84B91F6E4825',\n" +
+            "    '4A9F8DF4EF134799AD996FDF56035E05',\n" +
+            "    '1186CA5E75494CC78AF56DD526C87258',\n" +
+            "    'B8BD15FB0C724E6D91AE32D50B5C531B',\n" +
+            "    '89C998D310AF438EA2FDF8481330E953',\n" +
+            "    'A60CC5376ADB4DB684B17226991C5FD6',\n" +
+            "    '361BE17B3462470A8ADA64FDE2A36C99',\n" +
+            "    'B4258D61EEB14430B4A2154DB98020BD',\n" +
+            "    '984D08179D6144ECB2DE734C3EA66E5F',\n" +
+            "    '9B34FF7011534058B9CA3C2C0224B148',\n" +
+            "    '06CAF807DB734D2CA38307D0B111B7B3',\n" +
+            "    '9742A4D77D5C41118FD3B21169D1BF3D',\n" +
+            "    '29785A6F8EFC4A27BA470782B38321B5',\n" +
+            "    '51A2271322B14F78B6C2E63E7F6CF1C5',\n" +
+            "    '2F10139ED64A4E3D9D285EE5D476B15D',\n" +
+            "    '3AB2BED634CC4BB7A3536F99386A3A25',\n" +
+            "    '18FD7DDDA98A47F694B7F8CDDB572B7B',\n" +
+            "    'AA8427853BE345B582C4386237516B7B',\n" +
+            "    '8E77618109D74A648DCA1DDA3E6EAE08',\n" +
+            "    '403858F359C94725BF884F27C0C5A835',\n" +
+            "    'F481B5062A6147C3A14325AB87E568B7',\n" +
+            "    'F2422BD08A2C44FDBF85065F3A47C723',\n" +
+            "    'F8D128FA9BED4AD8B257BA172129C9C5',\n" +
+            "    '8FFDCC3E671142F382762E989D1A8F7A',\n" +
+            "    '8E2079433F2846F3AA7860248ED7FAA8',\n" +
+            "    'A1CDDF0520B0414CA5811F463758C3A2',\n" +
+            "    '2ABED031C2EE402F87581AAA46200E41',\n" +
+            "    'F3E0AF681DD344C7903168FD66C00C7C',\n" +
+            "    '4D9BC31D1DDC4AA0AD394EE2DDF74E0D',\n" +
+            "    '9AF3EBC3783546858B7CF61E1233E5A9',\n" +
+            "    '96BC11D4232648D9844D148CFC96B8FF',\n" +
+            "    'DBEEEDA397F545DAADB7077B02FD0F3A',\n" +
+            "    '72AB01A3B4284BEFA4892644692C8862',\n" +
+            "    'F89B6A52084C4707B62DF49D8F32CE8C',\n" +
+            "    '799849F471A84354BE97F0397376EA03',\n" +
+            "    'C9D480AAC43D4D21A88DC4CAA73E08F3',\n" +
+            "    '859719686C3B4ADEAC816C0778DB3813',\n" +
+            "    'EE6F73A7F12C482BA1EF6C4885349D9E',\n" +
+            "    '673CABA34816491F9F16653FAC5BB6AB',\n" +
+            "    'D4B80F3FC05B465D9FB1774401C50ECD',\n" +
+            "    'D0F5862F0AAD424183608F6054AEF129',\n" +
+            "    '792A194EAA3142DAABD5677E334818B7',\n" +
+            "    'F84FCFC5FA6C4562814E4C9400945472',\n" +
+            "    '910788BEC13745F4A8584E924205E21A',\n" +
+            "    'D40417A006AA429D876A53308F20FCC6',\n" +
+            "    'E9D1020EF612419E908C46383B9D7B0F',\n" +
+            "    'E38581745BD94792BDFD65A2B96238B0',\n" +
+            "    '6293DEEEDED046B999E7605F915B4512',\n" +
+            "    '61CCE03D10EF427B9E41E5D9283E406B',\n" +
+            "    '0B77F2EC729C41DEA049999DD5349D60',\n" +
+            "    '324611C27DAB41BEBA8BA103DA8D9381',\n" +
+            "    '884C302D301D406AAB12031541CEDABB',\n" +
+            "    'F3E543A49D0A4E689CCEFE6E5807B2EB',\n" +
+            "    '4B150DB32CD94E7886CD5A193B53A13E',\n" +
+            "    'AB849CF278484097A4511956929641EC',\n" +
+            "    '1379836C88A1401EA8299776D6169BE1',\n" +
+            "    '69788AFB4C9F416AA51D9BBD21545C2A',\n" +
+            "    '2917E553248E4890BC01C34A40B79BB6',\n" +
+            "    '0DE3367F84694CD2835D76A2B8BA2BC7',\n" +
+            "    '24947CEC2BAA4BB890E98AF2A3D60E92',\n" +
+            "    'C54AFB30624E4B3F88C050AED7E4206E',\n" +
+            "    '5B0FA718EB0E4544ADE9A7C5DC5F6A51',\n" +
+            "    '50E0716E38614302B0ABD6B292362856',\n" +
+            "    '333C5C0B909F4F4489382A7C6C0D3E61',\n" +
+            "    '663055ECF3004B27AE11AC0D2B947AFF',\n" +
+            "    '1809A6E04DB24815B6984AFD1C13452B',\n" +
+            "    'DA83A1592C864A5FB8D1B056925AD511',\n" +
+            "    '38972948C54C4260985DA8D7D08BF297',\n" +
+            "    'A332219BD906402D812B5221D759B2A0',\n" +
+            "    '1512672B81B643E3BB8CE92B904790AF',\n" +
+            "    '890ECC8D11E04F87BEE0EF6CC7C0F5A7',\n" +
+            "    'AABE40F176804A709CC42388194ADBBD',\n" +
+            "    '3C952F8E8B384FF08111D226882C3A2C',\n" +
+            "    '82F5F6A5D9084FDB8BC0DDC637C6B5A1',\n" +
+            "    '50F1007FCA834CA6B6A58905FD43591D',\n" +
+            "    '03C64B0CDFD1433D8C569AEF05F70401',\n" +
+            "    '4986740919984DCA99F4B3905A3BFBC5',\n" +
+            "    'C3EE57640EAE41F9ACBD70DC572ADD02',\n" +
+            "    '21DF6DE5C40D426FB312E131D770C296',\n" +
+            "    '6D8291A2F9CC4BDEA36726FDA6AC95D6',\n" +
+            "    '517AA57EC48244A28E59E66F54741B29',\n" +
+            "    '4E9E1A476D91442F9E9949A8AB4B6A9B',\n" +
+            "    '88101F12C11D4ED996B0CBAFEF6864B4',\n" +
+            "    '577523F129DE4BEE9F3F392778F386C7',\n" +
+            "    'B100F874EF0541BA90938078D4DB18B2',\n" +
+            "    'A7DB2863E3FD45CDA610E17D28FC5FD3',\n" +
+            "    'CE06B9F0141E4B53B5291FCA69453B3D',\n" +
+            "    'F9A6E532A54D42CA8A7554AE46A103FA',\n" +
+            "    'AE87B0929BCC4935A5C10A6C2F8A7CC6',\n" +
+            "    '5A12601E8C1B4020958FEE4F4982BB1E',\n" +
+            "    '369BF0C63950421181297D33A5A9EBB3',\n" +
+            "    '0171A44BD3324B9898EE5B284093DE45',\n" +
+            "    '205FBA52837A454DA97A2EFF6037C789',\n" +
+            "    '3C485B5AF707446EBDEF0346C0B342ED',\n" +
+            "    'F58E1DBEECCB4FFEADE04C5F622145F2',\n" +
+            "    '5FB31D558AB148B8B4542B87D7292854',\n" +
+            "    '4FE3E98E124C4315B428EC91BCEEBB21',\n" +
+            "    '2E04953F603748AE8263C3E6231E6C48',\n" +
+            "    'DF327F97B2144CA1A6DCA8D356C852FA',\n" +
+            "    '43B839405C1D4EA1980C5520AFF9A0AB',\n" +
+            "    '95A3AA3D5CD148EBB9BDAABD96A2A45D',\n" +
+            "    'C822CEEE90C9459B86101E7643021A7E',\n" +
+            "    'E1D061D219AA40E9AF44C8164E9B6B9A',\n" +
+            "    'D851908226E24E9BAE5BE495BFC7A24F',\n" +
+            "    'B8EBCC83361E4C15A24696A613AE10B4',\n" +
+            "    '07167DA2A5EC4E4C84ED62ED7B11E430',\n" +
+            "    '35919D11A20144E1B45D772B8C9CA5F6',\n" +
+            "    'C53A04F0640E415185C0670C8EC4E03C',\n" +
+            "    'C7A4F1E5FB8B49BFA0DAF01E8C1250F5',\n" +
+            "    'FD3CEC26E8C04BF7AEAF3202E6A50ECA',\n" +
+            "    '26152F1D75904A18956A0501BA3642B8',\n" +
+            "    '680B869D65DD44178EC4D5BF1CDF7751',\n" +
+            "    '4EE41C7128564017AAB0EE187C7F4B94',\n" +
+            "    '0B66A7AA3D874C66960A6D63FC5859AB',\n" +
+            "    'C05F642B76404C5E9BECA273C118E01B',\n" +
+            "    'F71E31A191374DC285B7D38C4EF2E9EB',\n" +
+            "    'B3FF1D5B4F9148A9A03E2FBFA0917FCB',\n" +
+            "    '9835DD8AA0BE498599AB7722B154E16A',\n" +
+            "    '2EDFC4BB776D46C18E8F047EAE4CBADC',\n" +
+            "    '9C41E7431DCE4322870566B71CA861ED',\n" +
+            "    '820DEAD10BF449EB97608699F985A27B',\n" +
+            "    '8A7156134C3347F2A0255331B5670B15',\n" +
+            "    '183F8E287564491CAA0913CD9DAF39E9',\n" +
+            "    '355AB150085842BB83AE1F1624C9266B',\n" +
+            "    '2D68CC2915044CF38669D5D12E04D966',\n" +
+            "    'AF19FD3D69CA4D77A478985FC71DF7C9',\n" +
+            "    '092C5ACCCFAF4476B8F5773E4C0BD9C7',\n" +
+            "    'E9DE40C8F92E4484B21E2D4E376E71AA',\n" +
+            "    '5D671AB9D8054960B3BDC45A565A176E',\n" +
+            "    '7CE582C5A9054C48BDCBB8CD53E510B3',\n" +
+            "    'F344A985EDFA4E4FB63CC25DDCD10058',\n" +
+            "    '861C62EE00644E738D46C5CC8B071537',\n" +
+            "    'F6E2FCDBE9AB4E00AE01DDFB21ED3E10',\n" +
+            "    '64DB6CD838044016BEFB98B805645CE7',\n" +
+            "    '1EFD1E73F38D45F2B57C41C9EF7CD977',\n" +
+            "    '07A2D8A7EE3F477083218F038532BDDB',\n" +
+            "    'F438D3D2BAC740C7B149F7889F04AA86',\n" +
+            "    '145495E71938427285A58D3E3F984A0F',\n" +
+            "    '3F9D0A968E704BF6B1C9880BB8B88D95',\n" +
+            "    '9EBE50F7C31744AEA5D81FBFCF658CAE',\n" +
+            "    '3ABCFB37F1F2442A8DAEB290BA5C6930',\n" +
+            "    '4AB15B7E5F75481895FC89CF5CF6D772',\n" +
+            "    'EB9FDF61700049EE96ABAF7F4AECA65A',\n" +
+            "    '577EBD2E1D8E47D7A68AF8E8A5D671E3',\n" +
+            "    '6A4256B7AC3A4859913CF31BAA55E025',\n" +
+            "    '95434A356EC24C16817FA152F0CE00A8',\n" +
+            "    'E8886E579B3247E8980285C1147187B2',\n" +
+            "    '7B7BB7DF17F24C88A9FDB4593A0553BA',\n" +
+            "    '015DED6AECC94C35860B37D57DDB4D12',\n" +
+            "    'D6812C3EC9CE42B2A0A603537B4EABD9',\n" +
+            "    '0FCD1502CC5C4B4FB2B9210A9E505424',\n" +
+            "    '8019C86209E84400AE76693A1F16CC1D',\n" +
+            "    'EF5B6BAEC71546859916FCA4D8BF3BFF',\n" +
+            "    '1C6049BC5DA84E9ABA9702A267B62D10',\n" +
+            "    'F6B57F1FD96B400DA3546E6485FBE6A2',\n" +
+            "    'B995B01C37FB408AACB51A4E0AC4068F',\n" +
+            "    'EEBFA8243CE841CBBC0E97DD1B573485',\n" +
+            "    '36EEBB3B199845B892265E17DBC86C89',\n" +
+            "    'BD4191C96F6B4C8FB8106EEF9F192970',\n" +
+            "    'C83BD4936417466484194882DAD41692',\n" +
+            "    'B8B13A2939DB467A8FC353E04772B24E',\n" +
+            "    '97DB2E070FA44A2B9873116720C213FC',\n" +
+            "    'A9A6CAAF0DDC4C909CC8171B8C9521AF',\n" +
+            "    '16DC93DB756741E7A59456EC024F47CB',\n" +
+            "    '424BCA10E098480891A7E063085A4623',\n" +
+            "    'EA47C6BB42544BAC8B6AB97E4BD13B3F',\n" +
+            "    '77072565503B427F90827D635897E77D',\n" +
+            "    '0B65CDC2F134466CA9BBC3773031745B',\n" +
+            "    '4FA387A37AB44E01BB030AF1335A8467'\n" +
+            "    ) and e.createTime>='2018-12-17'")
+    List<ExternalOrderRelation> getErrorOrders();
+}

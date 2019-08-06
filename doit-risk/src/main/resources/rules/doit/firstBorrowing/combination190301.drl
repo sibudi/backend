@@ -1,0 +1,128 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+
+rule "combination190301_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MARITALSTATUS_AGE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MARITALSTATUS_AGE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MARITALSTATUS_AGE.getMessage()]);
+          RUserInfo($maritalStatus:maritalStatus, $age:age);
+          eval($maritalStatus!=null && $maritalStatus == RUserInfo.MarriageEnum.Single.getCode()
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MARITALSTATUS_AGE.getMessage(),
+                                                "true",
+                                                "命中婚姻&年龄下限")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "combination190301_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MARITALSTATUS_AGE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MARITALSTATUS_AGE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MARITALSTATUS_AGE.getMessage()]);
+          RUserInfo($maritalStatus:maritalStatus, $age:age);
+            eval(!($maritalStatus!=null && $maritalStatus == RUserInfo.MarriageEnum.Single.getCode()
+                    && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+                )
+            )
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MARITALSTATUS_AGE.getMessage(),
+                                                "false",
+                                                "未命中婚姻&年龄下限")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "combination190301_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage()]);
+          RUserInfo($monthlyIncome:monthlyIncome, $sex:sex);
+          InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+          eval(RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForEcommerce), RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+              && $sex == RUserInfo.SexEnum.MALE.getCode()
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage(),
+                                                "true",
+                                                "命中电商类app个数&月收入&性别")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "combination190301_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage()]);
+          RUserInfo($monthlyIncome:monthlyIncome, $sex:sex);
+          InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+          eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForEcommerce), RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+              && $sex == RUserInfo.SexEnum.MALE.getCode())
+          )
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE_MONTHLY_SALARY_SEX.getMessage(),
+                                                "false",
+                                                "未命中电商类app个数&月收入&性别")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "combination190301_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage()]);
+          RUserInfo($whatsappAccount:whatsappAccount, $mobileNumber:mobileNumber,$sex:sex, $age:age);
+          eval(!RuleUtils.equalsIgnoreCase($mobileNumber, $whatsappAccount)
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+              && $sex == RUserInfo.SexEnum.MALE.getCode()
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage(),
+                                                "true",
+                                                "命中whatsapp账号不是本人手机号&男性&年龄")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "combination190301_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage()]);
+          RUserInfo($whatsappAccount:whatsappAccount, $mobileNumber:mobileNumber,$sex:sex, $age:age);
+          eval(!(!RuleUtils.equalsIgnoreCase($mobileNumber, $whatsappAccount)
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+              && $sex == RUserInfo.SexEnum.MALE.getCode())
+          )
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WHATSAPP_NOT_MOBILE_SEX_AGE.getMessage(),
+                                                "false",
+                                                "未命中whatsapp账号不是本人手机号&男性&年龄")
+                                                .addToResultList(ruleSetResultList);
+end
+

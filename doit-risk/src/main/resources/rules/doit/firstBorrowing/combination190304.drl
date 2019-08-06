@@ -1,0 +1,302 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "COMB_190304_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage()]);
+        RUserInfo($sex: sex, $monthlyIncome:monthlyIncome, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+        InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage(),
+                                                        "true",
+                                                        "命中男性&信用卡类APP个数&月收入2000-4000RMB&IZI实名认证NOT_FOUND")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190304_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage()]);
+        RUserInfo($sex: sex, $monthlyIncome:monthlyIncome, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+               InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+        eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+             )
+             )
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_IZI_PHONEVERIFY.getMessage(),
+                                                        "false",
+                                                        "未命中男性&信用卡类APP个数&月收入2000-4000RMB&IZI实名认证NOT_FOUND")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190308_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage()]);
+         RUserInfo($sex:sex,$academic: academic);
+         InstalledAppInfo($appCountForCreditCard: appCountForCreditCard,$appCountForEcommerce :appCountForEcommerce);
+         eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.containsString(Arrays.asList(EducationEnum.PrimarySchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode(),
+                                                       EducationEnum.HighSchool.getCode()),RuleUtils.valueOfStr($academic))
+             && $sex==RUserInfo.SexEnum.MALE.getCode()
+             );
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage(),
+                                        "true",
+                                        "命中信用卡类app个数&电商类app个数&男性&学历")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190308_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage()]);
+         RUserInfo($sex:sex,$academic: academic);
+         InstalledAppInfo($appCountForCreditCard: appCountForCreditCard,$appCountForEcommerce :appCountForEcommerce);
+         eval(!(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+                      && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,1))
+                      && RuleUtils.containsString(Arrays.asList(EducationEnum.PrimarySchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode(),
+                                                                EducationEnum.HighSchool.getCode()),RuleUtils.valueOfStr($academic))
+                      && $sex==RUserInfo.SexEnum.MALE.getCode()
+         ));
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CREDIT_CARD_ECOMMERCE_MALE_EDUCATION.getMessage(),
+                                        "false",
+                                         "未命中信用卡类app个数&电商类app个数&男性&学历")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190308_02_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage()]);
+         RUserInfo($sex:sex,$iziPhoneVerifyResult: iziPhoneVerifyResult);
+         InstalledAppInfo($totalApps: totalApps);
+         eval(RuleUtils.lessThan(RuleUtils.valueOfStr($totalApps),$threshData)
+             && $iziPhoneVerifyResult!= null && ($iziPhoneVerifyResult.getStatus() == IziPhoneVerifyResult.PhoneVerifyStatusEnum.NOT_FOUND
+                                                 || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))
+             && $sex==RUserInfo.SexEnum.MALE.getCode()
+             );
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage(),
+                                        "true",
+                                        "命中首借累计app个数&男性&IZI手机实名")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190308_02_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage()]);
+         RUserInfo($sex:sex,$iziPhoneVerifyResult: iziPhoneVerifyResult);
+         InstalledAppInfo($totalApps: totalApps);
+         eval(!(RuleUtils.lessThan(RuleUtils.valueOfStr($totalApps),$threshData)
+                      && $iziPhoneVerifyResult!= null && ($iziPhoneVerifyResult.getStatus() == IziPhoneVerifyResult.PhoneVerifyStatusEnum.NOT_FOUND
+                                                          || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))
+                      && $sex==RUserInfo.SexEnum.MALE.getCode()
+         ));
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TOTAL_APP_COUNT_MALE_IZI_PHONEVERIFY.getMessage(),
+                                        "false",
+                                         "未命中首借累计app个数&男性&IZI手机实名")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190314_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage()]);
+         RUserInfo($sex:sex);
+         LoanInfo($historySubmitCount: historySubmitCount);
+         eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($historySubmitCount),$threshData)
+             && $sex==RUserInfo.SexEnum.MALE.getCode()
+             );
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage(),
+                                        "true",
+                                        "命中提交订单数&男性")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190314_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage()]);
+         RUserInfo($sex:sex);
+         LoanInfo($historySubmitCount: historySubmitCount);
+         eval(!(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($historySubmitCount),$threshData)
+                      && $sex==RUserInfo.SexEnum.MALE.getCode()
+         ));
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HISTORY_SUBMIT_COUNT_MALE.getMessage(),
+                                        "false",
+                                         "未命中提交订单数&男性")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190321_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage()]);
+         RUserInfo($sex:sex, $academic: academic,$hasDriverLicense: hasDriverLicense, $gojekVerified: gojekVerified);
+         LoanInfo($diffMinutesOfStepOne2StepTwo: diffMinutesOfStepOne2StepTwo,
+         $diffMinutesOfUserCreateTimeAndOrderSubmitTime: diffMinutesOfUserCreateTimeAndOrderSubmitTime);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+              && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode(),EducationEnum.PrimarySchool.getCode(),EducationEnum
+              .JuniorMiddleSchool.getCode()),$academic)
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($diffMinutesOfUserCreateTimeAndOrderSubmitTime),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($diffMinutesOfStepOne2StepTwo),RuleUtils.getRuleParam($threshData,1))
+              && !$hasDriverLicense
+              && $gojekVerified!=null && !$gojekVerified
+              )
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage(),
+                                        "true",
+                                        "命中男性&学历&注册到提交时间&填写信息时长&未上传驾驶证&未验证gojek")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190321_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage()]);
+         RUserInfo($sex:sex, $academic: academic,$hasDriverLicense: hasDriverLicense, $gojekVerified: gojekVerified);
+         LoanInfo($diffMinutesOfStepOne2StepTwo: diffMinutesOfStepOne2StepTwo,
+         $diffMinutesOfUserCreateTimeAndOrderSubmitTime: diffMinutesOfUserCreateTimeAndOrderSubmitTime);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+              && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode(),EducationEnum.PrimarySchool.getCode(),EducationEnum
+              .JuniorMiddleSchool.getCode()),$academic)
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($diffMinutesOfUserCreateTimeAndOrderSubmitTime),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($diffMinutesOfStepOne2StepTwo),RuleUtils.getRuleParam($threshData,1))
+              && !$hasDriverLicense
+              && $gojekVerified!=null && !$gojekVerified
+              ));
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_EDUCATION_DIFFMINS_OF_CREATE_SUBMIT_DIFFMINS_OF_STEP1TO2_DRIVERLICENSE_GOJEK.getMessage(),
+                                        "false",
+                                         "未命中男性&学历&注册到提交时间&填写信息时长&未上传驾驶证&未验证gojek")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190321_02_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage()]);
+         RUserInfo($sex:sex, $whatsappAccount: whatsappAccount, $mobileNumber: mobileNumber, $hasDriverLicense: hasDriverLicense,
+          $gojekVerified:gojekVerified,$hasPayroll: hasPayroll);
+         eval($whatsappAccount!=null && !RuleUtils.equalString($whatsappAccount,$mobileNumber)
+              && !$hasDriverLicense
+              && $gojekVerified!=null && !$gojekVerified
+              && $hasPayroll!=null && !$hasPayroll
+              )
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage(),
+                                        "true",
+                                        "命中whatsapp账号不是本人手机号&未验证gojek&未上传驾驶证&未上传工资单")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190321_02_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage()]);
+         RUserInfo($sex:sex, $whatsappAccount: whatsappAccount, $mobileNumber: mobileNumber, $hasDriverLicense: hasDriverLicense,
+          $gojekVerified:gojekVerified,$hasPayroll: hasPayroll);
+         eval(!($whatsappAccount!=null && !RuleUtils.equalString($whatsappAccount,$mobileNumber)
+              && !$hasDriverLicense
+              && $gojekVerified!=null && !$gojekVerified
+              && $hasPayroll!=null && !$hasPayroll
+              ))
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WHATSAPP_NOT_SAME_GOJEK_DRIVERLICENSE_PAYROLL.getMessage(),
+                                        "false",
+                                         "未命中whatsapp账号不是本人手机号&未验证gojek&未上传驾驶证&未上传工资单")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190321_03_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage()]);
+         RUserInfo($sex:sex, $academic:academic, $hasDriverLicense: hasDriverLicense,$gojekVerified:gojekVerified);
+         LoanInfo($borrowingPurpose: borrowingPurpose);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+              && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.GraduateStudent.getCode(),
+              EducationEnum.Undergraduate.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($academic))
+              && RuleUtils.containsString(Arrays.asList("Pernikahan","Pengobatan","Gadget"),RuleUtils.valueOfStr($borrowingPurpose))
+              && !$hasDriverLicense
+              && $gojekVerified!=null && !$gojekVerified
+              )
+    then
+         RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage(),
+                                        "true",
+                                        "命中男性&学历&借款用途&未上传驾驶证&未验证gojek")
+                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190321_03_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage()]);
+         RUserInfo($sex:sex, $academic:academic, $hasDriverLicense: hasDriverLicense,$gojekVerified:gojekVerified);
+         LoanInfo($borrowingPurpose: borrowingPurpose);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+              && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.GraduateStudent.getCode(),
+              EducationEnum.Undergraduate.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($academic))
+              && RuleUtils.containsString(Arrays.asList("Pernikahan","Pengobatan","Gadget"),RuleUtils.valueOfStr($borrowingPurpose))
+              && !$hasDriverLicense
+              && $gojekVerified!=null && !$gojekVerified
+              ));
+    then
+         RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_EDUCATION_BORROWING_PURPOSE_DRIVERLICENSE_GOJEK.getMessage(),
+                                        "false",
+                                         "未命中男性&学历&借款用途&未上传驾驶证&未验证gojek")
+                                    .addToResultList(ruleSetResultList);
+end

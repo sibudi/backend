@@ -1,0 +1,235 @@
+
+/***
+* gojek相关的规则
+****/
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+global  java.util.List ruleSetResultList;
+
+rule "GOJEK_001"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.DISTANCE_180.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.DISTANCE_180.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  $model:GojekModel();
+then
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.DISTANCE_180.getMessage(),
+                                   RuleUtils.valueOfStr($model.getTotalDistanceFor180()),
+                                   "近180天累计乘车距离")
+                                   .addToResultList(ruleSetResultList);
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.DISTANCE_30.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalDistanceFor30()),
+                                 "近30天累计乘车距离")
+                                 .addToResultList(ruleSetResultList);
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FARE_180.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalFareFor180()),
+                                 "近180天累计乘车费用")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FARE_30.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalFareFor30()),
+                                 "近30天累计乘车费用")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COUNT_180.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalCountFor180()),
+                                 "近180天累计乘车次数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COUNT_30.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalCountFor30()),
+                                 "近30天累计乘车次数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PICK_UP_180.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalPickUpAddressCountFor180()),
+                                 "近180天累计上车地点个数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PICK_UP_30.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalPickUpAddressCountFor30()),
+                                 "近30天累计上车地点个数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TAXI_TYPE_180.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalTaxiTypeCountFor180()),
+                                 "近180天累计乘车类型")
+                                 .addToResultList(ruleSetResultList);
+
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TAXI_TYPE_30.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalTaxiTypeCountFor30()),
+                                 "近30天累计乘车类型")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TAXI_TYPE_SPECIAL_180.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalSpecialTaxiTypeCountFor180()),
+                                 "近180天累计乘坐golden/silver/blue bird的次数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TAXI_TYPE_SPECIAL_30.getMessage(),
+                                 RuleUtils.valueOfStr($model.getTotalSpecialTaxiTypeCountFor30()),
+                                 "近30天累计乘坐golden/silver/blue bird的次数")
+                                 .addToResultList(ruleSetResultList);
+
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MIN_TIME_DIFF.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForFirstRideAndApplyTime()),
+                                 "首笔订单乘车距提交申请的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MAX_TIME_DIFF.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForLastRideAndApplyTime()),
+                                 "尾笔订单乘车距提交申请的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MONTH_AVG_FARE.getMessage(),
+                                 RuleUtils.valueOfStr($model.getAverageFarePerMonth()),
+                                 "月平均乘车费用")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MONTH_AVG_COUNT.getMessage(),
+                                 RuleUtils.valueOfStr($model.getAverageRideCountPerMonth()),
+                                 "月平均乘车次数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AVG_FARE.getMessage(),
+                                RuleUtils.valueOfStr($model.getAverageFare()),
+                                "平均乘车费用")
+                                .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MATCH_COMPANY_NUM.getMessage(),
+                                                                       RuleUtils.valueOfStr($model.getMatchCompanyNum()),
+                                                                       "gojek出发地或目的地匹配到公司名称的个数")
+                                                                       .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AVG_DISTANCE.getMessage(),
+                                 RuleUtils.valueOfStr($model.getAverageDistance()),
+                                 "平均乘车距离")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FARE_MAX.getMessage(),
+                                 RuleUtils.valueOfStr($model.getMaxFare()),
+                                 "单次乘车的最大费用")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.DISTANCE_MAX.getMessage(),
+                                 RuleUtils.valueOfStr($model.getMaxDistance()),
+                                 "单次乘车的最长距离")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PAYMENT_METHOD_SET.getMessage(),
+                                  RuleUtils.valueOfStr($model.getPaymentMethodCount()),
+                                  "支付类型数")
+                                  .addToResultList(ruleSetResultList);
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CASH_SET.getMessage(),
+                                 RuleUtils.valueOfStr($model.getCashPayCount()),
+                                 "现金支付次数")
+                                 .addToResultList(ruleSetResultList);
+
+//  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_ADDR_PICKUP_BOOLEAN.getMessage(),
+//                                 RuleUtils.valueOfStr($model.getCoherenceForPickUpAndHomeAddress()),
+//                                 "乘车地（出发地）与居住地匹配度")
+//                                 .addToResultList(ruleSetResultList);
+//
+//  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_ADDR_DROPOFF_BOOLEAN.getMessage(),
+//                                 RuleUtils.valueOfStr($model.getCoherenceForDropOffAndHomeAddress()),
+//                                 "乘车地（目的地）与居住地匹配度")
+//                                 .addToResultList(ruleSetResultList);
+//
+//  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SCHOOL_ADDR_PICKUP_BOOLEAN.getMessage(),
+//                                 RuleUtils.valueOfStr($model.getCoherenceForPickUpAndSchoolAddress()),
+//                                 "乘车地（出发地）与学校地匹配度")
+//                                 .addToResultList(ruleSetResultList);
+//
+//  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SCHOOL_ADDR_DROPOFF_BOOLEAN.getMessage(),
+//                                 RuleUtils.valueOfStr($model.getCoherenceForDropOffAndSchoolAddress()),
+//                                 "乘车地（目的地）与学校匹配度")
+//                                 .addToResultList(ruleSetResultList);
+//
+//  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COM_ADDR_PICKUP_BOOLEAN.getMessage(),
+//                                 RuleUtils.valueOfStr($model.getCoherenceForPickUpAndCompanyAddress()),
+//                                 "乘车地（出发地）与公司匹配度")
+//                                 .addToResultList(ruleSetResultList);
+//
+//  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COM_ADDR_DROPOFF_BOOLEAN.getMessage(),
+//                                 RuleUtils.valueOfStr($model.getCoherenceForDropOffAndCompanyAddress()),
+//                                 "乘车地（目的地）与公司匹配度")
+//                                 .addToResultList(ruleSetResultList);
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_ADDR_PICKUP_BOOLEAN.getMessage(),
+                                 RuleUtils.valueOfStr($model.getHomeAddrBoolean()),
+                                 "乘车地（出发地/目的地）匹配现居地中大区、小区、详细地址未同时出现")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COM_ADDR_PICKUP_BOOLEAN.getMessage(),
+                                 RuleUtils.valueOfStr($model.getCompanyAddrBoolean()),
+                                 "乘车地（出发地/目的地）匹配公司地址（工作人群）中大区、小区、详细地址未同时出现")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SCHOOL_ADDR_PICKUP_BOOLEAN.getMessage(),
+                                 RuleUtils.valueOfStr($model.getSchoolAddrBoolean()),
+                                 "乘车地（出发地/目的地）匹配学校地址（学生人群）中大区、小区、详细地址未同时出现")
+                                 .addToResultList(ruleSetResultList);
+
+
+
+
+
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MAX_HOME_ADDR_TIME.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForLatestRideContainHomeAndApplyTime()),
+                                 "最近一次包含居住地的打车订单距提交订单的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MAX_SCHOOL_ADDR_TIME.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForLatestRideContainSchoolAndApplyTime()),
+                                 "最近一次包含学校地的打车订单距提交订单的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MAX_COM_ADDR_TIME.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForLatestRideContainCompanyAndApplyTime()),
+                                 "最近一次包含公司地的打车订单距提交订单的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MIN_HOME_ADDR_TIME.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForFirstRideContainHomeAndApplyTime()),
+                                 "首次包含居住地的打车订单距提交订单的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MIN_SCHOOL_ADDR_TIME.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForFirstRideContainSchoolAndApplyTime()),
+                                 "首次包含学校地的打车订单距提交订单的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MIN_COM_ADDR_TIME.getMessage(),
+                                 RuleUtils.valueOfStr($model.getDiffDaysForFirstRideContainCompanyAndApplyTime()),
+                                 "首次包含公司地的打车订单距提交订单的天数")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILENUMBER_DIFF.getMessage(),
+                                 RuleUtils.valueOfStr($model.getMobilePhoneNotSame()),
+                                 "gojek手机号和订单注册手机号不一致")
+                                 .addToResultList(ruleSetResultList);
+
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMAIL_DIFF.getMessage(),
+                                RuleUtils.valueOfStr($model.getEmailNotSame()),
+                                "gojek email和订单email不一致")
+                                .addToResultList(ruleSetResultList);
+
+end
+
+rule "GOJEK_002"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.GOJEK_DATA_EMPTY.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.GOJEK_DATA_EMPTY.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      not GojekModel()
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.GOJEK_DATA_EMPTY.getMessage(),
+                                         $thresholdValues.getRuleDesc(BlackListTypeEnum.GOJEK_DATA_EMPTY.getMessage()),
+                                         "gojek的相关数据为空").addToResultList(ruleSetResultList);
+end

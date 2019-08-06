@@ -1,0 +1,387 @@
+
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.RUserInfo.SexEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.ShortMessage;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.utils.StringUtils;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.FaceBookModel;
+import com.yqg.drools.model.ContactInfo;
+import com.yqg.drools.model.ModelScoreResult;
+import java.util.List;
+import java.util.Arrays;
+
+
+global  List ruleSetResultList;
+
+
+rule "COMB_190701_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage()]);
+       RUserInfo($sex: sex,$orderSmallDirectIsNull: orderSmallDirectIsNull);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval($sex==RUserInfo.SexEnum.MALE.getCode()
+            && $orderSmallDirectIsNull!=null && $orderSmallDirectIsNull
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage(),
+                                         "true",
+                                         "hit order_small_direct_empty&product600ScoreModelV2&male").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB_190701_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage()]);
+       RUserInfo($sex: sex,$orderSmallDirectIsNull: orderSmallDirectIsNull);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+            && $orderSmallDirectIsNull!=null && $orderSmallDirectIsNull
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_MALE.getMessage(),
+                                         "false",
+                                         "not hit order_small_direct_empty&product600ScoreModelV2&male").addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190701_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage()]);
+       RUserInfo($sex: sex,$orderSmallDirectIsNull: orderSmallDirectIsNull);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $orderSmallDirectIsNull!=null && $orderSmallDirectIsNull
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage(),
+                                         "true",
+                                         "hit order_small_direct_empty&product600ScoreModelV2&female").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB_190701_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage()]);
+       RUserInfo($sex: sex,$orderSmallDirectIsNull: orderSmallDirectIsNull);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $orderSmallDirectIsNull!=null && $orderSmallDirectIsNull
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMALL_DIRECT_MODEL_SCORE_V2_FEMALE.getMessage(),
+                                         "false",
+                                         "not hit order_small_direct_empty&product600ScoreModelV2&female").addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190701_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage()]);
+       RUserInfo($sex: sex,$ownerWhatsAppDetail: ownerWhatsAppDetail);
+       InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+       eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $ownerWhatsAppDetail!=null && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"no")
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard), $threshData)
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage(),
+                                         "true",
+                                         "hit female&owner_whats_app&appCountForCreditCard").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB_190701_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage()]);
+       RUserInfo($sex: sex,$ownerWhatsAppDetail: ownerWhatsAppDetail);
+       InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+       eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $ownerWhatsAppDetail!=null && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"no")
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard), $threshData)
+       ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_CREDITCARD_APPCOUNT.getMessage(),
+                                         "false",
+                                         "not hit female&owner_whats_app&appCountForCreditCard").addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190701_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage()]);
+       RUserInfo($sex: sex,$ownerWhatsAppDetail: ownerWhatsAppDetail);
+       InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+       eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $ownerWhatsAppDetail!=null && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"no")
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($appCountForEcommerce), $threshData)
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage(),
+                                         "true",
+                                         "hit female&owner_whats_app&appCountForEcommerce").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB_190701_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage()]);
+       RUserInfo($sex: sex,$ownerWhatsAppDetail: ownerWhatsAppDetail);
+       InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+       eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $ownerWhatsAppDetail!=null && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"no")
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($appCountForEcommerce), $threshData)
+       ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OWNER_WHATSAPP_ECOMMERCE_APPCOUNT.getMessage(),
+                                         "false",
+                                         "not hit female&owner_whats_app&appCountForEcommerce").addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190701_005_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage()]);
+       RUserInfo($sex: sex);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval($sex==RUserInfo.SexEnum.MALE.getCode()
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage(),
+                                         "true",
+                                         "hit product600ScoreModelV2&male").addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190701_005_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage()]);
+       RUserInfo($sex: sex);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_MODEL_SCORE_V2.getMessage(),
+                                         "false",
+                                         "not hit product600ScoreModelV2&male").addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190701_006_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage()]);
+       RUserInfo($sex: sex);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage(),
+                                         "true",
+                                         "hit product600ScoreModelV2&female").addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190701_006_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage()]);
+       RUserInfo($sex: sex);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2.getMessage(),
+                                         "false",
+                                         "not hit product600ScoreModelV2&female").addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190701_007_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.GOJEK_VERIFIED.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.GOJEK_VERIFIED.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.GOJEK_VERIFIED.getMessage()]);
+       RUserInfo($gojekVerified: gojekVerified);
+       eval($gojekVerified!=null && $gojekVerified)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.GOJEK_VERIFIED.getMessage(),
+                                         "true",
+                                         "hit gojekVerified").addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190701_007_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.GOJEK_VERIFIED.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.GOJEK_VERIFIED.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.GOJEK_VERIFIED.getMessage()]);
+       RUserInfo($gojekVerified: gojekVerified);
+       eval(!($gojekVerified!=null && $gojekVerified))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.GOJEK_VERIFIED.getMessage(),
+                                         "false",
+                                         "not hit gojekVerified").addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190701_008_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage()]);
+       RUserInfo($ownerWhatsAppDetail: ownerWhatsAppDetail);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+           && $ownerWhatsAppDetail!=null && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(), "yes")
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage(),
+                                         "true",
+                                         "hit product600ScoreModelV2&ownerWhatsAppOpen").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB_190701_008_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage()]);
+       RUserInfo($ownerWhatsAppDetail: ownerWhatsAppDetail);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+           && $ownerWhatsAppDetail!=null && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(), "yes")
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.OWNER_WHATSAPP_MODEL_SCORE_V2.getMessage(),
+                                         "false",
+                                         "not hit product600ScoreModelV2&ownerWhatsAppOpen").addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190701_009_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage()]);
+       RUserInfo($sex: sex, $gojekVerified: gojekVerified);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       InstalledAppInfo($appCountForTicket: appCountForTicket);
+       eval(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($appCountForTicket),RuleUtils.getRuleParam($threshData,2))
+            && $sex == SexEnum.FEMALE.getCode()
+            && $gojekVerified!=null && $gojekVerified==false
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage(),
+                                         "true",
+                                         "hit female&product600ScoreModelV2&appCountForTicket&gojekNotVerified").addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190701_009_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage()]);
+       RUserInfo($sex: sex, $gojekVerified: gojekVerified);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       InstalledAppInfo($appCountForTicket: appCountForTicket);
+       eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($appCountForTicket),RuleUtils.getRuleParam($threshData,2))
+            && $sex == SexEnum.FEMALE.getCode()
+            && $gojekVerified!=null && $gojekVerified==false
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED.getMessage(),
+                                         "false",
+                                         "not hit female&product600ScoreModelV2&appCountForTicket&gojekNotVerified").addToResultList
+                                         (ruleSetResultList);
+end
+
+rule "COMB_190701_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage()]);
+       RUserInfo($sex: sex, $gojekVerified: gojekVerified, $academic: academic);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       InstalledAppInfo($appCountForTicket: appCountForTicket);
+       eval(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForTicket),RuleUtils.getRuleParam($threshData,2))
+            && $sex == SexEnum.FEMALE.getCode()
+            && $gojekVerified!=null && $gojekVerified==true
+            && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode(),EducationEnum
+            .PrimarySchool.getCode()),RuleUtils.valueOfStr($academic))
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage(),
+                                         "true",
+                                         "hit female&product600ScoreModelV2&appCountForTicket&gojekVerified&education").addToResultList
+                                         (ruleSetResultList);
+end
+
+rule "COMB_190701_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage()]);
+       RUserInfo($sex: sex, $gojekVerified: gojekVerified, $academic: academic);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       InstalledAppInfo($appCountForTicket: appCountForTicket);
+       eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForTicket),RuleUtils.getRuleParam($threshData,2))
+            && $sex == SexEnum.FEMALE.getCode()
+            && $gojekVerified!=null && $gojekVerified==true
+            && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode(),EducationEnum
+                        .PrimarySchool.getCode()),RuleUtils.valueOfStr($academic))
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_MODEL_SCORE_V2_TICKET_APPCOUNT_GOJEKVERIFIED_EDUCATION.getMessage(),
+                                         "false",
+                                         "not hit female&product600ScoreModelV2&appCountForTicket&gojekVerified&education").addToResultList
+                                         (ruleSetResultList);
+end

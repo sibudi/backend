@@ -1,0 +1,232 @@
+/***
+* 首借通讯录相关规则
+**/
+
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.ContactInfo;
+import com.yqg.common.utils.StringUtils;
+import java.util.List;
+
+
+global  List ruleSetResultList;
+
+
+rule "CONTACT_INFO_001_A"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_COUNT.getMessage()));
+  $threadValues:RuleThresholdValues();
+  $contact:ContactInfo($realValue:phoneCount);
+  eval(RuleUtils.lessThan(RuleUtils.valueOfStr($realValue),
+                              $threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_COUNT.getMessage())))
+then
+
+  RuleUtils.buildHitRuleResult(BlackListTypeEnum.CONTACT_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录手机号码去重后数量小于阈值").addToResultList(ruleSetResultList);
+
+end
+
+
+rule "CONTACT_INFO_001_B"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_COUNT.getMessage()));
+  $threadValues:RuleThresholdValues();
+  $contact:ContactInfo($realValue:phoneCount);
+  eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($realValue),
+                              $threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_COUNT.getMessage())))
+then
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CONTACT_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录手机号码去重后数量大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+//敏感词个数
+rule "CONTACT_INFO_002_A"
+  salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage()));
+  $threadValues: RuleThresholdValues();
+  $contact: ContactInfo($realValue:sensitiveWordCount);
+  eval(RuleUtils.greatThan(RuleUtils.valueOfStr($realValue),
+                              $threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage())));
+then
+  RuleUtils.buildHitRuleResult(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录去重敏感词个数大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "CONTACT_INFO_002_B"
+  salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo($realValue:sensitiveWordCount);
+    eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($realValue),
+                                RuleUtils.valueOfStr($threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage()))));
+then
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CONTACT_SENSITIVI_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录去重敏感词个数小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+//同业词个数
+rule "CONTACT_INFO_003_A"
+  salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage()));
+  $threadValues: RuleThresholdValues();
+  $contact: ContactInfo($realValue:interrelatedWordCount);
+  eval(RuleUtils.greatThan(RuleUtils.valueOfStr($realValue),
+                              $threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage())));
+then
+  RuleUtils.buildHitRuleResult(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录去重同业词个数大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "CONTACT_INFO_003_B"
+  salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo($realValue:interrelatedWordCount);
+    eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($realValue),
+                                $threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage())));
+then
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CONTACT_SAME_PRODUCT_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录去重同业词个数小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+//亲属词个数
+rule "CONTACT_INFO_004_A"
+  salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage()));
+  $threadValues: RuleThresholdValues();
+  $contact: ContactInfo($realValue:relativeWordCount);
+  eval($contact.isRelativeWordRejectedByProbability() && RuleUtils.lessThan(RuleUtils.valueOfStr($realValue),
+                              $threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage())));
+then
+  RuleUtils.buildHitRuleResult(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录去重亲属词个数小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "CONTACT_INFO_004_B"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo($realValue:relativeWordCount);
+    eval(!$contact.isRelativeWordRejectedByProbability() || RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($realValue),
+                                $threadValues.getThresholdValue(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage())));
+then
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage(),
+                               RuleUtils.valueOfStr($realValue),
+                               "通讯录去重亲属词个数大于等于阈值|rejectedByProbability: "+$contact.isRelativeWordRejectedByProbability())
+                               .addToResultList(ruleSetResultList);
+end
+
+
+//第一联系人数据为空
+rule "CONTACT_INFO_005"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.FIRST_CONTACT_INFO_DATA_EMPTY.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_CONTACT_INFO_DATA_EMPTY.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo(StringUtils.isEmpty(firstLinkManNumber));
+then
+  RuleUtils.buildHitRuleResult(BlackListTypeEnum.FIRST_CONTACT_INFO_DATA_EMPTY.getMessage(),
+                               $threadValues.getRuleDesc(BlackListTypeEnum.FIRST_CONTACT_INFO_DATA_EMPTY.getMessage()),
+                               "用户第一联系人为空").addToResultList(ruleSetResultList);
+end
+
+//第二联系人数据为空
+rule "CONTACT_INFO_006"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.SECOND_CONTACT_INFO_DATA_EMPTY.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SECOND_CONTACT_INFO_DATA_EMPTY.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo(StringUtils.isEmpty(secondLinkManNumber));
+
+then
+  RuleUtils.buildHitRuleResult(BlackListTypeEnum.SECOND_CONTACT_INFO_DATA_EMPTY.getMessage(),
+                               $threadValues.getRuleDesc(BlackListTypeEnum.SECOND_CONTACT_INFO_DATA_EMPTY.getMessage()),
+                               "用户第二联系人为空").addToResultList(ruleSetResultList);
+end
+
+
+//第一联系人不在通讯录
+rule "CONTACT_INFO_007_A"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.FIRST_CONTACT_NOT_EXIST_RELATIVES.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_CONTACT_NOT_EXIST_RELATIVES.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo(firstLinkManNotIn==true);
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.FIRST_CONTACT_NOT_EXIST_RELATIVES.getMessage(),
+                               RuleUtils.valueOfStr($contact.getFirstLinkManNotIn()),
+                               "第一联系人不在通讯录").addToResultList(ruleSetResultList);
+end
+
+//第一联系人不在通讯录
+rule "CONTACT_INFO_007_B"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.FIRST_CONTACT_NOT_EXIST_RELATIVES.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_CONTACT_NOT_EXIST_RELATIVES.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo(firstLinkManNotIn==false);
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FIRST_CONTACT_NOT_EXIST_RELATIVES.getMessage(),
+                               RuleUtils.valueOfStr($contact.getFirstLinkManNotIn()),
+                               "第一联系人在通讯录").addToResultList(ruleSetResultList);
+end
+
+
+//第二联系人不在通讯录
+rule "CONTACT_INFO_008_A"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.SECOND_CONTACT_NOT_EXIST_RELATIVES.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SECOND_CONTACT_NOT_EXIST_RELATIVES.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo(secondLinkManNotIn==true);
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SECOND_CONTACT_NOT_EXIST_RELATIVES.getMessage(),
+                               RuleUtils.valueOfStr($contact.getSecondLinkManNotIn()),
+                               "第二联系人不在通讯录").addToResultList(ruleSetResultList);
+end
+
+//第二联系人不在通讯录
+rule "CONTACT_INFO_008_B"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.SECOND_CONTACT_NOT_EXIST_RELATIVES.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SECOND_CONTACT_NOT_EXIST_RELATIVES.getMessage()));
+    $threadValues: RuleThresholdValues();
+    $contact: ContactInfo(secondLinkManNotIn==false);
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SECOND_CONTACT_NOT_EXIST_RELATIVES.getMessage(),
+                               RuleUtils.valueOfStr($contact.getSecondLinkManNotIn()),
+                               "第二联系人在通讯录").addToResultList(ruleSetResultList);
+end
+
+
+rule "CONTACT_INFO_EMPTY"
+    salience($threadValues.getRuleOrder(BlackListTypeEnum.CONTACT_KEY_INfO_EMPTY.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_KEY_INfO_EMPTY.getMessage()));
+    $threadValues: RuleThresholdValues();
+    not ContactInfo();
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.CONTACT_KEY_INfO_EMPTY.getMessage(),
+                               $threadValues.getRuleDesc(BlackListTypeEnum.CONTACT_KEY_INfO_EMPTY.getMessage()),
+                               "手机通讯录为空").addToResultList(ruleSetResultList);
+end
+
+

@@ -1,0 +1,29 @@
+
+server:
+    port: 8081
+
+upload:
+    rootPath: /MyUpload
+    rootPathBak: /MyUpload_bak
+    maxFileSize: 10MB
+    maxRequestSize: 20MB
+
+jedis:
+      pool:
+#         host: 47.94.1.62 #哨兵模式下不用配置
+#         port: 6679 # 哨兵模式下不用配置
+         database: 1
+         password: doit2019
+         timeout: 3000
+         config:
+            maxTotal: 500         #连接池的最大数据库连接数。设为0表示无限制,如果是jedis 2.4以后用redis.maxTotal
+            maxIdle: 10          #最大空闲数
+            minIdle: 0
+            maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+         sentinel:
+            master: mymaster
+            nodes: 47.74.191.190:26379,47.74.191.190:26479,47.74.191.190:26579
+rsa:
+  file:
+    privateKey: /SECRET/rsa-pri-test.cer
+    publicKey: /SECRET/rsa-pub-test.cer

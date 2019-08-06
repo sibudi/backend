@@ -1,0 +1,75 @@
+package com.doit.autoCall
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.AutoCallModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum;
+import com.yqg.drools.model.base.RuleConditionModel;
+import java.util.Arrays;
+
+global java.util.List ruleSetResultList;
+
+
+//本人外呼命中拒绝的三次
+
+rule "AUTO_CALL_005_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_CALL_INVALID.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_CALL_INVALID.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($needReject: needReject,false == hasValidCall, 1==borrowingCount);
+      eval($needReject!=null && $needReject == true);
+ then
+     RuleUtils.buildHitRuleResult(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_CALL_INVALID.getMessage(),
+                                        RuleUtils.valueOfStr($needReject),
+                                        "命中本人外呼命中拒绝的三次"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_005_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_CALL_INVALID.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_CALL_INVALID.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($needReject: needReject,false == hasValidCall, 1==borrowingCount);
+      eval(!($needReject!=null && $needReject == true));
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_CALL_INVALID.getMessage(),
+                                        RuleUtils.valueOfStr($needReject),
+                                        "未命中本人外呼命中拒绝的三次"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+//本人外呼超过外呼次数限制
+rule "AUTO_CALL_006_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_EXCEED_LIMIT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_EXCEED_LIMIT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($exceedLimit: exceedLimit, false == hasValidCall, 1==borrowingCount);
+      eval($exceedLimit!=null && $exceedLimit == true);
+ then
+     RuleUtils.buildHitRuleResult(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_EXCEED_LIMIT.getMessage(),
+                                        RuleUtils.valueOfStr($exceedLimit),
+                                        "命中本人号码外呼超过次数"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_006_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_EXCEED_LIMIT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_EXCEED_LIMIT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($exceedLimit: exceedLimit,false == hasValidCall, 1==borrowingCount);
+      eval(!($exceedLimit!=null && $exceedLimit == true));
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_EXCEED_LIMIT.getMessage(),
+                                        RuleUtils.valueOfStr($exceedLimit),
+                                        "未命中本人号码外呼超过次数"
+                                       ).addToResultList(ruleSetResultList);
+end

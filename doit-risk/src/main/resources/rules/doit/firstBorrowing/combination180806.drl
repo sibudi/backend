@@ -1,0 +1,113 @@
+package rules.uanguang.firstborrow;
+
+
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.RUserInfo.SexEnum;
+import com.yqg.drools.model.ShortMessage;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.utils.StringUtils;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.FaceBookModel;
+import com.yqg.drools.model.ContactInfo;
+import java.util.List;
+import java.util.Arrays;
+
+
+global  List ruleSetResultList;
+
+rule "COMB_180806_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage()]);
+     $callRecords:UserCallRecordsModel();
+     $installedApp:InstalledAppInfo();
+     $userInfo:RUserInfo();
+     eval($userInfo.getHasTaxNumber()!=null && $userInfo.getHasTaxNumber()==true && $userInfo.getSex()==SexEnum.MALE.getCode()
+          && RuleUtils.greatThan(RuleUtils.valueOfStr($callRecords.getRecent30InRate()),
+                                 RuleUtils.getRuleParam($threshData,0))
+          && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($installedApp.getTotalApps()),
+                                        RuleUtils.getRuleParam($threshData,1))
+    );
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage(),
+                                            "true",
+                                            "命中有税卡&近30天呼入占比&首借累计app个数&男")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB_180806_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage()]);
+     $callRecords:UserCallRecordsModel();
+     $installedApp:InstalledAppInfo();
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getHasTaxNumber()!=null && $userInfo.getHasTaxNumber()==true && $userInfo.getSex()==SexEnum.MALE.getCode()
+          && RuleUtils.greatThan(RuleUtils.valueOfStr($callRecords.getRecent30InRate()),
+                                 RuleUtils.getRuleParam($threshData,0))
+          && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($installedApp.getTotalApps()),
+                                        RuleUtils.getRuleParam($threshData,1))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_MALE.getMessage(),
+                                            "false",
+                                            "未命中有税卡&近30天呼入占比&首借累计app个数&男")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMB_180806_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage()]);
+     $callRecords:UserCallRecordsModel();
+     $installedApp:InstalledAppInfo();
+     $userInfo:RUserInfo();
+     eval($userInfo.getHasTaxNumber()!=null && $userInfo.getHasTaxNumber()==true && $userInfo.getSex()==SexEnum.FEMALE.getCode()
+          && RuleUtils.greatThan(RuleUtils.valueOfStr($callRecords.getRecent30InRate()),
+                                 RuleUtils.getRuleParam($threshData,0))
+          && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($installedApp.getTotalApps()),
+                                        RuleUtils.getRuleParam($threshData,1))
+    );
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage(),
+                                            "true",
+                                            "命中有税卡&近30天呼入占比&首借累计app个数&女")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB_180806_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage()]);
+     $callRecords:UserCallRecordsModel();
+     $installedApp:InstalledAppInfo();
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getHasTaxNumber()!=null && $userInfo.getHasTaxNumber()==true && $userInfo.getSex()==SexEnum.FEMALE.getCode()
+          && RuleUtils.greatThan(RuleUtils.valueOfStr($callRecords.getRecent30InRate()),
+                                 RuleUtils.getRuleParam($threshData,0))
+          && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($installedApp.getTotalApps()),
+                                        RuleUtils.getRuleParam($threshData,1))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_TAX_NUMBER_RECENT30INRATION_APPCOUNT_FEMALE.getMessage(),
+                                            "false",
+                                            "未命中有税卡&近30天呼入占比&首借累计app个数&女")
+                                            .addToResultList(ruleSetResultList);
+end

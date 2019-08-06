@@ -1,0 +1,776 @@
+package rules.doit.riskScore;
+
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.drools.model.ScoreModel.VariableEnum;
+import com.yqg.risk.entity.ScoreTemplate;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.base.RiskScoreCondition;
+import com.yqg.drools.utils.RuleUtils;
+import java.math.BigDecimal;
+import java.util.List
+import com.yqg.risk.entity.ScoreTemplate
+
+global List scoreResultList;
+
+//gojek 分数
+rule "V1_SCORE_01"
+    salience(-1)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V1_01), $template: scoreTemplateMap[VariableEnum.V1_01.name()]);
+        ScoreModel($gojekVerified: gojekVerified);
+        eval(RuleUtils.equalString(RuleUtils.valueOfStr($gojekVerified),$condition.getThresholdValue(VariableEnum.V1_01)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                      ((ScoreTemplate)$template).getThresholdName(),
+                                      ((ScoreTemplate)$template).getScore(),
+                                      RuleUtils.valueOfStr($gojekVerified),
+                                      ((ScoreTemplate)$template).getModelName()
+                                      )
+                                     .addToResultList(scoreResultList);
+end
+
+rule "V1_SCORE_02"
+    salience(-1)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V1_02), $template: scoreTemplateMap[VariableEnum.V1_02.name()]);
+        ScoreModel($gojekVerified: gojekVerified);
+        eval(RuleUtils.equalString(RuleUtils.valueOfStr($gojekVerified),$condition.getThresholdValue(VariableEnum.V1_02)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                              ((ScoreTemplate)$template).getThresholdName(),
+                                              ((ScoreTemplate)$template).getScore(),
+                                              RuleUtils.valueOfStr($gojekVerified),
+                                              ((ScoreTemplate)$template).getModelName()
+                                              )
+                                             .addToResultList(scoreResultList);
+end
+
+
+// eCommerce&ticket&bank&credit 分数
+
+rule "V2_SCORE_01"
+    salience(-2)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V2_01), $template: scoreTemplateMap[VariableEnum.V2_01.name()]);
+        ScoreModel($countOfEcommerceTicketBankCredit: ecommerceTicketBankCredit);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),$condition.getThresholdValue(VariableEnum.V2_01)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                      ((ScoreTemplate)$template).getThresholdName(),
+                                                      ((ScoreTemplate)$template).getScore(),
+                                                      RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),
+                                                      ((ScoreTemplate)$template).getModelName()
+                                       ).addToResultList(scoreResultList);
+end
+
+rule "V2_SCORE_02"
+    salience(-2)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V2_02), $template: scoreTemplateMap[VariableEnum.V2_02.name()]);
+        ScoreModel($countOfEcommerceTicketBankCredit: ecommerceTicketBankCredit);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),RuleUtils.getRuleParam($condition.getThresholdValue
+        (VariableEnum.V2_02),0))
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),RuleUtils.getRuleParam($condition
+             .getThresholdValue(VariableEnum.V2_02),1))
+             )
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                              ((ScoreTemplate)$template).getThresholdName(),
+                                                              ((ScoreTemplate)$template).getScore(),
+                                                              RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),
+                                                              ((ScoreTemplate)$template).getModelName()
+                                               ).addToResultList(scoreResultList);
+end
+
+
+rule "V2_SCORE_03"
+    salience(-2)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V2_03), $template: scoreTemplateMap[VariableEnum.V2_03.name()]);
+        ScoreModel($countOfEcommerceTicketBankCredit: ecommerceTicketBankCredit);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),RuleUtils.getRuleParam($condition.getThresholdValue
+        (VariableEnum.V2_03),0))
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),RuleUtils.getRuleParam($condition
+             .getThresholdValue(VariableEnum.V2_03),1))
+             )
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                              ((ScoreTemplate)$template).getThresholdName(),
+                                                              ((ScoreTemplate)$template).getScore(),
+                                                              RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),
+                                                              ((ScoreTemplate)$template).getModelName()
+                                               ).addToResultList(scoreResultList);
+end
+
+rule "V2_SCORE_04"
+    salience(-2)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V2_04), $template: scoreTemplateMap[VariableEnum.V2_04.name()]);
+        ScoreModel($countOfEcommerceTicketBankCredit: ecommerceTicketBankCredit);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),RuleUtils.getRuleParam($condition.getThresholdValue
+        (VariableEnum.V2_04),0))
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),RuleUtils.getRuleParam($condition
+             .getThresholdValue(VariableEnum.V2_04),1))
+             )
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                      ((ScoreTemplate)$template).getThresholdName(),
+                                                                      ((ScoreTemplate)$template).getScore(),
+                                                                      RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),
+                                                                      ((ScoreTemplate)$template).getModelName()
+                                                       ).addToResultList(scoreResultList);
+end
+
+
+rule "V2_SCORE_05"
+    salience(-2)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V2_05), $template: scoreTemplateMap[VariableEnum.V2_05.name()]);
+        ScoreModel($countOfEcommerceTicketBankCredit: ecommerceTicketBankCredit);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),$condition.getThresholdValue(VariableEnum.V2_05)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                             ((ScoreTemplate)$template).getThresholdName(),
+                                                                             ((ScoreTemplate)$template).getScore(),
+                                                                             RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),
+                                                                             ((ScoreTemplate)$template).getModelName()
+                                                              ).addToResultList(scoreResultList);
+end
+
+rule "V2_SCORE_DEFAULT"
+    salience(-2)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V2_DEFAULT), $template: scoreTemplateMap[VariableEnum.V2_DEFAULT.name()]);
+        ScoreModel($countOfEcommerceTicketBankCredit: ecommerceTicketBankCredit);
+        eval($countOfEcommerceTicketBankCredit==null)
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                                     ((ScoreTemplate)$template).getThresholdName(),
+                                                                                     ((ScoreTemplate)$template).getScore(),
+                                                                                     RuleUtils.valueOfStr($countOfEcommerceTicketBankCredit),
+                                                                                     ((ScoreTemplate)$template).getModelName()
+                                                                      ).addToResultList(scoreResultList);
+end
+
+
+
+
+// mobileLanguage 分数
+
+rule "V3_SCORE_01"
+    salience(-3)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V3_01), $template: scoreTemplateMap[VariableEnum.V3_01.name()]);
+        ScoreModel($mobileLanguage: mobileLanguage);
+        eval(RuleUtils.equalsIgnoreCase($mobileLanguage,$condition.getThresholdValue(VariableEnum.V3_01)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($mobileLanguage),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+end
+
+rule "V3_SCORE_02"
+    salience(-3)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V3_02_DEFAULT), $template: scoreTemplateMap[VariableEnum.V3_02_DEFAULT.name()]);
+        ScoreModel($mobileLanguage: mobileLanguage);
+        eval(!RuleUtils.equalsIgnoreCase($mobileLanguage,$condition.getThresholdValue(VariableEnum.V3_02_DEFAULT)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($mobileLanguage),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+
+end
+
+// gender & male
+rule "V4_SCORE_01"
+    salience(-4)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V4_01), $template: scoreTemplateMap[VariableEnum.V4_01.name()]);
+        ScoreModel($gender: gender);
+        eval(RuleUtils.equalTo(RuleUtils.valueOfStr($gender),$condition.getThresholdValue(VariableEnum.V4_01)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($gender),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+end
+
+// gender & female
+rule "V4_SCORE_02"
+    salience(-4)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V4_02), $template: scoreTemplateMap[VariableEnum.V4_02.name()]);
+        ScoreModel($gender: gender);
+        eval(RuleUtils.equalTo(RuleUtils.valueOfStr($gender),$condition.getThresholdValue(VariableEnum.V4_02)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($gender),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+end
+
+// phoneBrand
+rule "V5_SCORE_01"
+    salience(-5)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V5_01), $template: scoreTemplateMap[VariableEnum.V5_01.name()]);
+        ScoreModel($phoneBrand: phoneBrand);
+        eval(RuleUtils.constansStringIgnoreCase($phoneBrand,$condition.getThresholdValue(VariableEnum.V5_01)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($phoneBrand),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+end
+
+rule "V5_SCORE_02"
+    salience(-5)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V5_02), $template: scoreTemplateMap[VariableEnum.V5_02.name()]);
+        ScoreModel($phoneBrand: phoneBrand);
+        eval(RuleUtils.constansStringIgnoreCase($phoneBrand,$condition.getThresholdValue(VariableEnum.V5_02)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($phoneBrand),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+
+end
+
+rule "V5_SCORE_03"
+    salience(-5)
+   when
+       $condition: RiskScoreCondition(isSuitable(VariableEnum.V5_03), $template: scoreTemplateMap[VariableEnum.V5_03.name()]);
+       ScoreModel($phoneBrand: phoneBrand);
+       eval(RuleUtils.constansStringIgnoreCase($phoneBrand,$condition.getThresholdValue(VariableEnum.V5_03)));
+   then
+       RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($phoneBrand),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+end
+
+rule "V5_SCORE_04"
+    salience(-5)
+   when
+       $condition: RiskScoreCondition(isSuitable(VariableEnum.V5_04), $template: scoreTemplateMap[VariableEnum.V5_04.name()]);
+       ScoreModel($phoneBrand: phoneBrand);
+       eval(RuleUtils.constansStringIgnoreCase($phoneBrand,$condition.getThresholdValue(VariableEnum.V5_04)));
+   then
+       RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($phoneBrand),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+end
+
+rule "V5_SCORE_DEFAULT"
+    salience(-5)
+   when
+       $condition: RiskScoreCondition(isSuitable(VariableEnum.V5_DEFAULT), $template: scoreTemplateMap[VariableEnum.V5_DEFAULT.name()]);
+       ScoreModel($phoneBrand: phoneBrand);
+       eval(!RuleUtils.constansStringIgnoreCase($phoneBrand,$condition.getThresholdValue(VariableEnum.V5_DEFAULT)));
+   then
+       RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                        ((ScoreTemplate)$template).getThresholdName(),
+                                        ((ScoreTemplate)$template).getScore(),
+                                        RuleUtils.valueOfStr($phoneBrand),
+                                        ((ScoreTemplate)$template).getModelName()
+                                ).addToResultList(scoreResultList);
+end
+
+
+
+// appCount
+
+rule "V6_SCORE_01"
+    salience(-6)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V6_01), $template: scoreTemplateMap[VariableEnum.V6_01.name()]);
+        ScoreModel($appCount: appCount);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCount),$condition.getThresholdValue(VariableEnum.V6_01)));
+    then
+         RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                ((ScoreTemplate)$template).getScore(),
+                                                RuleUtils.valueOfStr($appCount),
+                                                ((ScoreTemplate)$template).getModelName()
+                                        ).addToResultList(scoreResultList);
+end
+
+
+rule "V6_SCORE_02"
+    salience(-6)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V6_02), $template: scoreTemplateMap[VariableEnum.V6_02.name()]);
+        ScoreModel($appCount: appCount);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCount),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum.V6_02),1))
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($appCount),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum.V6_02),0)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($appCount),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+rule "V6_SCORE_03"
+    salience(-6)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V6_03), $template: scoreTemplateMap[VariableEnum.V6_03.name()]);
+        ScoreModel($appCount: appCount);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCount),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum.V6_03),1))
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($appCount),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum.V6_03),0)));
+    then
+         RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                ((ScoreTemplate)$template).getScore(),
+                                                RuleUtils.valueOfStr($appCount),
+                                                ((ScoreTemplate)$template).getModelName()
+                                        ).addToResultList(scoreResultList);
+end
+
+
+rule "V6_SCORE_04"
+    salience(-6)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V6_04), $template: scoreTemplateMap[VariableEnum.V6_04.name()]);
+        ScoreModel($appCount: appCount);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCount),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum.V6_04),1))
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($appCount),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum.V6_04),0)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($appCount),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+rule "V6_SCORE_05"
+    salience(-6)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V6_05), $template: scoreTemplateMap[VariableEnum.V6_05.name()]);
+        ScoreModel($appCount: appCount);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($appCount),$condition.getThresholdValue(VariableEnum.V6_05)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($appCount),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+//默认按照50个的分数计
+
+rule "V6_SCORE_DEFAULT"
+    salience(-6)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V6_DEFAULT), $template: scoreTemplateMap[VariableEnum.V6_DEFAULT.name()]);
+        ScoreModel($appCount: appCount);
+        eval($appCount==null);
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($appCount),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+// drivingLicense
+
+rule "V7_SCORE_01"
+    salience(-7)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V7_01), $template: scoreTemplateMap[VariableEnum.V7_01.name()]);
+        ScoreModel($hasDrivingLicense: hasDrivingLicense);
+        eval(RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($hasDrivingLicense),$condition.getThresholdValue(VariableEnum.V7_01)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($hasDrivingLicense),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+rule "V7_SCORE_02"
+    salience(-7)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V7_02), $template: scoreTemplateMap[VariableEnum.V7_02.name()]);
+        ScoreModel($hasDrivingLicense: hasDrivingLicense);
+        eval(RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($hasDrivingLicense),$condition.getThresholdValue(VariableEnum.V7_02)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($hasDrivingLicense),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+
+// positionName
+
+rule "V8_SCORE_01"
+    salience(-8)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V8_01), $template: scoreTemplateMap[VariableEnum.V8_01.name()]);
+        ScoreModel($positionName: positionName);
+        eval(RuleUtils.constansStringIgnoreCase($positionName, $condition.getThresholdValue(VariableEnum.V8_01)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($positionName),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+rule "V8_SCORE_DEFAULT"
+    salience(-8)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V8_DEFAULT), $template: scoreTemplateMap[VariableEnum.V8_DEFAULT.name()]);
+        ScoreModel($positionName: positionName);
+        eval(!RuleUtils.constansStringIgnoreCase($positionName, $condition.getThresholdValue(VariableEnum.V8_DEFAULT)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($positionName),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+
+rule "V8_SCORE_03"
+    salience(-8)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V8_03), $template: scoreTemplateMap[VariableEnum.V8_03.name()]);
+        ScoreModel($positionName: positionName);
+        eval(RuleUtils.constansStringIgnoreCase($positionName, $condition.getThresholdValue(VariableEnum.V8_03)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($positionName),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+rule "V8_SCORE_04"
+    salience(-8)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V8_04), $template: scoreTemplateMap[VariableEnum.V8_04.name()]);
+        ScoreModel($positionName: positionName);
+        eval(RuleUtils.constansStringIgnoreCase($positionName, $condition.getThresholdValue(VariableEnum.V8_04)));
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($positionName),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+
+// academic
+rule "V9_SCORE_DEFAULT"
+    salience(-9)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V9_DEFAULT), $template: scoreTemplateMap[VariableEnum.V9_DEFAULT.name()]);
+        ScoreModel($academic: academic);
+        eval(!RuleUtils.constansStringIgnoreCase($academic, $condition.getThresholdValue(VariableEnum.V9_DEFAULT)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                        ((ScoreTemplate)$template).getThresholdName(),
+                                                        ((ScoreTemplate)$template).getScore(),
+                                                        RuleUtils.valueOfStr($academic),
+                                                        ((ScoreTemplate)$template).getModelName()
+                                                ).addToResultList(scoreResultList);
+end
+
+rule "V9_SCORE_02"
+    salience(-9)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V9_02), $template: scoreTemplateMap[VariableEnum.V9_02.name()]);
+        ScoreModel($academic: academic);
+        eval(RuleUtils.constansStringIgnoreCase($academic, $condition.getThresholdValue(VariableEnum.V9_02)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($academic),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+// borrowing purpose
+
+rule "V10_SCORE_DEFAULT"
+    salience(-10)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V10_DEFAULT), $template: scoreTemplateMap[VariableEnum.V10_DEFAULT.name()]);
+        ScoreModel($borrowingPurpose: borrowingPurpose);
+        eval(!RuleUtils.constansStringIgnoreCase($borrowingPurpose,$condition.getThresholdValue(VariableEnum.V10_DEFAULT)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($borrowingPurpose),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+rule "V10_SCORE_02"
+    salience(-10)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V10_02), $template: scoreTemplateMap[VariableEnum.V10_02.name()]);
+        ScoreModel($borrowingPurpose: borrowingPurpose);
+        eval(RuleUtils.constansStringIgnoreCase($borrowingPurpose,$condition.getThresholdValue(VariableEnum.V10_02)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($borrowingPurpose),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+rule "V10_SCORE_03"
+    salience(-10)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V10_03), $template: scoreTemplateMap[VariableEnum.V10_03.name()]);
+        ScoreModel($borrowingPurpose: borrowingPurpose);
+        eval(RuleUtils.constansStringIgnoreCase($borrowingPurpose,$condition.getThresholdValue(VariableEnum.V10_03)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($borrowingPurpose),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+
+// order province
+
+rule "V11_SCORE_DEFAULT"
+    salience(-11)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V11_DEFAULT), $template: scoreTemplateMap[VariableEnum.V11_DEFAULT.name()]);
+        ScoreModel($orderProvince: orderProvince);
+        eval(!RuleUtils.constansStringIgnoreCase($orderProvince,$condition.getThresholdValue(VariableEnum.V11_DEFAULT)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($orderProvince),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+
+end
+
+rule "V11_SCORE_02"
+    salience(-11)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V11_02), $template: scoreTemplateMap[VariableEnum.V11_02.name()]);
+        ScoreModel($orderProvince: orderProvince);
+        eval(RuleUtils.constansStringIgnoreCase($orderProvince,$condition.getThresholdValue(VariableEnum.V11_02)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($orderProvince),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+
+end
+
+rule "V11_SCORE_03"
+    salience(-11)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V11_03), $template: scoreTemplateMap[VariableEnum.V11_03.name()]);
+        ScoreModel($orderProvince: orderProvince);
+        eval(RuleUtils.constansStringIgnoreCase($orderProvince,$condition.getThresholdValue(VariableEnum.V11_03)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($orderProvince),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+// order bigDirect & home bigDirect
+rule "V12_SCORE_01"
+    salience(-12)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V12_01), $template: scoreTemplateMap[VariableEnum.V12_01.name()]);
+        ScoreModel($bigDirectSameForOrderAndHome: bigDirectSameForOrderAndHome);
+        eval(RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($bigDirectSameForOrderAndHome),$condition.getThresholdValue(VariableEnum.V12_01)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($bigDirectSameForOrderAndHome),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+rule "V12_SCORE_02"
+    salience(-12)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V12_02), $template: scoreTemplateMap[VariableEnum.V12_02.name()]);
+        ScoreModel($bigDirectSameForOrderAndHome: bigDirectSameForOrderAndHome);
+        eval(RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($bigDirectSameForOrderAndHome),$condition.getThresholdValue(VariableEnum.V12_02)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($bigDirectSameForOrderAndHome),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+// bankName
+rule "V13_SCORE_01"
+    salience(-13)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V13_01), $template: scoreTemplateMap[VariableEnum.V13_01.name()]);
+        ScoreModel($bankName: bankName);
+        eval(RuleUtils.constansStringIgnoreCase($bankName,$condition.getThresholdValue(VariableEnum.V13_01)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($bankName),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+rule "V13_SCORE_DEFAULT"
+    salience(-13)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V13_DEFAULT), $template: scoreTemplateMap[VariableEnum.V13_DEFAULT.name()]);
+        ScoreModel($bankName: bankName);
+        eval(!RuleUtils.constansStringIgnoreCase($bankName,$condition.getThresholdValue(VariableEnum.V13_DEFAULT)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($bankName),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+rule "V13_SCORE_03"
+    salience(-13)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V13_03), $template: scoreTemplateMap[VariableEnum.V13_03.name()]);
+        ScoreModel($bankName: bankName);
+        eval(RuleUtils.constansStringIgnoreCase($bankName,$condition.getThresholdValue(VariableEnum.V13_03)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($bankName),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+// timpe from ceate to commit
+rule "V14_SCORE_01"
+    salience(-14)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V14_01), $template: scoreTemplateMap[VariableEnum.V14_01.name()]);
+        ScoreModel($periodOfCreateAndCommitTime: periodOfCreateAndCommitTime);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($periodOfCreateAndCommitTime),$condition.getThresholdValue(VariableEnum.V14_01)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($periodOfCreateAndCommitTime),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+rule "V14_SCORE_02"
+    salience(-14)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V14_02), $template: scoreTemplateMap[VariableEnum.V14_02.name()]);
+        ScoreModel($periodOfCreateAndCommitTime: periodOfCreateAndCommitTime);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($periodOfCreateAndCommitTime),RuleUtils.getRuleParam($condition.getThresholdValue
+        (VariableEnum.V14_02),1))
+        && RuleUtils.greatThan(RuleUtils.valueOfStr($periodOfCreateAndCommitTime),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum
+        .V14_02),0)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($periodOfCreateAndCommitTime),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+
+rule "V14_SCORE_03"
+    salience(-14)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V14_03), $template: scoreTemplateMap[VariableEnum.V14_03.name()]);
+        ScoreModel($periodOfCreateAndCommitTime: periodOfCreateAndCommitTime);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($periodOfCreateAndCommitTime),RuleUtils.getRuleParam($condition.getThresholdValue
+        (VariableEnum.V14_03),1))
+        && RuleUtils.greatThan(RuleUtils.valueOfStr($periodOfCreateAndCommitTime),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum
+        .V14_03),0)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($periodOfCreateAndCommitTime),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+
+rule "V14_SCORE_04"
+    salience(-14)
+    when
+        $condition: RiskScoreCondition(isSuitable(VariableEnum.V14_04), $template: scoreTemplateMap[VariableEnum.V14_04.name()]);
+        ScoreModel($periodOfCreateAndCommitTime: periodOfCreateAndCommitTime);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($periodOfCreateAndCommitTime),RuleUtils.getRuleParam($condition.getThresholdValue(VariableEnum
+        .V14_04),0)))
+    then
+        RuleUtils.buildScoreRuleResult(((ScoreTemplate)$template).getVariableName(),
+                                                                ((ScoreTemplate)$template).getThresholdName(),
+                                                                ((ScoreTemplate)$template).getScore(),
+                                                                RuleUtils.valueOfStr($periodOfCreateAndCommitTime),
+                                                                ((ScoreTemplate)$template).getModelName()
+                                                        ).addToResultList(scoreResultList);
+end
+
+
+
+
+

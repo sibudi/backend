@@ -1,0 +1,1874 @@
+/****
+** 组合规则
+***/
+
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.RUserInfo.SexEnum;
+import com.yqg.drools.model.ShortMessage;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.utils.StringUtils;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.FaceBookModel;
+import com.yqg.drools.model.ContactInfo;
+import java.util.List;
+import java.util.Arrays;
+
+
+global  List ruleSetResultList;
+
+rule "COMBINATION_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex);
+  ShortMessage($negativeWordsCount:negativeWordsCount,$totalCount:totalCount)
+  eval($sex==SexEnum.MALE.getCode()
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($negativeWordsCount),
+                            RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()),0))
+       && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($totalCount),
+                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()),1))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage(),
+                                "true",
+                                "命中短信负面词个数为0&男生&短信总条数")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex);
+  ShortMessage($negativeWordsCount:negativeWordsCount,$totalCount:totalCount)
+  eval($sex!=SexEnum.MALE.getCode()
+       || !RuleUtils.equalTo(RuleUtils.valueOfStr($negativeWordsCount),
+                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()),0))
+       || !RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($totalCount),
+                                      RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage()),1))
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SEX_MGS_NEGATIVE_COUNT_MSG_COUNT.getMessage(),
+                                "false",
+                                "未命中短信负面词个数为0&男生&短信总条数")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMBINATION_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  ShortMessage($overdueWOrdsCount:overdueWordsCount);
+  UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+  eval(RuleUtils.equalTo(RuleUtils.valueOfStr($overdueWOrdsCount),
+                         RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()),0))
+
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InNoRate),
+                         RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()),1)));
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage(),
+                                "true",
+                                "命中短信逾期词个数&近30天打入未接通占比规则")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  ShortMessage($overdueWOrdsCount:overdueWordsCount);
+  UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+  eval(!RuleUtils.equalTo(RuleUtils.valueOfStr($overdueWOrdsCount),
+                         RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()),0))
+
+       || !RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InNoRate),
+                         RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage()),1)));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MGS_OVERDUE_COUNT_RECENT30CALLIN_MISSEDRATE.getMessage(),
+                                "false",
+                                "未命中短信逾期词个数&近30天打入未接通占比规则")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  UserCallRecordsModel($recent30NightCallRate:nightCallRate);
+  eval($sex==SexEnum.MALE.getCode()
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30NightCallRate),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),0))
+       && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30NightCallRate),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),1))
+
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),2))
+       && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($age),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),3)));
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage(),
+                                "true",
+                                "命中性别&近30天内夜间活跃占比&年龄")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  UserCallRecordsModel($recent30NightCallRate:nightCallRate);
+  eval(!($sex==SexEnum.MALE.getCode()
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30NightCallRate),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),0))
+       && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30NightCallRate),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),1))
+
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),2))
+       && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($age),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage()),3))
+      ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SEX_EVENING_CALL_RATE_AGE.getMessage(),
+                                "false",
+                                "未命中性别&近30天内夜间活跃占比&年龄")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMBINATION_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex);
+  UserCallRecordsModel($recent30CallRate:recent30CallRate);
+  eval($sex==SexEnum.MALE.getCode()
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30CallRate),
+                             $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage()))
+      );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage(),
+                                "true",
+                                "命中性别&近30天内未接通电话占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex);
+  UserCallRecordsModel($recent30CallRate:recent30CallRate);
+  eval($sex!=SexEnum.MALE.getCode()
+       || !RuleUtils.greatThan(RuleUtils.valueOfStr($recent30CallRate),
+                             $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage()))
+      );
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLRATE.getMessage(),
+                                "false",
+                                "未命中性别&近30天内未接通电话占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMBINATION_005_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex);
+  UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+  eval($sex==SexEnum.MALE.getCode()
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InNoRate),$thresholdValues.getThresholdValue(BlackListTypeEnum
+       .COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage()))
+      );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage(),
+                                "true",
+                                "命中性别&近30天打入未接通占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_005_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex);
+  UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+  eval(!($sex==SexEnum.MALE.getCode()
+        && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InNoRate),$thresholdValues.getThresholdValue(BlackListTypeEnum
+        .COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage()))
+       ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SEX_RECENT30_MISSEDCALLINDATE.getMessage(),
+                                "false",
+                                "未命中性别&近30天打入未接通占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMBINATION_006_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  UserCallRecordsModel($recent30InTime:recent30InTime,$recent30CallRate:recent30CallRate);
+  eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30InTime),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),0))
+       && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30InTime),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),1))
+
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30CallRate),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),2))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30CallRate),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),3))
+      );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage(),
+                                "true",
+                                "命中近30天打入通话时长&近30天内未接通电话占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_006_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+    UserCallRecordsModel($recent30InTime:recent30InTime,$recent30CallRate:recent30CallRate);
+    eval(!RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30InTime),
+                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),0))
+         || !RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30InTime),
+                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),1))
+
+         || !RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30CallRate),
+                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),2))
+         || !RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30CallRate),
+                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage()),3))
+     );
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_RECENT30_MISSEDCALLRATE_CALLTIME.getMessage(),
+                                "false",
+                                "未命中近30天打入通话时长&近30天内未接通电话占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_007_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$yituScore:yituScore);
+
+  eval($sex==SexEnum.MALE.getCode()
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($yituScore),
+                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()),0))
+
+       && RuleUtils.lessThan(RuleUtils.valueOfStr($yituScore),
+                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()),1))
+
+      );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage(),
+                                "true",
+                                "命中性别&依图人脸识别相似度")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_007_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($sex:sex,$yituScore:yituScore);
+
+   eval($sex!=SexEnum.MALE.getCode()
+         || !RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($yituScore),
+                                        RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()),0))
+
+         || !RuleUtils.lessThan(RuleUtils.valueOfStr($yituScore),
+                                       RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage()),1))
+
+   );
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SEX_YITUSCORE.getMessage(),
+                                "false",
+                                "未命中性别&依图人脸识别相似度")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+//
+//rule "COMBINATION_008_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()))
+//when
+//  $thresholdValues:RuleThresholdValues();
+//  RUserInfo($sex:sex,$age:age);
+//  UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+//  eval($sex==SexEnum.MALE.getCode()
+//       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),
+//                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()),0))
+//
+//       && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($age),
+//                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()),1))
+//       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30InNoRate),
+//                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()),2))
+//
+//      );
+//
+//then
+//   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage(),
+//                                "true",
+//                                "命中年龄&性别&近30天打入未接通占比")
+//                                .addToResultList(ruleSetResultList);
+//end
+//
+//
+//
+//rule "COMBINATION_008_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()))
+//when
+//  $thresholdValues:RuleThresholdValues();
+//  RUserInfo($sex:sex,$age:age);
+//  UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+//  eval($sex!=SexEnum.MALE.getCode()
+//       || !RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),
+//                                  RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()),0))
+//
+//       || !RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($age),
+//                                  RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()),1))
+//       || !RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30InNoRate),
+//                                  RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage()),2))
+//
+//      );
+//
+//then
+//   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SEX_AGE_MISSEDCALLINRATE.getMessage(),
+//                                "false",
+//                                "未命中年龄&性别&近30天打入未接通占比")
+//                                .addToResultList(ruleSetResultList);
+//end
+
+
+
+
+rule "COMBINATION_009_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($yituScore:yituScore,$hasDriverLicense:hasDriverLicense);
+  eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($yituScore),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()),0))
+
+       && RuleUtils.lessThan(RuleUtils.valueOfStr($yituScore),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()),1))
+       && !$hasDriverLicense
+
+      );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage(),
+                                "true",
+                                "命中人脸识别相似度&驾驶证规则")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_009_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($yituScore:yituScore,$hasDriverLicense:hasDriverLicense);
+  eval(!RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($yituScore),
+                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()),0))
+
+       || !RuleUtils.lessThan(RuleUtils.valueOfStr($yituScore),
+                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage()),1))
+       || $hasDriverLicense
+
+  );
+
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_DRIVERLICENSE_YITUSCORE.getMessage(),
+                                "false",
+                                "未命中人脸识别相似度&驾驶证规则")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+// 2018-3-12开发
+rule "COMBINATION_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+  ContactInfo($phoneCount:phoneCount);
+  eval($sex==SexEnum.FEMALE.getCode()
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($age),
+                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()),0))
+       && RuleUtils.lessThan(RuleUtils.valueOfStr($age),
+                            RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()),1))
+       && $firstLinkManIn
+       && $secondLinkManIn
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($phoneCount),
+                                            RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK
+                                            .getMessage()),2) )
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage(),
+                                "true",
+                                "命中性别&年龄&第一，第二均有通话记录&去重通讯录个数")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+  ContactInfo($phoneCount:phoneCount);
+  eval(!($sex==SexEnum.FEMALE.getCode()
+                && RuleUtils.greatThan(RuleUtils.valueOfStr($age),
+                                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()),0))
+                && RuleUtils.lessThan(RuleUtils.valueOfStr($age),
+                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage()),1))
+                && $firstLinkManIn
+                && $secondLinkManIn
+                && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($phoneCount),
+                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK
+                                     .getMessage()),2) ))
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_2_FEMALE_FREE_PHONE_CHECK.getMessage(),
+                                "false",
+                                "未命中性别&年龄&第一，第二均有通话记录&去重通讯录个数")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+// 2018-3-13开发
+rule "COMBINATION_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+  ShortMessage($recent90OverdueMsgCount:recent90OverdueMsgDistinctCountByNumber);
+  eval($sex==SexEnum.MALE.getCode()
+       && !$firstLinkManIn
+       && !$secondLinkManIn
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($recent90OverdueMsgCount),
+                                                                       $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage()))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage(),
+                                "true",
+                                "命中无通话记录&90天逾期短信条数&性别")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+  ShortMessage($recent90OverdueMsgCount:recent90OverdueMsgDistinctCountByNumber);
+  eval(!($sex==SexEnum.MALE.getCode()
+                && !$firstLinkManIn
+                && !$secondLinkManIn
+                && RuleUtils.greatThan(RuleUtils.valueOfStr($recent90OverdueMsgCount),
+                                                                                $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage())))
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_2_RECORD_90SMSCOUNT_SEX.getMessage(),
+                                "false",
+                                "未命中无通话记录&90天逾期短信条数&性别")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_012_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+  ShortMessage($recent30OverdueMsgCount:recent30OverdueMsgDistinctCountByNumber);
+  eval( !$firstLinkManIn
+       && !$secondLinkManIn
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30OverdueMsgCount),
+                                                                       $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage()))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage(),
+                                "true",
+                                "命中无通话记录&30天被拒绝短信条数")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_012_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+  ShortMessage($recent30OverdueMsgCount:recent30OverdueMsgDistinctCountByNumber);
+  eval( !(!$firstLinkManIn
+                 && !$secondLinkManIn
+                 && RuleUtils.greatThan(RuleUtils.valueOfStr($recent30OverdueMsgCount),
+                                                                                 $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage())))
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_2_RECORD_30SMSCOUNT.getMessage(),
+                                "false",
+                                "未命中无通话记录&30天被拒绝短信条数")
+                                .addToResultList(ruleSetResultList);
+end
+
+// COMBINATION_013_A GojekModel
+rule "COMBINATION_013_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($companyAddrProvice:companyAddrProvice,$companyAddrCity:companyAddrCity,$homeAddrProvice:homeAddrProvice,$homeAddrCity:homeAddrCity)
+  eval(RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($companyAddrProvice),
+                                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),0))
+        && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($companyAddrCity),
+                                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),1))
+        && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($homeAddrProvice),
+                                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),0))
+        && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($homeAddrCity),
+                                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),2))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage(),
+                                "true",
+                                "命中公司地址&居住地址")
+                                .addToResultList(ruleSetResultList);
+end
+// COMBINATION_013_B
+rule "COMBINATION_013_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($companyAddrProvice:companyAddrProvice,$companyAddrCity:companyAddrCity,$homeAddrProvice:homeAddrProvice,$homeAddrCity:homeAddrCity)
+  eval(!(RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($companyAddrProvice),
+                                                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),0))
+                 && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($companyAddrCity),
+                                                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),1))
+                 && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($homeAddrProvice),
+                                                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),0))
+                 && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($homeAddrCity),
+                                                              RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage()),2)))
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_2_COMPADDRESS_HOMEADDRESS.getMessage(),
+                                "false",
+                                "未命中公司地址&居住地址")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_014_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  InstalledAppInfo($appForLoanRatio:appForLoanRatio);
+  UserCallRecordsModel($diffTime:diffTime);
+  eval($sex==SexEnum.MALE.getCode()
+        && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appForLoanRatio),
+                                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),0))
+        && RuleUtils.lessThan(RuleUtils.valueOfStr($appForLoanRatio),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),1))
+
+        && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($diffTime),
+                                                     RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),2))
+        && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($diffTime),
+                             RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),3))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage(),
+                                "true",
+                                "命中性别&用户安装敏感APP占比&手机使用时长")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_014_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  InstalledAppInfo($appForLoanRatio:appForLoanRatio);
+  UserCallRecordsModel($diffTime:diffTime);
+  eval(
+    !($sex==SexEnum.MALE.getCode()
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appForLoanRatio),
+                                                           RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),0))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($appForLoanRatio),
+                                   RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),1))
+
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($diffTime),
+                                                           RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),2))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($diffTime),
+                                   RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage()),3)))
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_2_SEX_APPRATE_PHONEUSED.getMessage(),
+                                "false",
+                                "未命中性别&用户安装敏感APP占比&手机使用时长")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+// 2018-03-21
+rule "COMBINATION_015_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$age:age);
+  DeviceModel($mobileLanguage:mobileLanguage);
+  eval($sex==SexEnum.FEMALE.getCode()
+        && RuleUtils.equalString($mobileLanguage,$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage()))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage(),
+                                "true",
+                                "命中女性&手机语言")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_015_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex,$age:age);
+    DeviceModel($mobileLanguage:mobileLanguage);
+  eval(
+    !($sex==SexEnum.FEMALE.getCode()
+             && RuleUtils.equalString($mobileLanguage,$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage()))
+              )
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_3_SEX_PHONE_LANGUAGE.getMessage(),
+                                "false",
+                                "未命中女性&手机语言")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_016_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  DeviceModel($netType:netType,$pictureNumber:pictureNumber);
+  eval(
+        RuleUtils.equalString($netType,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()),0))
+        && RuleUtils.equalString($netType,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()),1))
+        && RuleUtils.greatThan($pictureNumber,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()),2))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage(),
+                                "true",
+                                "命中网络种类&手机图片")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_016_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($netType:netType,$pictureNumber:pictureNumber);
+  eval(
+       !(
+       RuleUtils.equalString($netType,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()),0))
+       && RuleUtils.equalString($netType,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()),1))
+       && RuleUtils.greatThan($pictureNumber,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage()),2))
+       )
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_3_NETTYPE_PICTURENUMBER.getMessage(),
+                                "false",
+                                "未命中网络种类&手机图片")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_017_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  DeviceModel($totalMemory:totalMemory,$pictureNumber:pictureNumber);
+  eval(
+        RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()),0))
+     && RuleUtils.lessThan($pictureNumber,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()),1))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage(),
+                                "true",
+                                "命中手机总内存&手机图片")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_017_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($totalMemory:totalMemory,$pictureNumber:pictureNumber);
+  eval(
+       !(
+            RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()),0))
+        &&  RuleUtils.lessThan($pictureNumber,RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage()),1))
+       )
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_3_TOTALMEMORY_PICTURENUMBER.getMessage(),
+                                "false",
+                                "未命中手机总内存&手机图片")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_018_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($childrenAmount:childrenAmount);
+  eval(
+        RuleUtils.greatThan(RuleUtils.valueOfStr($childrenAmount),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage()))
+  );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage(),
+                                "true",
+                                "命中孩子数量")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_018_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($childrenAmount:childrenAmount);
+  eval(
+       !(
+       RuleUtils.greatThan(RuleUtils.valueOfStr($childrenAmount),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage()))
+       )
+  );
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_3_CHILDRENAMOUNT.getMessage(),
+                                "false",
+                                "未命中孩子数量")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+//近30天打入未接通占比=0&女性&已婚&本科
+//婚姻状况：0 单身(single)、1已婚(menikah)、2离异(cerai hidup)、3丧偶(Janda/duda)
+rule COMBINATION_019_A
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT30_MISCALL_FEMALE_MARRIAGE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT30_MISCALL_FEMALE_MARRIAGE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+   RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+   eval($recent30InNoRate!=null&&RuleUtils.equalTo(RuleUtils.valueOfStr($recent30InNoRate),"0")
+        &&$sex==RUserInfo.SexEnum.FEMALE.getCode()
+        &&$marriage!=null&&$marriage==1
+        &&RuleUtils.equalsIgnoreCase("Sarjana",$academic));
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_RECENT30_MISCALL_FEMALE_MARRIAGE_EDUCATION.getMessage(),
+                                   "true",
+                                   "命中近30天打入未接通占比=0&女性&已婚&本科(免电核)")
+                                   .addToResultList(ruleSetResultList);
+end
+
+rule COMBINATION_019_B
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT30_MISCALL_FEMALE_MARRIAGE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT30_MISCALL_FEMALE_MARRIAGE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+   RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+   eval(!($recent30InNoRate!=null&&RuleUtils.equalTo(RuleUtils.valueOfStr($recent30InNoRate),"0")
+        &&$sex==RUserInfo.SexEnum.FEMALE.getCode()
+        &&$marriage!=null&&$marriage==1
+        &&RuleUtils.equalsIgnoreCase("Sarjana",$academic)));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_RECENT30_MISCALL_FEMALE_MARRIAGE_EDUCATION.getMessage(),
+                                   "false",
+                                   "为命中近30天打入未接通占比=0&女性&已婚&本科(免电核)")
+                                   .addToResultList(ruleSetResultList);
+end
+
+
+//年龄>=34&女性&本科
+
+rule COMBINATION_020_A
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   //UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+   RUserInfo($age:age,$sex:sex,$academic:academic);
+   eval($age!=null&&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage()))
+        &&$sex==RUserInfo.SexEnum.FEMALE.getCode()
+        &&RuleUtils.equalsIgnoreCase("Sarjana",$academic));
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage(),
+                                   "true",
+                                   "命中年龄>=34&女性&本科(免电核)")
+                                   .addToResultList(ruleSetResultList);
+end
+
+
+rule COMBINATION_020_B
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   //UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+   RUserInfo($age:age,$sex:sex,$academic:academic);
+   eval(!($age!=null&&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage()))
+        &&$sex==RUserInfo.SexEnum.FEMALE.getCode()
+        &&RuleUtils.equalsIgnoreCase("Sarjana",$academic)));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_AGE_FEMALE_EDUCATION.getMessage(),
+                                   "false",
+                                   "未命中年龄>=34&女性&本科(免电核)")
+                                   .addToResultList(ruleSetResultList);
+end
+
+
+//男性&单身&高中及以下
+
+rule COMBINATION_021_A
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MALE_MARRIAGE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MALE_MARRIAGE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   //UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+   RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+   eval(RUserInfo.SexEnum.MALE.getCode()==$sex
+        && $marriage!=null&&$marriage==0
+        && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic));
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MALE_MARRIAGE_EDUCATION.getMessage(),
+                                   "true",
+                                   "命中男性&单身&高中及以下")
+                                   .addToResultList(ruleSetResultList);
+end
+
+
+
+rule COMBINATION_021_B
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MALE_MARRIAGE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MALE_MARRIAGE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   //UserCallRecordsModel($recent30InNoRate:recent30InNoRate);
+   RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+   eval(!(RUserInfo.SexEnum.MALE.getCode()==$sex
+        && $marriage!=null&&$marriage==0
+        && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic)));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MALE_MARRIAGE_EDUCATION.getMessage(),
+                                   "false",
+                                   "命中男性&单身&高中及以下")
+                                   .addToResultList(ruleSetResultList);
+end
+
+
+
+//手机使用时长[0,16)&男性&单身
+
+rule "COMBINATION_022_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$marriage:maritalStatus);
+  UserCallRecordsModel($diffTime:diffTime);
+  eval($sex==SexEnum.MALE.getCode()
+       &&$marriage!=null&&$marriage==0
+       &&$diffTime!=null
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($diffTime),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()),0))
+       &&RuleUtils.lessThan(RuleUtils.valueOfStr($diffTime),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()),1))
+              );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage(),
+                                "true",
+                                "命中手机使用时长[0,16)&男性&单身")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_022_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  RUserInfo($sex:sex,$marriage:maritalStatus);
+  UserCallRecordsModel($diffTime:diffTime);
+  eval(!($sex==SexEnum.MALE.getCode()
+       &&$marriage!=null&&$marriage==0
+       &&$diffTime!=null
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($diffTime),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()),0))
+       &&RuleUtils.lessThan(RuleUtils.valueOfStr($diffTime),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage()),1))
+              ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MOBILEUSAGETIME_MALE_MARRIAGE.getMessage(),
+                                "false",
+                                "未命中手机使用时长[0,16)&男性&单身")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+//近30天的通话记录中，出现在通讯录中的有效去重通话号码个数>=36&男性&单身&高中及以下
+
+//rule "COMBINATION_023_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_CALLANDCONTACT_MALE_MARRIAGE_EDUCATION.getMessage()))
+//when
+//  $thresholdValues:RuleThresholdValues();
+//  RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+//  UserCallRecordsModel($contacts:contacts);
+//  eval($sex==SexEnum.MALE.getCode()
+//       &&$marriage!=null&&$marriage==0
+//       && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic)
+//       &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($contacts),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_CALLANDCONTACT_MALE_MARRIAGE_EDUCATION.getMessage())));
+//
+//then
+//   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_CALLANDCONTACT_MALE_MARRIAGE_EDUCATION.getMessage(),
+//                                "true",
+//                                "命中近30天的通话记录中，出现在通讯录中的有效去重通话号码个数>=36&男性&单身&高中及以下")
+//                                .addToResultList(ruleSetResultList);
+//end
+//
+//
+//rule "COMBINATION_023_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_CALLANDCONTACT_MALE_MARRIAGE_EDUCATION.getMessage()))
+//when
+//    $thresholdValues:RuleThresholdValues();
+//    RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+//    UserCallRecordsModel($contacts:contacts);
+//    eval(!($sex==SexEnum.MALE.getCode()
+//         &&$marriage!=null&&$marriage==0
+//         && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic)
+//         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($contacts),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_CALLANDCONTACT_MALE_MARRIAGE_EDUCATION.getMessage()))
+//         ));
+//
+//
+//then
+//   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_CALLANDCONTACT_MALE_MARRIAGE_EDUCATION.getMessage(),
+//                                "false",
+//                                "未命中近30天的通话记录中，出现在通讯录中的有效去重通话号码个数>=36&男性&单身&高中及以下")
+//                                .addToResultList(ruleSetResultList);
+//end
+
+
+
+
+rule "COMBINATION_024_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    UserCallRecordsModel($firstCall90Time:firstCall90Time);
+    eval($sex==SexEnum.FEMALE.getCode()
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($firstCall90Time),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage()))
+         );
+
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage(),
+                                "true",
+                                "命中第一联系人,近90天,通话时长&女")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_024_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    UserCallRecordsModel($firstCall90Time:firstCall90Time);
+    eval(!($sex==SexEnum.FEMALE.getCode()
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($firstCall90Time),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage()))
+         ));
+
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_FIRST_CONTACT_RECENT90CALL_FEMALE.getMessage(),
+                                "false",
+                                "未命中第一联系人,近90天,通话时长&女")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_025_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    GojekModel($totalCountFor180:totalCountFor180);
+    eval($sex==SexEnum.FEMALE.getCode()
+         &&RuleUtils.lessThan(RuleUtils.valueOfStr($totalCountFor180),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage()))
+         );
+
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage(),
+                                "true",
+                                "命中近180天累计乘车次数&女")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_025_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    GojekModel($totalCountFor180:totalCountFor180);
+    eval(!($sex==SexEnum.FEMALE.getCode()
+             &&RuleUtils.lessThan(RuleUtils.valueOfStr($totalCountFor180),$thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage()))
+             ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_RECENT180RIDETIMES_FEMALE.getMessage(),
+                                "false",
+                                "未命中近180天累计乘车次数&女")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_026_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    ShortMessage($diffDaysForEarliestMsgAndApplyTime:diffDaysForEarliestMsgAndApplyTime,$recent90OverdueMsgDistinctCountByNumber:recent90OverdueMsgDistinctCountByNumber);
+    eval($sex==SexEnum.FEMALE.getCode()
+         &&RuleUtils.greatThan(RuleUtils.valueOfStr($diffDaysForEarliestMsgAndApplyTime),
+                                                 RuleUtils.getRuleParam(
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()),0))
+         &&RuleUtils.equalTo(RuleUtils.valueOfStr($recent90OverdueMsgDistinctCountByNumber),
+                                                          RuleUtils.getRuleParam(
+                                                            $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()),1))
+         );
+
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage(),
+                                "true",
+                                "命中女性&最早一条短信时间&近90天逾期短信条数（按号码去重）")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_026_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($sex:sex);
+   ShortMessage($diffDaysForEarliestMsgAndApplyTime:diffDaysForEarliestMsgAndApplyTime,$recent90OverdueMsgDistinctCountByNumber:recent90OverdueMsgDistinctCountByNumber);
+   eval(!($sex==SexEnum.FEMALE.getCode()
+            &&RuleUtils.greatThan(RuleUtils.valueOfStr($diffDaysForEarliestMsgAndApplyTime),
+                                                    RuleUtils.getRuleParam(
+                                                      $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()),0))
+            &&RuleUtils.equalTo(RuleUtils.valueOfStr($recent90OverdueMsgDistinctCountByNumber),
+                                                             RuleUtils.getRuleParam(
+                                                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage()),1))
+       ));
+
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_RECENT90OVEDUESMSG_FEMALE.getMessage(),
+                                "false",
+                                "未命中女性&最早一条短信时间&近90天逾期短信条数（按号码去重）")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_SAMEIPCOUNT_150RMB_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($sameIpApplyCount:sameIpApplyCount);
+    eval(RuleUtils.greatThan(RuleUtils.valueOfStr($sameIpApplyCount),
+                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage()))
+         );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage(),
+                                "true",
+                                "命中同一天内同一个IP的申请次数150")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_SAMEIPCOUNT_150RMB_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($sameIpApplyCount:sameIpApplyCount);
+    eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($sameIpApplyCount),
+                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage()))
+         ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SAMEIPCOUNT_150RMB.getMessage(),
+                                "false",
+                                "未命中同一天内同一个IP的申请次数150")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_028_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    GojekModel($totalCountFor180:totalCountFor180,$maxFare:maxFare);
+    eval($sex==SexEnum.MALE.getCode()
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalCountFor180),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()),0))
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($maxFare),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()),1))
+
+         );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage(),
+                                "true",
+                                "命中近180天累计乘车次数&单次乘车的最大费用&男")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_028_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($sex:sex);
+   GojekModel($totalCountFor180:totalCountFor180,$maxFare:maxFare);
+   eval(!($sex==SexEnum.MALE.getCode()
+        &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalCountFor180),
+                                  RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()),0))
+        &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($maxFare),
+                                  RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage()),1))
+
+       ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_RECENT180RIDETIMES_MAXRIDEFEE_MALE.getMessage(),
+                                "false",
+                                "未命中近180天累计乘车次数&单次乘车的最大费用&男")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_029_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    UserCallRecordsModel($firstCall90Time:firstCall90Time);
+    FaceBookModel($monthsWithoutPost:monthsWithoutPost);
+    eval($sex==SexEnum.MALE.getCode()
+         &&RuleUtils.equalTo(RuleUtils.valueOfStr($firstCall90Time),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()),0))
+         &&RuleUtils.greatThan(RuleUtils.valueOfStr($monthsWithoutPost),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()),1))
+
+         );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage(),
+                                "true",
+                                "命中第一联系人,近90天,通话时长&facebook未发帖的月份个数&男")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_029_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($sex:sex);
+   UserCallRecordsModel($firstCall90Time:firstCall90Time);
+   FaceBookModel($monthsWithoutPost:monthsWithoutPost);
+   eval(!($sex==SexEnum.MALE.getCode()
+        &&RuleUtils.equalTo(RuleUtils.valueOfStr($firstCall90Time),
+                                 RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()),0))
+        &&RuleUtils.greatThan(RuleUtils.valueOfStr($monthsWithoutPost),
+                                 RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage()),1))
+
+          ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_RECENT90FIRSTCONTACTCALL_FACEBOOKNOPOSTMONTHS_MALE.getMessage(),
+                                "false",
+                                "未命中第一联系人,近90天,通话时长&facebook未发帖的月份个数&男")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMBINATION_030_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_FIRST_CONTACT_AND_SECOND_CONTACT_NOT_IN_CONTACTS.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_FIRST_CONTACT_AND_SECOND_CONTACT_NOT_IN_CONTACTS.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    ContactInfo(firstLinkManNotIn==true,secondLinkManNotIn==true);
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_FIRST_CONTACT_AND_SECOND_CONTACT_NOT_IN_CONTACTS.getMessage(),
+                                "true",
+                                "命中2个紧急联系人均不在通讯录")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_030_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_FIRST_CONTACT_AND_SECOND_CONTACT_NOT_IN_CONTACTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_FIRST_CONTACT_AND_SECOND_CONTACT_NOT_IN_CONTACTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   not ContactInfo(firstLinkManNotIn==true,secondLinkManNotIn==true);
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_FIRST_CONTACT_AND_SECOND_CONTACT_NOT_IN_CONTACTS.getMessage(),
+                                "false",
+                                "未命中2个紧急联系人均不在通讯录")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+//
+//rule "COMBINATION_031_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage()))
+//when
+//    $thresholdValues:RuleThresholdValues();
+//    RUserInfo($sex:sex);
+//    UserCallRecordsModel($recent30InTime:recent30InTime,$diffTime:diffTime);
+//    eval($sex==SexEnum.FEMALE.getCode()
+//         &&RuleUtils.lessThan(RuleUtils.valueOfStr($recent30InTime),
+//                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage()),0))
+//         &&RuleUtils.lessThan(RuleUtils.valueOfStr($diffTime),
+//                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage()),1))
+//
+//         );
+//
+//then
+//   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage(),
+//                                "true",
+//                                "命中女性&近30天打入通话时长&手机使用时长")
+//                                .addToResultList(ruleSetResultList);
+//end
+//
+//
+//rule "COMBINATION_031_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage()))
+//when
+//   $thresholdValues:RuleThresholdValues();
+//   RUserInfo($sex:sex);
+//   UserCallRecordsModel($recent30InTime:recent30InTime,$diffTime:diffTime);
+//   eval(!($sex==SexEnum.FEMALE.getCode()
+//           &&RuleUtils.lessThan(RuleUtils.valueOfStr($recent30InTime),
+//                                 RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage()),0))
+//           &&RuleUtils.lessThan(RuleUtils.valueOfStr($diffTime),
+//                                 RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage()),1))
+//
+//           ));
+//
+//then
+//   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_RECENT30CALLIN_MOBILEUSEDTIMES_FEMALE.getMessage(),
+//                                "false",
+//                                "未命中女性&近30天打入通话时长&手机使用时长")
+//                                .addToResultList(ruleSetResultList);
+//end
+
+
+
+
+rule "COMBINATION_032_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    ShortMessage($diffDaysForEarliestMsgAndApplyTime:diffDaysForEarliestMsgAndApplyTime);
+    eval($sex==SexEnum.MALE.getCode()
+         &&RuleUtils.equalTo(RuleUtils.valueOfStr($diffDaysForEarliestMsgAndApplyTime),
+                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage()))
+         );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage(),
+                                "true",
+                                "命中男性&最早一条短信时间距申请时间的天数")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_032_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    ShortMessage($diffDaysForEarliestMsgAndApplyTime:diffDaysForEarliestMsgAndApplyTime);
+    eval(!($sex==SexEnum.MALE.getCode()
+            &&RuleUtils.equalTo(RuleUtils.valueOfStr($diffDaysForEarliestMsgAndApplyTime),
+                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage()))
+            ));
+
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_DIFFDAYSOFEARLIESTMSG_MALE.getMessage(),
+                                "false",
+                                "未命中男性&最早一条短信时间距申请时间的天数")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_033_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    UserCallRecordsModel($recent30InNoRate:recent30InNoRate,$diffTime:diffTime);
+    eval($sex==SexEnum.MALE.getCode()
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($diffTime),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),0))
+
+         &&RuleUtils.lessThan(RuleUtils.valueOfStr($diffTime),
+                                        RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),1))
+
+         &&RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InNoRate),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),2))
+
+         &&RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30InNoRate),
+                                        RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),3))
+
+
+         );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage(),
+                                "true",
+                                "命中男性&手机使用时长&近30天打入未接通占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMBINATION_033_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    UserCallRecordsModel($recent30InNoRate:recent30InNoRate,$diffTime:diffTime);
+    eval(!($sex==SexEnum.MALE.getCode()
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($diffTime),
+                                  RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),0))
+
+         &&RuleUtils.lessThan(RuleUtils.valueOfStr($diffTime),
+                                           RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),1))
+
+         &&RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InNoRate),
+                                  RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),2))
+
+         &&RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($recent30InNoRate),
+                                           RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage()),3))
+
+
+     ));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MOBILEUSEDTIMES_RECENT30NOCONNECTRATIO_MALE.getMessage(),
+                                "false",
+                                "未命中男性&手机使用时长&近30天打入未接通占比")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+
+rule "COMBINATION_034_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($mobileLanguage:mobileLanguage,$totalSpace:totalSpace)
+    eval(RuleUtils.equalString(RuleUtils.valueOfStr($mobileLanguage),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()),0))
+
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),
+                                        RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()),1))
+
+       );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage(),
+                                "true",
+                                "命中手机语言&手机总容量")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_034_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($mobileLanguage:mobileLanguage,$totalSpace:totalSpace)
+    eval(!(RuleUtils.equalString(RuleUtils.valueOfStr($mobileLanguage),
+                               RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()),0))
+
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),
+                                        RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage()),1))
+
+       ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MOBILE_LANG_AND_CAP.getMessage(),
+                                "false",
+                                "未命中手机语言&手机总容量")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+//>=25&女&大专及以上
+
+rule "COMBINATION_035_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex,$academic:academic);
+    DeviceModel($mobileLanguage:mobileLanguage,$totalSpace:totalSpace)
+    eval($sex==SexEnum.FEMALE.getCode()
+        &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),
+                                       $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage()))
+        &&RuleUtils.containsString(Arrays.asList("Diploma","Sarjana","Pascasarjana","Doktor"),$academic)
+       );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage(),
+                                "true",
+                                "命中手机总容量&女&学历")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_035_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex,$academic:academic);
+    DeviceModel($mobileLanguage:mobileLanguage,$totalSpace:totalSpace)
+    eval(!($sex==SexEnum.FEMALE.getCode()
+         &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),
+                                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage()))
+         &&RuleUtils.containsString(Arrays.asList("Diploma","Sarjana","Pascasarjana","Doktor"),$academic)
+       ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_FEMALE_EDUCATION.getMessage(),
+                                "false",
+                                "未命中手机总容量&女&学历")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMBINATION_036_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex,$academic:academic,$maritalStatus:maritalStatus);
+    DeviceModel($totalSpace:totalSpace);
+    UserCallRecordsModel($lastContactDiffDay:lastContactDiffDay,$recent30InTime:recent30InTime);
+    eval($sex==SexEnum.MALE.getCode()
+        &&($maritalStatus!=null&&$maritalStatus==1)
+        &&RuleUtils.containsString(Arrays.asList("Diploma","Sarjana","Pascasarjana","Doktor"),$academic)
+        &&RuleUtils.equalTo(RuleUtils.valueOfStr($lastContactDiffDay),
+                                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()),0))
+        &&RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InTime),
+                                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()),1))
+        &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),
+                                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()),2))
+
+       );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage(),
+                                "true",
+                                "命中男性&婚姻&学历&最后通话&30天打入时长&手机容量")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_036_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex,$academic:academic,$maritalStatus:maritalStatus);
+    DeviceModel($totalSpace:totalSpace);
+    UserCallRecordsModel($lastContactDiffDay:lastContactDiffDay,$recent30InTime:recent30InTime);
+    eval(!($sex==SexEnum.MALE.getCode()
+        &&($maritalStatus!=null&&$maritalStatus==1)
+        &&RuleUtils.containsString(Arrays.asList("Diploma","Sarjana","Pascasarjana","Doktor"),$academic)
+        &&RuleUtils.equalTo(RuleUtils.valueOfStr($lastContactDiffDay),
+                                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()),0))
+        &&RuleUtils.greatThan(RuleUtils.valueOfStr($recent30InTime),
+                                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()),1))
+        &&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),
+                                                RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage()),2))
+
+       ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_MALE_MARITAL_EDUCATION_DIFFDAYSOFLASTCALL_RECENT30CALLIN.getMessage(),
+                                "false",
+                                "未命中男性&婚姻&学历&最后通话&30天打入时长&手机容量")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMBINATION_037_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_NOCALLOFFIRSTSECONDLINKMAN_MALE_MARITAL.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_NOCALLOFFIRSTSECONDLINKMAN_MALE_MARITAL.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex,$maritalStatus:maritalStatus);
+    UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+    eval($sex==SexEnum.MALE.getCode()
+        &&$firstLinkManIn==false
+        &&$secondLinkManIn==false
+        &&($maritalStatus!=null&&$maritalStatus==0)
+        );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_NOCALLOFFIRSTSECONDLINKMAN_MALE_MARITAL.getMessage(),
+                                "true",
+                                "命中第一，第二联系人均无通话记录&男&单身")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_037_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_NOCALLOFFIRSTSECONDLINKMAN_MALE_MARITAL.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_NOCALLOFFIRSTSECONDLINKMAN_MALE_MARITAL.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex,$maritalStatus:maritalStatus);
+    UserCallRecordsModel($firstLinkManIn:firstLinkManIn,$secondLinkManIn:secondLinkManIn);
+    eval(!($sex==SexEnum.MALE.getCode()
+           &&$firstLinkManIn==false
+           &&$secondLinkManIn==false
+           &&($maritalStatus!=null&&$maritalStatus==0)
+        ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_NOCALLOFFIRSTSECONDLINKMAN_MALE_MARITAL.getMessage(),
+                                "false",
+                                "未命中第一，第二联系人均无通话记录&男&单身")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMBINATION_038_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    DeviceModel($totalMemory:totalMemory);
+    UserCallRecordsModel($firstCall180Count:firstCall180Count);
+    eval($sex==SexEnum.MALE.getCode()
+        &&RuleUtils.equalTo(RuleUtils.valueOfStr($firstCall180Count),
+                                        RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()),0)
+                           )
+        &&RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),
+                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()),1)
+                             )
+       );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage(),
+                                "true",
+                                "命中第一联系人,近180天,通话次数&手机总内存&男")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_038_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($sex:sex);
+    DeviceModel($totalMemory:totalMemory);
+    UserCallRecordsModel($firstCall180Count:firstCall180Count);
+    eval(!($sex==SexEnum.MALE.getCode()
+        &&RuleUtils.equalTo(RuleUtils.valueOfStr($firstCall180Count),
+                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()),0)
+                           )
+        &&RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),
+                                    RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage()),1)
+                             )
+       ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_FIRSTLINKEMANRECENT180CALLCOUNT_MALE.getMessage(),
+                                "false",
+                                "未命中第一联系人,近180天,通话次数&手机总内存&男")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+//单身&<5&高中及以下
+
+rule "COMBINATION_039_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($maritalStatus:maritalStatus,$academic:academic);
+    DeviceModel($totalSpace:totalSpace);
+    eval($maritalStatus!=null&&$maritalStatus==0
+        && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic)
+
+        &&RuleUtils.lessThan(RuleUtils.valueOfStr($totalSpace),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage())
+                             )
+       );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage(),
+                                "true",
+                                "命中婚姻&手机总容量&学历")
+                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMBINATION_039_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    RUserInfo($maritalStatus:maritalStatus,$academic:academic);
+    DeviceModel($totalSpace:totalSpace);
+    eval(!($maritalStatus!=null&&$maritalStatus==0
+        && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic)
+
+        &&RuleUtils.lessThan(RuleUtils.valueOfStr($totalSpace),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage())
+                             )
+       ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_MOBILE_CAP_MARITAL_EDUCATION.getMessage(),
+                                "false",
+                                "未命中婚姻&手机总容量&学历")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+
+// 近30天通话时长
+rule "RECENT_30_CALL_TIME"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($sex:sex)
+        UserCallRecordsModel($recent30Time:recent30Time);
+        eval($sex==SexEnum.MALE.getCode()
+             &&RuleUtils.lessThan(RuleUtils.valueOfStr($recent30Time),
+                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage(),
+                                     "true",
+                                     "近30天通话时长小于阈值")
+                 .addToResultList(ruleSetResultList);
+end
+rule "RECENT_30_CALL_TIME_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($sex:sex)
+        UserCallRecordsModel($recent30Time:recent30Time);
+        eval(!($sex==SexEnum.MALE.getCode()
+             &&RuleUtils.lessThan(RuleUtils.valueOfStr($recent30Time),
+                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage()))))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_TIME_MALE.getMessage(),"false","近30天通话时长大于等于阈值").addToResultList
+        (ruleSetResultList);
+end
+
+rule "RECENT_30_CALL_TIME_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT_30_CALL_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT_30_CALL_TIME.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($sex:sex)
+        UserCallRecordsModel($recent30Time:recent30Time);
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT_30_CALL_TIME.getMessage(),
+                                       RuleUtils.valueOfStr($recent30Time),
+                                       "近30天通话时长").addToResultList(ruleSetResultList);
+end
+
+
+rule "WHATSAPP_CONNECT_MALE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage()]);
+        RUserInfo($sex:sex, $whatsAppCheckResult:whatsAppCheckResult)
+        eval($sex==SexEnum.MALE.getCode()
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppCheckResult),RuleUtils.getRuleParam($threshData,0)))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage(),"true","命中IZI本人whatsapp未开通&男性").addToResultList
+        (ruleSetResultList);
+end
+
+
+rule "WHATSAPP_CONNECT_MALE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage()]);
+        RUserInfo($sex:sex, $whatsAppCheckResult:whatsAppCheckResult)
+        eval(!($sex==SexEnum.MALE.getCode()
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppCheckResult),RuleUtils.getRuleParam($threshData,0))))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WHATSAPP_CONNECT_MALE.getMessage(),"false","未命中IZI本人whatsapp未开通&男性").addToResultList
+        (ruleSetResultList);
+end
+
+
+rule "WHATSAPP_CONNECT_FEMALE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage()]);
+        RUserInfo($sex:sex, $whatsAppCheckResult:whatsAppCheckResult)
+        eval($sex==SexEnum.FEMALE.getCode()
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppCheckResult),RuleUtils.getRuleParam($threshData,0)))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage(),"true","命中IZI本人whatsapp未开通&女性").addToResultList
+        (ruleSetResultList);
+end
+
+rule "WHATSAPP_CONNECT_FEMALE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage()]);
+        RUserInfo($sex:sex, $whatsAppCheckResult:whatsAppCheckResult)
+        eval(!($sex==SexEnum.FEMALE.getCode()
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsAppCheckResult),RuleUtils.getRuleParam($threshData,0))))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WHATSAPP_CONNECT_FEMALE.getMessage(),"false","未命中IZI本人whatsapp未开通&女性").addToResultList
+        (ruleSetResultList);
+end

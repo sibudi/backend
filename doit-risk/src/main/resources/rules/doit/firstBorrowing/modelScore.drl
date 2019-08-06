@@ -1,0 +1,78 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "MODEL_SCORE_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage(),
+                                                            RuleUtils.valueOfStr($product600Score),
+                                                            "命中600产品模型分")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "MODEL_SCORE_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600.getMessage(),
+                                                            RuleUtils.valueOfStr($product600Score),
+                                                            "未命中600产品模型分")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "MODEL_SCORE_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage(),
+                                                            RuleUtils.valueOfStr($product600Score),
+                                                            "命中600产品模型分")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "MODEL_SCORE_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SCORE_MODEL_PRODUCT_600_V1.getMessage(),
+                                                            RuleUtils.valueOfStr($product600Score),
+                                                            "未命中600产品模型分")
+                                                            .addToResultList(ruleSetResultList);
+end

@@ -1,0 +1,476 @@
+
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.common.utils.StringUtils;
+
+
+global  java.util.List ruleSetResultList;
+
+rule "DEVICE_INFO_001_A"
+        salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_DEVICE_ID.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_DEVICE_ID.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedForOthersCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_DEVICE_ID.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.USER_DEVICE_ID.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedForOthersCount()),
+                                   "与订单设备号相同的存量申请设备中不属于该申请用户的数量大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_DEVICE_ID.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_DEVICE_ID.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(matchedForOthersCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_DEVICE_ID.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.USER_DEVICE_ID.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedForOthersCount()),
+                                   "与订单设备号相同的存量申请设备中不属于该申请用户的数量小于等于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(sameIpApplyCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getSameIpApplyCount()),
+                                   "相同ip同一天申请数量大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(sameIpApplyCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IP_ADDRESS_COUNT.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getSameIpApplyCount()),
+                                   "相同ip同一天申请数量小于等于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(StringUtils.isEmpty(mobileLanguage) || RuleUtils.equalString(mobileLanguage,$thresholdValues.getThresholdValue(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMobileLanguage()),
+                                   "设备语言为空或为对应的阈值语言"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(StringUtils.isNotEmpty(mobileLanguage) && !RuleUtils.equalString(mobileLanguage,$thresholdValues.getThresholdValue(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_LANGUAGE.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMobileLanguage()),
+                                   "设备语言非空且不为阈值语言"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "DEVICE_INFO_004_A"
+        salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedIMEIForOthersCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedIMEIForOthersCount()),
+                                   "与订单imei相同的存量申请设备中不属于该申请用户的数量大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(matchedIMEIForOthersCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.USER_DEVICE_IMEI.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedIMEIForOthersCount()),
+                                   "与订单imei相同的存量申请设备中不属于该申请用户的数量小于等于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "DEVICE_INFO_JAILBREAK_005_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_JAILBREAK.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_JAILBREAK.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      DeviceModel($isJailBreak:isJailBreak);
+      eval($isJailBreak!=null&&$isJailBreak==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_JAILBREAK.getMessage(),
+                                   RuleUtils.valueOfStr($isJailBreak),
+                                   "命中已越狱"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_JAILBREAK_005_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_JAILBREAK.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_JAILBREAK.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      DeviceModel($isJailBreak:isJailBreak);
+      eval(!($isJailBreak!=null&&$isJailBreak==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_JAILBREAK.getMessage(),
+                                   RuleUtils.valueOfStr($isJailBreak),
+                                   "未命中已越狱"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "DEVICE_INFO_006_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PHONE_BRAND.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PHONE_BRAND.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      DeviceModel($phoneBrand:phoneBrand);
+      eval(RuleUtils.constansStringIgnoreCase(RuleUtils.valueOfStr($phoneBrand),
+                                              RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.PHONE_BRAND.getMessage()))
+                                              )
+      );
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PHONE_BRAND.getMessage(),
+                                   RuleUtils.valueOfStr($phoneBrand),
+                                   "手机品牌不符"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_006_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PHONE_BRAND.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PHONE_BRAND.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      DeviceModel($phoneBrand:phoneBrand);
+      eval(!(RuleUtils.constansStringIgnoreCase(RuleUtils.valueOfStr($phoneBrand),
+                                              RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.PHONE_BRAND.getMessage()))
+                                              )
+      ));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PHONE_BRAND.getMessage(),
+                                   RuleUtils.valueOfStr($phoneBrand),
+                                   "手机品牌相符"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "DEVICE_INFO_007_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IS_IOS.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IS_IOS.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      DeviceModel($isIOS: isIOS);
+      eval($isIOS!=null && $isIOS == true)
+
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.IS_IOS.getMessage(),
+                                   RuleUtils.valueOfStr($isIOS),
+                                   "是IOS设备"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_007_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IS_IOS.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IS_IOS.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      DeviceModel($isIOS: isIOS);
+      eval(!($isIOS!=null && $isIOS == true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IS_IOS.getMessage(),
+                                   RuleUtils.valueOfStr($isIOS),
+                                   "不是IOS设备"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_008_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(sameIpApplyCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getSameIpApplyCount()),
+                                   "同一天内同一个IP的申请次数大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_008_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(sameIpApplyCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_DAY_SAME_IP.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getSameIpApplyCount()),
+                                   "同一天内同一个IP的申请次数小于等于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_009_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithApps),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithApps()),
+                                   "命中androidId_Apps大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_009_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(!RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithApps),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_APPS.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithApps()),
+                                   "未命中androidId_Apps大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithPhoneBrand),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithPhoneBrand()),
+                                   "命中androidId_deviceType_totalMemory_phoneBrand大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(!RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithPhoneBrand),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_PHONE_BRAND.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithPhoneBrand()),
+                                   "未命中androidId_deviceType_totalMemory_phoneBrand大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithIp),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithIp()),
+                                   "命中androidId_deviceType_totalMemory_ip大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(!RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithIp),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_IP.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithIp()),
+                                   "未命中androidId_deviceType_totalMemory_ip大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_012_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_IMSI.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_IMSI.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedIMSIForOthersCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SAME_IMSI.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.SAME_IMSI.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedIMSIForOthersCount()),
+                                   "命中相同imsi大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_012_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_IMSI.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_IMSI.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(!RuleUtils.greatThan(RuleUtils.valueOfStr(matchedIMSIForOthersCount),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SAME_IMSI.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_IMSI.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedIMSIForOthersCount()),
+                                   "未命中相同imsi大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "DEVICE_INFO_013_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintNotEmptyWithDeviceNameCpuType),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintNotEmptyWithDeviceNameCpuType()),
+                                   "命中androidId_deviceName_totalMemory_cpuType大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_013_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(!RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintNotEmptyWithDeviceNameCpuType),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_DEVICE_NAME_MEMORY_CPU.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintNotEmptyWithDeviceNameCpuType()),
+                                   "未命中androidId_deviceName_totalMemory_cpuType大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_014_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithoutAndroidId),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithoutAndroidId()),
+                                   "命中androidId_deviceName_totalMemory_cpuType大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_014_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel(!RuleUtils.greatThan(RuleUtils.valueOfStr(matchedCustomDeviceFingerprintWithoutAndroidId),
+                                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CUSTOM_DEVICE_FINGER_PRINT_MAC_ADDRESS_WITHOUT_ANDROIDID.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getMatchedCustomDeviceFingerprintWithoutAndroidId()),
+                                   "未命中androidId_deviceName_totalMemory_cpuType大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "DEVICE_INFO_015_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_DEVICE_LINKMAN.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_DEVICE_LINKMAN.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel($hitSameExtendDeviceCount: hitSameExtendDeviceCount);
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_DEVICE_LINKMAN.getMessage(),
+                                   RuleUtils.valueOfStr($hitSameExtendDeviceCount),
+                                   "命中扩展设备信息"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "DEVICE_INFO_IP_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IP_ADDRESS_COUNT_REMARK.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IP_ADDRESS_COUNT_REMARK.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $deviceInfo: DeviceModel();
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IP_ADDRESS_COUNT_REMARK.getMessage(),
+                                   RuleUtils.valueOfStr($deviceInfo.getSameIpApplyCount()),
+                                   "相同ip同一天申请数量大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+rule "DEVICE_INFO_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.DEVICE_INFO_DATA_EMPTY.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.DEVICE_INFO_DATA_EMPTY.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      not DeviceModel();
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.DEVICE_INFO_DATA_EMPTY.getMessage(),
+                                   $thresholdValues.getRuleDesc(BlackListTypeEnum.DEVICE_INFO_DATA_EMPTY.getMessage()),
+                                   "用户设备号为空"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+

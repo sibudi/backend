@@ -1,0 +1,146 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "TAX_SCOREMODEL600_POSITIONNAME_MEN_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage()]);
+        RUserInfo($sex: sex, $hitOverDuePositionMan: hitOverDuePositionMan, $hasTaxNumber: hasTaxNumber);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && ($hasTaxNumber != null && $hasTaxNumber == true)
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitOverDuePositionMan != null && $hitOverDuePositionMan == false) || $hitOverDuePositionMan == null)
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage(),
+                                                        "true",
+                                                        "命中税卡&600产品模型分&非高逾期职业&男性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "TAX_SCOREMODEL600_POSITIONNAME_MEN_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage()]);
+        RUserInfo($sex: sex, $hitOverDuePositionMan: hitOverDuePositionMan, $hasTaxNumber: hasTaxNumber);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && ($hasTaxNumber != null && $hasTaxNumber == true)
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitOverDuePositionMan != null && $hitOverDuePositionMan == false) || $hitOverDuePositionMan == null)
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_MEN.getMessage(),
+                                                        "false",
+                                                        "未命中税卡&600产品模型分&非高逾期职业&男性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "TAX_SCOREMODEL600_POSITIONNAME_FEMAL_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage()]);
+        RUserInfo($sex: sex, $hitOverDuePositionFeMen: hitOverDuePositionFeMen, $hasTaxNumber: hasTaxNumber);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && ($hasTaxNumber != null && $hasTaxNumber == true)
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitOverDuePositionFeMen != null && $hitOverDuePositionFeMen == false) || $hitOverDuePositionFeMen == null)
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage(),
+                                                        "true",
+                                                        "命中税卡&600产品模型分&非高逾期职业&女性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "TAX_SCOREMODEL600_POSITIONNAME_FEMAL_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage()]);
+        RUserInfo($sex: sex, $hitOverDuePositionFeMen: hitOverDuePositionFeMen, $hasTaxNumber: hasTaxNumber);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && ($hasTaxNumber != null && $hasTaxNumber == true)
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitOverDuePositionFeMen != null && $hitOverDuePositionFeMen == false) || $hitOverDuePositionFeMen == null)
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TAX_SCOREMODEL600_POSITIONNAME_FEMAL.getMessage(),
+                                                        "false",
+                                                        "未命中税卡&600产品模型分&非高逾期职业&女性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage()]);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult, $iziPhoneAgeResult: iziPhoneAgeResult, $age: age);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,3))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage(),
+                                                        "true",
+                                                        "命中电商类APP个数&IZI实名&IZI在网时长&年龄&性别")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage()]);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult, $iziPhoneAgeResult: iziPhoneAgeResult, $age: age);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalsIgnoreCase(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,3))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APPCOUNT_FOR_ECOMMERCE_IZINAME_IZIONLINETIME_AGE_SEX.getMessage(),
+                                                        "false",
+                                                        "未命中电商类APP个数&IZI实名&IZI在网时长&年龄&性别")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+
+

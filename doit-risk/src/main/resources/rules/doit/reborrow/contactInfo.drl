@@ -1,0 +1,127 @@
+package com.doit.reborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.ContactInfo;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+
+global java.util.List ruleSetResultList;
+
+
+
+//通讯录手机号码去重后数量
+rule "REBORROW_CONTACT_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        ContactInfo($phoneCount:phoneCount,
+                              RuleUtils.lessThan(RuleUtils.valueOfStr(phoneCount),
+                                                 $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage())));
+
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($phoneCount),
+                                     "通讯录去重号码数小于阈值").addToResultList(ruleSetResultList);
+end
+
+//手机号数量不命中
+rule "CONTACT_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        ContactInfo($phoneCount:phoneCount,
+                                  RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(phoneCount),
+                                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_QC_CONTACT_COUNT.getMessage(),
+                                         RuleUtils.valueOfStr($phoneCount),
+                                         "通讯录去重号码数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+
+//通讯录敏感词
+rule "CONTACT_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $contact:ContactInfo(RuleUtils.greatThan(RuleUtils.valueOfStr(sensitiveWordCount),
+                                                 $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage())));
+
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage(),
+                                    RuleUtils.valueOfStr($contact.getSensitiveWordCount()),
+                                    "通讯录命中的敏感词数大于阈值").addToResultList(ruleSetResultList);
+
+end
+
+//通讯录敏感词
+rule "CONTACT_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $contact: ContactInfo(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(sensitiveWordCount),
+                                                        $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage())));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_SENSITIVI_COUNT.getMessage(),
+                                      RuleUtils.valueOfStr($contact.getSensitiveWordCount()),
+                                      "通讯录命中的敏感词数小于等于阈值").addToResultList(ruleSetResultList);
+
+end
+
+
+
+//通讯录同业词
+rule "CONTACT_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $contact: ContactInfo(RuleUtils.greatThan(RuleUtils.valueOfStr(interrelatedWordCount),
+                                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage())));
+
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage(),
+                                    RuleUtils.valueOfStr($contact.getInterrelatedWordCount()),
+                                    "通讯录命中的同业词数大于阈值").addToResultList(ruleSetResultList);
+
+end
+
+//通讯录同业词
+rule "CONTACT_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $contact: ContactInfo(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(interrelatedWordCount),
+                                                    $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage())));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_SAMEJOB_COUNT.getMessage(),
+                                      RuleUtils.valueOfStr($contact.getInterrelatedWordCount()),
+                                      "通讯录命中的同业词数小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+
+//空数据规则判定
+rule "CONTACT_EMPTY_DATA"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_DATA_EMPTY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_DATA_EMPTY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        not ContactInfo();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_DATA_EMPTY.getMessage(),
+                                  $thresholdValues.getRuleDesc(BlackListTypeEnum.MULTI_CONTACT_DATA_EMPTY.getMessage()),
+                                  "手机通讯录为空").addToResultList(ruleSetResultList);
+end

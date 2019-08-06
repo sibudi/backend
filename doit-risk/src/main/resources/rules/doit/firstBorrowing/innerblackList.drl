@@ -1,0 +1,72 @@
+
+import com.yqg.drools.model.InnerBlackList;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+global java.util.List ruleSetResultList;
+
+
+rule "INNER_BLACKLIST_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.DEVICE_ID_IN_BLACK_LIST.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.DEVICE_ID_IN_BLACK_LIST.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       InnerBlackList(isInYQGBlackListSize>0,$inYQGBlackList:isInYQGBlackListSize);
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.DEVICE_ID_IN_BLACK_LIST.name(),
+                                    RuleUtils.valueOfStr($inYQGBlackList),
+                                    "申请手机号命中摇钱罐device_id黑名单").addToResultList(ruleSetResultList);
+end
+
+
+rule "INNER_BLACKLIST_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.DEVICE_ID_IN_BLACK_LIST.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.DEVICE_ID_IN_BLACK_LIST.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       InnerBlackList(isInYQGBlackListSize<=0,$inYQGBlackList:isInYQGBlackListSize);
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.DEVICE_ID_IN_BLACK_LIST.name(),
+                                    RuleUtils.valueOfStr($inYQGBlackList),
+                                    "申请手机号未命中摇钱罐device_id黑名单").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "INNER_BLACKLIST_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IMEI_IN_BLACK_LIST.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IMEI_IN_BLACK_LIST.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       InnerBlackList(isIMEIInYQGBlackList==true,$isIMEIInYQGBlackList:isIMEIInYQGBlackList);
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.IMEI_IN_BLACK_LIST.name(),
+                                    RuleUtils.valueOfStr($isIMEIInYQGBlackList),
+                                    "申请手机号命中摇钱罐黑名单").addToResultList(ruleSetResultList);
+end
+
+
+rule "INNER_BLACKLIST_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IMEI_IN_BLACK_LIST.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IMEI_IN_BLACK_LIST.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       InnerBlackList(isIMEIInYQGBlackList==false,$isIMEIInYQGBlackList:isIMEIInYQGBlackList);
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IMEI_IN_BLACK_LIST.name(),
+                                    RuleUtils.valueOfStr($isIMEIInYQGBlackList),
+                                    "申请手机号未命中摇钱罐imei黑名单").addToResultList(ruleSetResultList);
+end
+
+
+//rule "INNER_BLACKLIST_002"
+//    when
+//       not InnerBlackList();
+//    then
+//       RuleUtils.buildHitRuleResult(BlackListTypeEnum.DATA_EMPTY.name(),
+//                                    "",
+//                                    "设备号为空").addToResultList(ruleSetResultList);
+//end
+

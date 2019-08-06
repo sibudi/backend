@@ -1,0 +1,15 @@
+package com.uanguang.specifiedProduct100RMB
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.SpecifiedProduct100RMBModel;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.drools.model.RUserInfo.SexEnum;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+
+global java.util.List ruleSetResultList;
+

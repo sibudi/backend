@@ -1,0 +1,505 @@
+package com.doit.autoCall
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.AutoCallModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum;
+import com.yqg.drools.model.base.RuleConditionModel;
+import java.util.Arrays;
+
+global java.util.List ruleSetResultList;
+
+rule "AUTO_CALL_001_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($emergencyPassCount: emergencyPassCount, borrowingCount==1,needLinkmanCall == true);
+      eval(RuleUtils.lessThan(RuleUtils.valueOfStr($emergencyPassCount),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum .AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+                              );
+ then
+     RuleUtils.buildHitRuleResult(BlackListTypeEnum.AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage(),
+                                        RuleUtils.valueOfStr($emergencyPassCount),
+                                        "紧急联系人外呼有效个数小于阈值"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_001_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($emergencyPassCount: emergencyPassCount, borrowingCount==1,needLinkmanCall == true);
+      eval(!(RuleUtils.lessThan(RuleUtils.valueOfStr($emergencyPassCount),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum .AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+                              ));
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage(),
+                                        RuleUtils.valueOfStr($emergencyPassCount),
+                                        "紧急联系人外呼有效个数大于等于阈值"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+
+//复借
+rule "AUTO_CALL_003_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($emergencyPassCount: emergencyPassCount, borrowingCount>1,needLinkmanCall == true);
+      eval(RuleUtils.lessThan(RuleUtils.valueOfStr($emergencyPassCount),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum .MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+                              );
+ then
+     RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage(),
+                                        RuleUtils.valueOfStr($emergencyPassCount),
+                                        "紧急联系人外呼有效个数小于阈值-复借"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_003_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($emergencyPassCount: emergencyPassCount, borrowingCount>1,needLinkmanCall == true);
+      eval(!(RuleUtils.lessThan(RuleUtils.valueOfStr($emergencyPassCount),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum .MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage()))
+                              ));
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage(),
+                                        RuleUtils.valueOfStr($emergencyPassCount),
+                                        "紧急联系人外呼有效个数大于等于阈值-复借"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_004_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($backupPassCount: backupPassCount,borrowingCount>1,needLinkmanCall == true,isCashCahOrder==false);
+      eval(RuleUtils.lessThan(RuleUtils.valueOfStr($backupPassCount),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum .MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage()))
+                              );
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage(),
+                                        RuleUtils.valueOfStr($backupPassCount),
+                                        "备选联系人外呼有效个数小于阈值-复借"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_004_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      AutoCallModel($backupPassCount: backupPassCount,borrowingCount>1,needLinkmanCall == true,isCashCahOrder==false);
+      eval(!(RuleUtils.lessThan(RuleUtils.valueOfStr($backupPassCount),
+                              $thresholdValues.getThresholdValue(BlackListTypeEnum .MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage()))
+                              ));
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_BACKUP_LINKMAN_VALID_COUNT.getMessage(),
+                                        RuleUtils.valueOfStr($backupPassCount),
+                                        "备选联系人外呼有效个数大于等于阈值-复借"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+//组合规则
+
+rule "AUTO_CALL_007_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage()]);
+      AutoCallModel($totalMemory:totalMemory,$companyTelAutoCallResult: companyTelAutoCallResult,$bankCode: bankCode,$sex: sex, borrowingCount==1);
+      eval(RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),$threshData)
+           && $companyTelAutoCallResult!=null && $companyTelAutoCallResult == 3
+           && $bankCode!=null && RuleUtils.containsString(Arrays.asList("BRI","CIMB"),$bankCode)
+           && $sex==RUserInfo.SexEnum.MALE.getCode());
+ then
+     RuleUtils.buildHitRuleResult(BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage(),
+                                        "true",
+                                        "命中手机总内存&外呼公司电话返回结果&特定银行&男"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_007_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage()]);
+      AutoCallModel($totalMemory:totalMemory,$companyTelAutoCallResult: companyTelAutoCallResult,$bankCode: bankCode,$sex: sex,borrowingCount==1);
+      eval(!(RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),$threshData)
+                 && $companyTelAutoCallResult!=null && $companyTelAutoCallResult == 3
+                 && $bankCode!=null && RuleUtils.containsString(Arrays.asList("BRI","CIMB"),$bankCode)
+                 && $sex==RUserInfo.SexEnum.MALE.getCode()
+                 ));
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.TOTAL_MEMORY_COMPANY_CALL_BANK_CODE_MALE.getMessage(),
+                                        "false",
+                                        "未命中手机总内存&外呼公司电话返回结果&特定银行&男"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "AUTO_CALL_008_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage()]);
+      AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult, $sex: sex, $deviceType: deviceType,borrowingCount==1);
+      eval($companyTelAutoCallResult!=null && $companyTelAutoCallResult == 1
+           && RuleUtils.equalString($deviceType,"iOS")
+           && $sex==RUserInfo.SexEnum.FEMALE.getCode());
+ then
+     RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage(),
+                                        "true",
+                                        "命中公司外呼&IOS&女性"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_008_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage()]);
+      AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult, $sex: sex, $deviceType: deviceType ,borrowingCount==1);
+      eval(!($companyTelAutoCallResult!=null && $companyTelAutoCallResult == 1
+           && RuleUtils.equalString($deviceType,"iOS")
+           && $sex==RUserInfo.SexEnum.FEMALE.getCode())
+           );
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_CALL_IOS_FEMALE.getMessage(),
+                                        "false",
+                                        "未命中公司外呼&IOS&女性"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "AUTO_CALL_009_A"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage()]);
+      AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult, $sex: sex, $deviceType: deviceType,$monthlyIncome: monthlyIncome,borrowingCount==1);
+      eval($companyTelAutoCallResult!=null && $companyTelAutoCallResult == 1
+           && RuleUtils.equalString($deviceType,"iOS")
+           && $sex==RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),$threshData));
+ then
+     RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage(),
+                                        "true",
+                                        "命中公司外呼&IOS&男性&月收入"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_009_B"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage()))
+ when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage()));
+
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage()]);
+      AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult, $sex: sex, $deviceType: deviceType,$monthlyIncome: monthlyIncome,
+      borrowingCount==1);
+      eval(!($companyTelAutoCallResult!=null && $companyTelAutoCallResult == 1
+           && RuleUtils.equalString($deviceType,"iOS")
+           && $sex==RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),$threshData)
+           ));
+ then
+     RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_CALL_IOS_MALE_MONTHLY_INCOME.getMessage(),
+                                        "false",
+                                        "未命中公司外呼&IOS&男性&月收入"
+                                       ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "AUTO_CALL_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage()]);
+
+          AutoCallModel($iziPhoneAge:iziPhoneAgeResult, $iziPhoneVerify: iziPhoneVerifyResult,$mobileLanguage :mobileLanguage,$companyTelAutoCallResult: companyTelAutoCallResult)
+          eval($iziPhoneAge!=null && $iziPhoneAge.getStatus()== PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND
+              && $iziPhoneVerify!=null && ($iziPhoneVerify.getStatus() == PhoneVerifyStatusEnum.NOT_FOUND || RuleUtils.equalString($iziPhoneVerify.getMessage(),"NOT_MATCH")
+              )
+              && RuleUtils.equalString($mobileLanguage,$threshData)
+              && $companyTelAutoCallResult!=null && ($companyTelAutoCallResult == 2 || $companyTelAutoCallResult == 3 )
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage(),
+                                                "true",
+                                                "命中IZI在网时长&IZI手机实名认证&语言&公司外呼")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage()]);
+
+         AutoCallModel($iziPhoneAge:iziPhoneAgeResult, $iziPhoneVerify: iziPhoneVerifyResult,$mobileLanguage :mobileLanguage,$companyTelAutoCallResult: companyTelAutoCallResult)
+         eval(!($iziPhoneAge!=null && $iziPhoneAge.getStatus()== PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND
+                  && $iziPhoneVerify!=null && ($iziPhoneVerify.getStatus() == PhoneVerifyStatusEnum.NOT_FOUND || RuleUtils.equalString($iziPhoneVerify.getMessage(),"NOT_MATCH")
+                  )
+                  && RuleUtils.equalString($mobileLanguage,$threshData)
+                  && $companyTelAutoCallResult!=null && ($companyTelAutoCallResult == 2 || $companyTelAutoCallResult == 3 )
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IZI_PHONEAGE_PHONEVERIFY_MOBILE_LANGUAGE_COMPANY_CALL.getMessage(),
+                                                "false",
+                                                "未命中IZI在网时长&IZI手机实名认证&语言&公司外呼")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "AUTO_CALL_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_MALE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_MALE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_TEL_MALE.getMessage()]);
+          AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult,$sex: sex)
+          eval($companyTelAutoCallResult!=null && $companyTelAutoCallResult==3
+              && $sex == RUserInfo.SexEnum.MALE.getCode()
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMPANY_TEL_MALE.getMessage(),
+                                                "true",
+                                                "命中公司外呼and性别")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_MALE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_MALE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_TEL_MALE.getMessage()]);
+          AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult,$sex: sex)
+          eval(!($companyTelAutoCallResult!=null && $companyTelAutoCallResult==3
+              && $sex == RUserInfo.SexEnum.MALE.getCode()
+          ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_TEL_MALE.getMessage(),
+                                                "false",
+                                                "未命中公司外呼and性别")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_012_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage()]);
+          AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult,$sex: sex, $monthlyIncome: monthlyIncome)
+          eval($companyTelAutoCallResult!=null && $companyTelAutoCallResult==3
+               &&RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),$threshData)
+              && $sex == RUserInfo.SexEnum.MALE.getCode()
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage(),
+                                                "true",
+                                                "命中公司外呼and性别and月收入")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_012_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage()]);
+          AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult,$sex: sex, $monthlyIncome: monthlyIncome)
+          eval(!($companyTelAutoCallResult!=null && $companyTelAutoCallResult==3
+                &&RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),$threshData)
+                && $sex == RUserInfo.SexEnum.MALE.getCode()
+          ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME.getMessage(),
+                                                "false",
+                                                "未命中公司外呼and性别and月收入")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+rule "AUTO_CALL_013_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage()]);
+          AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult,$sex: sex, $monthlyIncome: monthlyIncome,$childrenCount: childrenCount,$academic: academic)
+          eval($companyTelAutoCallResult!=null && $companyTelAutoCallResult==3
+               &&RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,0))
+               &&RuleUtils.equalTo(RuleUtils.valueOfStr($childrenCount),RuleUtils.getRuleParam($threshData,1))
+               &&$academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode(),EducationEnum.JuniorMiddleSchool
+                              .getCode(),
+                              EducationEnum.PrimarySchool.getCode()),$academic)
+              && $sex == RUserInfo.SexEnum.MALE.getCode()
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage(),
+                                                "true",
+                                                "命中公司外呼and性别&月收入&学历&孩子数量")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_013_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage()]);
+          AutoCallModel($companyTelAutoCallResult: companyTelAutoCallResult,$sex: sex, $monthlyIncome: monthlyIncome,$childrenCount: childrenCount,
+          $academic: academic)
+          eval(!($companyTelAutoCallResult!=null && $companyTelAutoCallResult==3
+               &&RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,0))
+               &&RuleUtils.equalTo(RuleUtils.valueOfStr($childrenCount),RuleUtils.getRuleParam($threshData,1))
+               &&$academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode(),EducationEnum.JuniorMiddleSchool
+               .getCode(),
+               EducationEnum.PrimarySchool.getCode()),$academic)
+               && $sex == RUserInfo.SexEnum.MALE.getCode()
+          ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_TEL_MALE_MONTHLY_INCOME_EDUCATION_CHILDREN_COUNT.getMessage(),
+                                                "false",
+                                                "未命中公司外呼and性别&月收入&学历&孩子数量")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "AUTO_CALL_014_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage()]);
+          AutoCallModel($totalMemory: totalMemory,$firstOrderCompanyTelCallResult: firstOrderCompanyTelCallResult)
+          eval($firstOrderCompanyTelCallResult!=null && $firstOrderCompanyTelCallResult == 3
+               && RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),$threshData)
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage(),
+                                                "true",
+                                                "命中公司外呼&总内存-复借")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_014_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage()]);
+          AutoCallModel($totalMemory: totalMemory,$firstOrderCompanyTelCallResult: firstOrderCompanyTelCallResult)
+          eval(!($firstOrderCompanyTelCallResult!=null && $firstOrderCompanyTelCallResult == 3
+               && RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),$threshData)
+          ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.REBORROWING_FIRST_LOAN_COMPANY_CALL_TOTAL_MEMORY.getMessage(),
+                                                "false",
+                                                "未命中公司外呼&总内存-复借")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_015_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage()]);
+          AutoCallModel($sex: sex,$academic: academic, $appCountForEcommerce: appCountForEcommerce,$validLinkmanCallCountWithInforbip:validLinkmanCallCountWithInforbip)
+          eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+               && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Undergraduate.getCode()),$academic)
+               && $appCountForEcommerce!=null && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam
+               ($threshData,0))
+               && $validLinkmanCallCountWithInforbip!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($validLinkmanCallCountWithInforbip),RuleUtils
+               .getRuleParam($threshData,1))
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage(),
+                                                "true",
+                                                "命中女性&学历&电商类APP个数&联系人外呼完全有效占比")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_015_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage()]);
+          AutoCallModel($sex: sex,$academic: academic, $appCountForEcommerce: appCountForEcommerce,$validLinkmanCallCountWithInforbip:validLinkmanCallCountWithInforbip)
+          eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+               && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Undergraduate.getCode()),$academic)
+               && $appCountForEcommerce!=null && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam
+                         ($threshData,0))
+                         && $validLinkmanCallCountWithInforbip!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($validLinkmanCallCountWithInforbip),RuleUtils
+                         .getRuleParam($threshData,1))
+          ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_LINKMAN_CALL_RESULT_FEMALE.getMessage(),
+                                                "false",
+                                                "未命中女性&学历&电商类APP个数&联系人外呼完全有效占比")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_016_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage()]);
+          AutoCallModel($sex: sex,$academic: academic, $appCountForEcommerce: appCountForEcommerce,$companyTelAutoCallResult:companyTelAutoCallResult)
+          eval($sex == RUserInfo.SexEnum.MALE.getCode()
+               && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Undergraduate.getCode()),$academic)
+               && $appCountForEcommerce!=null && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForEcommerce),$threshData)
+               && $companyTelAutoCallResult!=null && $companyTelAutoCallResult == 1
+          )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage(),
+                                                "true",
+                                                "命中男性&学历&电商类APP个数&公司外呼")
+                                                .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_016_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage()))
+    when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage()));
+          $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage()]);
+          AutoCallModel($sex: sex,$academic: academic, $appCountForEcommerce: appCountForEcommerce,$companyTelAutoCallResult:companyTelAutoCallResult)
+          eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+               && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Undergraduate.getCode()),$academic)
+               && $appCountForEcommerce!=null && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForEcommerce),$threshData)
+               && $companyTelAutoCallResult!=null && $companyTelAutoCallResult == 1
+          ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EDUCATION_APPCOUNT_FOR_ECOMMERCE_COMPANY_CALL_RESULT_MALE.getMessage(),
+                                                "false",
+                                                "未命中男性&学历&电商类APP个数&公司外呼")
+                                                .addToResultList(ruleSetResultList);
+end
+
+
+
+
+

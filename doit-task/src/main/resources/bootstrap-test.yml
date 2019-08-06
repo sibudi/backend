@@ -1,0 +1,238 @@
+server:
+    port: 8081
+mysql:
+    datasource:
+        readSize: 2
+        type: com.alibaba.druid.pool.DruidDataSource
+        write:
+            name: yishu
+            url: jdbc:mysql://47.94.1.62:3366/doit?useUnicode=true&characterEncoding=utf-8
+            username: userdoit
+            password: PJf4jqQZ0igtKQ
+
+            type: com.alibaba.druid.pool.DruidDataSource
+            driver-class-name: com.mysql.jdbc.Driver
+            filters: stat
+            maxActive: 300
+            initialSize: 1
+            maxWait: 60000
+            minIdle: 1
+            timeBetweenEvictionRunsMillis: 60000
+            minEvictableIdleTimeMillis: 300000
+            # validationQuery: select 'x'
+            testWhileIdle: true
+            testOnBorrow: false
+            testOnReturn: false
+            poolPreparedStatements: true
+            maxOpenPreparedStatements: 20
+        read01:
+                    name: yishu
+                    url: jdbc:mysql://47.94.1.62:3366/doit?useUnicode=true&characterEncoding=utf-8
+                    username: userdoit
+                    password: PJf4jqQZ0igtKQ
+                    type: com.alibaba.druid.pool.DruidDataSource
+                    driver-class-name: com.mysql.jdbc.Driver
+                    filters: stat
+                    maxActive: 300
+                    initialSize: 1
+                    maxWait: 60000
+                    minIdle: 1
+                    timeBetweenEvictionRunsMillis: 60000
+                    minEvictableIdleTimeMillis: 300000
+                    # validationQuery: select 'x'
+                    testWhileIdle: true
+                    testOnBorrow: false
+                    testOnReturn: false
+                    poolPreparedStatements: true
+                    maxOpenPreparedStatements: 20
+        read02:
+                    name: yishu
+                    url: jdbc:mysql://47.94.1.62:3366/doit?useUnicode=true&characterEncoding=utf-8
+                    username: userdoit
+                    password: PJf4jqQZ0igtKQ
+                    type: com.alibaba.druid.pool.DruidDataSource
+                    driver-class-name: com.mysql.jdbc.Driver
+                    filters: stat
+                    maxActive: 300
+                    initialSize: 1
+                    maxWait: 60000
+                    minIdle: 1
+                    timeBetweenEvictionRunsMillis: 60000
+                    minEvictableIdleTimeMillis: 300000
+                    # validationQuery: select 'x'
+                    testWhileIdle: true
+                    testOnBorrow: false
+                    testOnReturn: false
+                    poolPreparedStatements: true
+                    maxOpenPreparedStatements: 20
+        riskBackup:
+          name: riskBackup
+          url: jdbc:mysql://47.94.1.62:3366/doit?useUnicode=true&characterEncoding=utf-8
+          username: userdoit
+          password: PJf4jqQZ0igtKQ
+
+          type: com.alibaba.druid.pool.DruidDataSource
+          driver-class-name: com.mysql.jdbc.Driver
+          filters: stat
+          maxActive: 300
+          initialSize: 1
+          maxWait: 60000
+          minIdle: 1
+          timeBetweenEvictionRunsMillis: 60000
+          minEvictableIdleTimeMillis: 300000
+          validationQuery: select 'x'
+          testWhileIdle: true
+          testOnBorrow: false
+          testOnReturn: false
+          poolPreparedStatements: true
+          maxOpenPreparedStatements: 20
+jedis:
+      pool:
+#         host: 47.94.1.62 #哨兵模式下不用配置
+#         port: 6679 # 哨兵模式下不用配置
+         database: 1
+         password: doit2019
+         timeout: 3000
+         config:
+            maxTotal: 500         #连接池的最大数据库连接数。设为0表示无限制,如果是jedis 2.4以后用redis.maxTotal
+            maxIdle: 10          #最大空闲数
+            minIdle: 0
+            maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+         sentinel:
+            master: mymaster
+            nodes: 47.74.191.190:26379,47.74.191.190:26479,47.74.191.190:26579
+mongo:
+    repleSet: 47.94.1.62:27927,
+    username: mongo_dba
+    password: qwer
+    dbName: share
+    connectionsPerHost: 20
+    threadsAllowedToBlockForConnectionMultiplier: 10
+
+upload:
+    path: http://www.do-it.id
+    imagePath: http://control2.uanguang.co.id/manage/showStreamOnBrowser?path=
+third:
+    upload:
+       uploadHost: http://47.94.1.62:8081
+       uploadFilePath: /uploadFile/uploadManageFile
+       uploadManageFileUnverified: /uploadFile/uploadManageFileUnverified
+    pay:
+       cardBinUrl: http://47.94.1.62:8888/bankcard/verify
+       cardBinToken: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
+    cashcash:
+                   #订单状态回调地址
+                   orderStatusFeedback: http://testloanapi.cashcash.id/call-back/order-status
+                   #订单审核结果回调地址
+                   orderCheckResultFeedback: http://testloanapi.cashcash.id/call-back/approval-result
+                   #银行卡绑卡结果回调地址
+                   cardCash2Url: https//testloanapi.cashcash.id/call-back/bind-bank-status
+                   #aesKey
+                   aesKey: 27oovmz7gueaud8l
+                   initVector: abc123rty456nji7
+                   md5Token: KY8GZ-42A0A-Q8OXB-HOJJY-4U8UM-KLTGM
+                   appId: 10000
+                   version: 1
+                   partnerName: UangUang
+                   partnerKey: 8uv4g8z33rcg6mh5ejziq5b8h
+    inforbip:
+       userName: do-it
+       password: do-it2018
+       #host: https://api.infobip.com
+       host: https://api-id1.infobip.com
+       mobileLookUpUrl: /tts/3/single
+       mobileLookUpUrlMulti: /tts/3/multi
+       reportUrl: /tts/3/reports
+       fromTel: 02166685333
+    xiaomi:
+      url: http://staging.id.credit.mi.com/data/upload/kbuser
+      appId: 3126382946971650
+      appKey: 4ac4f483ac89a20ae5dfdcf33ee36fafaf2f562db54929abc353d76733184309
+    twilio:
+      accountSid: AC8521b50dcb9ecb3cd79304d6749e11d5
+      authToken: 5c900a16403d61d949a883b98cdbc004
+      from: +6285574677952
+      demoUrl: https://demo.twilio.com/welcome/voice/
+      serverAddress: 172.31.178.144
+    digiSign:
+      token: atXytejhMO5pMsaAtLdcrkQ2WFlb7uHSCBXXhmnv6jV5AWIdFGofaM4nD6EGQT
+      doitAdminEmail: it@do-it.id
+      #test env
+      #      registerUrl: https://api.tandatanganku.com/REG-MITRA.html
+      #      activationUrl: https://api.tandatanganku.com/ACTMitra-M.html
+      #      sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
+      #      signUrl: https://api.tandatanganku.com/SignWebView.html
+      #      tmpContractDir: C:/Users/zxc20/Desktop/digSign/contract-tmp
+      #      automaticSignKUser: e8r5QbytnJ5g2HOo
+      #      apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
+      #      apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
+      #      apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA.html
+
+      #uat env
+      registerUrl: https://apiuat.tandatanganku.com/REG-MITRA.html
+      activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
+      sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
+      signUrl: https://apiuat.tandatanganku.com/SignWebView.html
+      contractDir: /home/doit-api/contract
+      automaticSignKUser: e8r5QbytnJ5g2HOo
+      apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
+      apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
+      apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
+
+manager:
+#        path: http://cn.control.do-it.id/manage/
+      path: http://47.74.157.197:8082/manage/
+des:
+  file:
+#    path: C:\Users\46020\Desktop\des-test.cer
+    path: /Users/NeverMore/Desktop/Cer/des-test.cer
+
+telk:
+  url: http://47.74.156.133:8086/spider/telk/getDetail
+  url2: http://47.74.156.133:8080/spider/telk/accountInfo
+tokopedia:
+  url: http://47.74.156.133:8080/spider/toko/getDetail
+xl:
+  url: http://47.74.156.133:8080/spider/xl/getDetail
+jxl:
+  getReportDataurl: http://47.74.156.133:8080/spider/jxl/getJXLReportData
+  sendReportTokenUrl: http://103.89.0.251:8866/spider/jxl/finishProcess/
+sms:
+  cheakSmsBalanceUrl: http://47.94.1.62:8899/sms/balance/
+pay:
+  cheakLoanBalanceUrl: http://47.94.1.62:8888/balance/xendit
+  checkPayOrderUrl: http://47.94.1.62:8888/check/order
+#  checkPayOrderUrl: http://192.168.0.151:8888/check/order
+  token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
+excel:
+    file:
+      dir: /LOG/excel/pay
+#      targetPath: /LOG/excel/target
+#      templatesPath: /LOG/excel/templates
+      targetPath: /Users/NeverMore/Desktop/excel
+      templatesPath: /Users/NeverMore/Desktop/templates
+HttpUrl:
+    smsUrl: http://47.94.1.62:8899/sms/send
+    smsUrlTwilio: http://47.94.1.62:8899:8899/sms/login/code
+    smsUrlTwilioVerify: http://47.94.1.62:8899:8899/sms/login/verify
+SmsChannelType:
+    type: ZENZIVA
+spring:
+    mail:
+                  host: smtp.yinyichina.cn
+                  username: wanghuaizhou@yinyichina.cn
+                  password: wang123456@
+                  properties:
+                           mail:
+                              smtp:
+                                 auth: true
+                                 starttls:
+                                      enable: false
+                                      required: false
+                  port: 25
+                  default-encoding: UTF-8
+                  protocol: smtp
+    velocity:
+                  check-template-location: false
+    freemarker:
+            checkTemplateLocation: false

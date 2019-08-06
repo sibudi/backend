@@ -1,0 +1,187 @@
+package com.uanguang.specifiedProduct100RMB
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.SpecifiedProduct100RMBModel;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.drools.model.RUserInfo.SexEnum;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+
+global java.util.List ruleSetResultList;
+
+rule "SPECIFIED_PRODUCT_100RMB_001_A"
+salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_INVALID_100RMB.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_INVALID_100RMB.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo(userRole!=null&& userRole == 2);
+   SpecifiedProduct100RMBModel($companyNotMatch: companyAddressNotBelongToJarkat);
+   eval($companyNotMatch!=null && $companyNotMatch == true);
+then
+  RuleUtils.buildHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_INVALID_100RMB.getMessage(),
+                                              RuleUtils.valueOfStr($companyNotMatch),
+                                              "命中工作地址不属于雅加达大区和爪哇岛和巴厘岛-100RMB").addToResultList(ruleSetResultList);
+end
+
+rule "SPECIFIED_PRODUCT_100RMB_001_B"
+salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_INVALID_100RMB.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_INVALID_100RMB.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo(userRole!=null&& userRole == 2);
+   SpecifiedProduct100RMBModel($companyNotMatch: companyAddressNotBelongToJarkat);
+   eval(!($companyNotMatch!=null && $companyNotMatch == true));
+then
+  RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_INVALID_100RMB.getMessage(),
+                                              RuleUtils.valueOfStr($companyNotMatch),
+                                              "未命中工作地址不属于雅加达大区和爪哇岛和巴厘岛-100RMB").addToResultList(ruleSetResultList);
+end
+
+//
+//rule "SPECIFIED_PRODUCT_100RMB_002_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage()))
+//when
+//    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage()));
+//    $thresholdValues:RuleThresholdValues();
+//    RUserInfo($sex:sex);
+//    DeviceModel($sameIpApplyCount:sameIpApplyCount);
+//    eval($sex==SexEnum.MALE.getCode()
+//         &&RuleUtils.greatThan(RuleUtils.valueOfStr($sameIpApplyCount),
+//                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage()))
+//         );
+//
+//then
+//   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage(),
+//                                "true",
+//                                "命中同一天内同一个IP的申请次数&男-100RMB")
+//                                .addToResultList(ruleSetResultList);
+//end
+//
+//
+//rule "SPECIFIED_PRODUCT_100RMB_002_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage()))
+//when
+//    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage()));
+//    $thresholdValues:RuleThresholdValues();
+//    RUserInfo($sex:sex);
+//    DeviceModel($sameIpApplyCount:sameIpApplyCount);
+//    eval(!($sex==SexEnum.MALE.getCode()
+//            &&RuleUtils.greatThan(RuleUtils.valueOfStr($sameIpApplyCount),
+//                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage()))
+//            ));
+//
+//then
+//   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SAMEIPCOUNT_MALE_100RMB.getMessage(),
+//                                "false",
+//                                "未命中同一天内同一个IP的申请次数&男-100RMB")
+//                                .addToResultList(ruleSetResultList);
+//end
+
+
+rule "COMB_SAMEIPCOUNT_600RMB_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($sameIpApplyCount:sameIpApplyCount);
+    eval(RuleUtils.greatThan(RuleUtils.valueOfStr($sameIpApplyCount),
+                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage()))
+         );
+
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage(),
+                                "true",
+                                "命中同一天内同一个IP的申请次数600")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_SAMEIPCOUNT_600RMB_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage()))
+when
+    RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage()));
+    $thresholdValues:RuleThresholdValues();
+    DeviceModel($sameIpApplyCount:sameIpApplyCount);
+    eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($sameIpApplyCount),
+                               $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage()))
+         ));
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_SAMEIPCOUNT_600RMB.getMessage(),
+                                "false",
+                                "未命中同一天内同一个IP的申请次数600")
+                                .addToResultList(ruleSetResultList);
+end
+
+
+// 近30天内夜间活跃占比
+rule "SPECIFIED_PRODUCT_100RMB_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB.getMessage()))
+when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($nightCallRate:nightCallRate);
+        eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($nightCallRate),
+                                         $thresholdValues.getThresholdValue(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB .getMessage()))
+            );
+then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB.getMessage(),
+                                     RuleUtils.valueOfStr($nightCallRate),
+                                     "近30天内夜间活跃占比大于等于阈值-100RMB")
+                                    .addToResultList(ruleSetResultList);
+end
+rule "SPECIFIED_PRODUCT_100RMB_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB.getMessage()))
+when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        UserCallRecordsModel($nightCallRate:nightCallRate);
+        eval(!(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($nightCallRate),
+                                                 $thresholdValues.getThresholdValue(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB .getMessage()))
+                    ));
+then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NIGHT_CALL_RATE_100RMB.getMessage(),
+                                       RuleUtils.valueOfStr($nightCallRate),
+                                       "近30天内夜间活跃占比小于阈值-100RMB")
+                                       .addToResultList(ruleSetResultList);
+end
+
+
+rule "SPECIFIED_PRODUCT_100RMB_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage()))
+when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage()]);
+         UserCallRecordsModel($recent30NightCallRate:nightCallRate);
+         RUserInfo($sex:sex);
+         eval(RUserInfo.SexEnum.MALE.getCode()==$sex
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30NightCallRate),
+                                            $threshData)
+         );
+then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage(),
+                                             "true",
+                                             "命中近30天内夜间活跃占比&男-100RMB").addToResultList(ruleSetResultList);
+end
+
+
+rule "SPECIFIED_PRODUCT_100RMB_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage()))
+when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage()]);
+         UserCallRecordsModel($recent30NightCallRate:nightCallRate);
+         RUserInfo($sex:sex);
+         eval(!(RUserInfo.SexEnum.MALE.getCode()==$sex
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent30NightCallRate),
+                                            $threshData)
+         ));
+then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RECENT30_EVENING_CALL_RATE_MALE_100RMB.getMessage(),
+                                             "false",
+                                             "未命中近30天内夜间活跃占比&男-100RMB").addToResultList(ruleSetResultList);
+end

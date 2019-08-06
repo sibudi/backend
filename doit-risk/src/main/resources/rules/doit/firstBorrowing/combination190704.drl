@@ -1,0 +1,151 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.LoanInfo.LoanPurpose;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+
+
+rule "COMB_190704_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneAgeResult:iziPhoneAgeResult);
+        InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+              && $iziPhoneAgeResult!=null
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,2))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage(),
+                                                        "true",
+                                                        "hit female&appCountForCreditCard&iziPhoneAge")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190704_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneAgeResult:iziPhoneAgeResult);
+        InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+              && $iziPhoneAgeResult!=null
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,2))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_CREDITCARD_APPCOUNT_IZI_PHONEAGE.getMessage(),
+                                                        "false",
+                                                        "not hit female&appCountForCreditCard&iziPhoneAge")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190704_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+        ModelScoreResult($product100Score: product100Score);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+              && $iziPhoneVerifyResult!=null
+              && ($iziPhoneVerifyResult.getStatus() == PhoneVerifyStatusEnum.NOT_FOUND
+                 || RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"NOT_MATCH")
+              )
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),RuleUtils.getRuleParam($threshData,1))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage(),
+                                                        "true",
+                                                        "hit female&appCountForEcommerce&iziPhoneVerify&100ModelScore")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190704_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+        InstalledAppInfo($appCountForEcommerce: appCountForEcommerce);
+        ModelScoreResult($product100Score: product100Score);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+              && $iziPhoneVerifyResult!=null
+              && ($iziPhoneVerifyResult.getStatus() == PhoneVerifyStatusEnum.NOT_FOUND
+                 || RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"NOT_MATCH")
+              )
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),RuleUtils.getRuleParam($threshData,1))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_ECOMMERCE_APPCOUNT_IZI_PHONEVERIFY_MODEL_SCORE_100.getMessage(),
+                                                        "false",
+                                                        "not hit female&appCountForEcommerce&iziPhoneVerify&100ModelScore")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190704_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage()]);
+        RUserInfo($sex: sex);
+        InstalledAppInfo($appForLoanCount: appForLoanCount);
+        ModelScoreResult($product600ScoreV2: product600ScoreV2);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($appForLoanCount),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage(),
+                                                        "true",
+                                                        "hit female&appCountForLoan&600ModelScoreV2")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190704_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage()]);
+        RUserInfo($sex: sex);
+        InstalledAppInfo($appForLoanCount: appForLoanCount);
+        ModelScoreResult($product600ScoreV2: product600ScoreV2);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($appForLoanCount),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_SENSITIVE_APPCOUNT_MODEL_SCORE_600_V2.getMessage(),
+                                                        "false",
+                                                        "not hit female&appCountForLoan&600ModelScoreV2")
+                                                        .addToResultList(ruleSetResultList);
+end

@@ -1,0 +1,139 @@
+
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.FaceBookModel;
+import com.yqg.common.utils.StringUtils;
+import java.util.List;
+
+global List ruleSetResultList;
+
+
+rule "FACEBOOK_001"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_TOTAL_COMMENT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_TOTAL_COMMENT_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $model:FaceBookModel();
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_TOTAL_COMMENT_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getTotalCommentCount()),
+                                       "累计点评数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_RECENT2MONTH_COMMENT_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getRecent2MonthCommentCount()),
+                                       "近2个月累计点评数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_CURRENTMONTH_COMMENT_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getCurrentMonthCommentCount()),
+                                       "当前月评论数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_TOTAL_LIKES_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getTotalLikesCount()),
+                                       "累计点赞数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_RECENT2MONTH_LIKES_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getRecent2MonthLikesCount()),
+                                       "近2个月累计点赞数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_CURRENTMONTH_LIKES_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getCurrentMonthLikesCount()),
+                                       "当前月点赞数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_TOTAL_POST_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getTotalPostCount()),
+                                       "累计帖子数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_RECENT2MONTH_POST_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getRecent2MonthPostCount()),
+                                       "近2个月帖子数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_CURRENTMONTH_POST_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getCurrentMonthPostCount()),
+                                       "当前月帖子数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_MONTH_AVERAGE_COMMENT_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getMonthAverageCommentCount()),
+                                       "月平均评论数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_MONTH_AVERAGE_LIKES_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getMonthAverageLikesCount()),
+                                       "月平均点赞数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_MONTH_AVERAGE_POST_COUNT.getMessage(),
+                                       RuleUtils.valueOfStr($model.getMonthAveragePostCount()),
+                                       "月平均帖子数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_TOTAL_MONTHS_WITH_POST.getMessage(),
+                                       RuleUtils.valueOfStr($model.getMonthsWithPost()),
+                                       "累计发帖月份数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_TOTAL_MONTHS_WITHOUT_POST.getMessage(),
+                                       RuleUtils.valueOfStr($model.getMonthsWithoutPost()),
+                                       "累计未发帖月份数").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_ACADEMIC_NOT_CONTAIN.getMessage(),
+                                       RuleUtils.valueOfStr($model.getAcademicDegreeNotSame()),
+                                       "facebook学历和订单中不一致").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_DIFFDAYS_FOR_WORK_AND_APPLICATION.getMessage(),
+                                       RuleUtils.valueOfStr($model.getDiffDaysBetweenWorkStartAndOrderApply()),
+                                       "facebook中工作经历最早的工作时间和申请时间的天数差值").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FACEBOOK_COMPANY_NOT_CONTAIN.getMessage(),
+                                     RuleUtils.valueOfStr($model.getCompanyNameNotContain()),
+                                     "facebook中工作经历公司名称和订单公司名称不一致").addToResultList(ruleSetResultList);
+
+end
+
+rule "FACEBOOK_EMPTY_DATA"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_DATA_EMPTY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_DATA_EMPTY.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        not FaceBookModel();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FACEBOOK_DATA_EMPTY.getMessage(),
+                                           $thresholdValues.getRuleDesc(BlackListTypeEnum.FACEBOOK_DATA_EMPTY.getMessage()),
+                                           "facebook相关数据为空").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "FACEBOOK_002_A"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage()))
+   when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage()));
+     $thresholdValues:RuleThresholdValues();
+     $model: FaceBookModel(companyNameNotContain!=null&&companyNameNotContain==false);
+   then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage(),
+                                          RuleUtils.valueOfStr("true"),
+                                          "命中facebook中工作经历公司名称和订单公司名称一致").addToResultList(ruleSetResultList);
+end
+
+rule "FACEBOOK_002_B"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage()))
+   when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage()));
+     $thresholdValues:RuleThresholdValues();
+     $model: FaceBookModel(companyNameNotContain==null);
+   then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage(),
+                                          "null",
+                                          "未命中facebook中工作经历公司名称和订单公司名称一致").addToResultList(ruleSetResultList);
+end
+
+
+rule "FACEBOOK_002_C"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage()))
+   when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage()));
+     $thresholdValues:RuleThresholdValues();
+     $model: FaceBookModel(companyNameNotContain!=null&&companyNameNotContain==true);
+   then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_COMPANY_CONTAIN.getMessage(),
+                                          "false",
+                                          "未命中facebook中工作经历公司名称和订单公司名称一致").addToResultList(ruleSetResultList);
+end

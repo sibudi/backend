@@ -1,0 +1,259 @@
+package rules.uanguang.firstborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.ShortMessage;
+import com.yqg.drools.model.FaceBookModel;
+import java.util.Arrays;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+global java.util.List ruleSetResultList;
+
+
+rule "combination181031_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage()]);
+        GojekModel($emailNotSame:emailNotSame, $mobileNotSame: mobilePhoneNotSame);
+        eval(RuleUtils.equalString(RuleUtils.valueOfStr($emailNotSame),RuleUtils.getRuleParam($threshData,0))
+               && RuleUtils.equalString(RuleUtils.valueOfStr($mobileNotSame),RuleUtils.getRuleParam($threshData,1))
+          );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage(),
+                                        "true",
+                                        "命中gojek邮箱是不一致&gojek手机号是不一致")
+                                        .addToResultList(ruleSetResultList);
+end
+
+rule "combination181031_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage()]);
+        GojekModel($emailNotSame:emailNotSame, $mobileNotSame: mobilePhoneNotSame);
+        eval(!(RuleUtils.equalString(RuleUtils.valueOfStr($emailNotSame),RuleUtils.getRuleParam($threshData,0))
+               && RuleUtils.equalString(RuleUtils.valueOfStr($mobileNotSame),RuleUtils.getRuleParam($threshData,1))
+          ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.GOJEK_EMAIL_NOT_SAME_AND_MOBILE_NOT_SAME.getMessage(),
+                                        "false",
+                                        "未命中gojek邮箱是不一致&gojek手机号是不一致")
+                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "combination181031_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage()]);
+        RUserInfo($userRole:userRole, $maritalStatus: maritalStatus);
+        eval($userRole==3 && $maritalStatus!=1)
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage(),
+                                        "true",
+                                        "命中身份是家庭主妇但婚姻状态是非已婚")
+                                        .addToResultList(ruleSetResultList);
+end
+
+rule "combination181031_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage()]);
+        RUserInfo($userRole:userRole, $maritalStatus: maritalStatus);
+        eval(!($userRole==3 && $maritalStatus!=1))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOUSE_WIFE_AND_MARRIAGE_STATUS.getMessage(),
+                                        "false",
+                                        "未命中身份是家庭主妇但婚姻状态是非已婚")
+                                        .addToResultList(ruleSetResultList);
+end
+
+rule "combination181031_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage()]);
+        RUserInfo($sex:sex);
+        FaceBookModel($monthAverageCommentCount:monthAverageCommentCount);
+        eval($sex==RUserInfo.SexEnum.FEMALE.getCode() && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthAverageCommentCount),$threshData))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage(),
+                                        "true",
+                                        "命中facebook月均评论数&女")
+                                        .addToResultList(ruleSetResultList);
+end
+
+rule "combination181031_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage()]);
+        RUserInfo($sex:sex);
+        FaceBookModel($monthAverageCommentCount:monthAverageCommentCount);
+        eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode() && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthAverageCommentCount),$threshData)))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_COMMENT_FEMALE.getMessage(),
+                                        "false",
+                                        "未命中facebook月均评论数&女")
+                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "combination181031_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage()]);
+        RUserInfo($sex:sex);
+        FaceBookModel($monthAveragePostCount:monthAveragePostCount);
+        eval($sex==RUserInfo.SexEnum.MALE.getCode() && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthAveragePostCount),$threshData))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage(),
+                                        "true",
+                                        "命中facebook月均帖子数&男")
+                                        .addToResultList(ruleSetResultList);
+end
+
+rule "combination181031_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage()]);
+        RUserInfo($sex:sex);
+        FaceBookModel($monthAveragePostCount:monthAveragePostCount);
+        eval(!($sex==RUserInfo.SexEnum.MALE.getCode() && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthAveragePostCount),$threshData)))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FACEBOOK_AVERAGE_MONTH_POST_MALE.getMessage(),
+                                        "false",
+                                        "未命中facebook月均帖子数&男")
+                                        .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "combination181031_005_A"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_MARRIAGE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_MARRIAGE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+   eval(RUserInfo.SexEnum.MALE.getCode()==$sex
+        && $marriage!=null&&$marriage==0
+        && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic));
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_MARRIAGE_EDUCATION.getMessage(),
+                                   "true",
+                                   "命中男性&单身&高中及以下")
+                                   .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "combination181031_005_B"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_MARRIAGE_EDUCATION.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_MARRIAGE_EDUCATION.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+   eval(!(RUserInfo.SexEnum.MALE.getCode()==$sex
+        && $marriage!=null&&$marriage==0
+        && $academic!=null&& RuleUtils.containsString(Arrays.asList("Sekolah Menengah Atas","Sekolah Menengah Pertama","Sekolah dasar"),$academic)));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_MARRIAGE_EDUCATION.getMessage(),
+                                   "false",
+                                   "命中男性&单身&高中及以下")
+                                   .addToResultList(ruleSetResultList);
+end
+
+
+// 短信出现逾期10-15（含）天的平台个数
+rule "SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        RUserInfo($sex:sex);
+        ShortMessage($count:lessthan15AndMoreThan10Count)
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+              && RuleUtils.greatThan(RuleUtils.valueOfStr($count),
+                           $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage())
+                           )
+        );
+
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage(),"true",
+                                     "短信出现逾期10-15（含）天的平台个数&男").addToResultList(ruleSetResultList);
+end
+
+rule "SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage()));
+         $thresholdValues: RuleThresholdValues();
+         RUserInfo($sex:sex);
+         ShortMessage($count:lessthan15AndMoreThan10Count)
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+                      && RuleUtils.greatThan(RuleUtils.valueOfStr($count),
+                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage())
+                                   )
+         ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_MALE.getMessage(),"false",
+                                     "未命中短信出现逾期10-15（含）天的平台个数&男").addToResultList(ruleSetResultList);
+end
+
+
+// 短信出现逾期10-15（含）天的平台个数
+rule "SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        RUserInfo($sex:sex);
+        ShortMessage($count:lessthan15AndMoreThan10Count)
+        eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && RuleUtils.greatThan(RuleUtils.valueOfStr($count),
+                           $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage())
+                           )
+        );
+
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage(),"true",
+                                     "短信出现逾期10-15（含）天的平台个数&女").addToResultList(ruleSetResultList);
+end
+
+rule "SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage()));
+         $thresholdValues: RuleThresholdValues();
+         RUserInfo($sex:sex);
+         ShortMessage($count:lessthan15AndMoreThan10Count)
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+                      && RuleUtils.greatThan(RuleUtils.valueOfStr($count),
+                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage())
+                                   )
+         ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_FEMALE.getMessage(),"false",
+                                     "未命中短信出现逾期10-15（含）天的平台个数&男").addToResultList(ruleSetResultList);
+end
+
+rule "SMS_OVERDUE_LESSTHAN_15DAYS_COUNT_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT.getMessage()));
+         $thresholdValues: RuleThresholdValues();
+         RUserInfo($sex:sex,$marriage:maritalStatus,$academic:academic);
+         ShortMessage($count:lessthan15AndMoreThan10Count)
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_LESSTHAN_15DAYS_COUNT.getMessage(),RuleUtils.valueOfStr($count),
+                                     "短信出现逾期10-15（含）天的平台个数").addToResultList(ruleSetResultList);
+end

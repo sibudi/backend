@@ -1,0 +1,2147 @@
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.SexEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum;
+import com.yqg.drools.model.RUserInfo.IdentityVerifyResultType;
+import com.yqg.common.utils.StringUtils;
+import com.yqg.drools.utils.DateUtil;
+import java.util.List;
+import java.util.Arrays;
+
+
+global  List ruleSetResultList;
+
+
+rule "IDENTITY_INFO_IDCRAD_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IDENTITY_KEY_INfO_EMPTY.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IDENTITY_KEY_INfO_EMPTY.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(StringUtils.isEmpty(idCard))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.IDENTITY_KEY_INfO_EMPTY.getMessage(),
+                                         $thresholdValues.getRuleDesc(BlackListTypeEnum.IDENTITY_KEY_INfO_EMPTY.getMessage()),
+                                         "用户身份证号为空").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_UP.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_UP.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo($age:age,age!=null&&RuleUtils.greatThan(RuleUtils.valueOfStr(age),
+                                                         RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_UP.getMessage()))))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.AGE_UP.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄大于阈值上限").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_UP.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_UP.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo($age:age,age!=null&&RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(age),
+                                                         RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_UP.getMessage()))))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AGE_UP.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄小于等于阈值上限").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_001_MALE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_UP_MALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_UP_MALE.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(sex==RUserInfo.SexEnum.MALE.getCode(),
+           $age:age,age!=null&&RuleUtils.greatThan(RuleUtils.valueOfStr(age),
+                                             RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_UP_MALE.getMessage()))))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.AGE_UP_MALE.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄大于阈值上限(男)").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_001_MALE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_UP_MALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_UP_MALE.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(sex==RUserInfo.SexEnum.MALE.getCode(),
+           $age:age,age!=null&&RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(age),
+                                                         RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_UP_MALE.getMessage()))))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AGE_UP_MALE.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄小于等于阈值上限(男)").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_001_FEMALE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_UP_FEMALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_UP_FEMALE.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(sex==RUserInfo.SexEnum.FEMALE.getCode(),
+                 $age:age,
+                 age!=null&&RuleUtils.greatThan(RuleUtils.valueOfStr(age),
+                                               RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_UP_FEMALE.getMessage()))))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.AGE_UP_FEMALE.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄大于阈值上限(女)").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_001_FEMALE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_UP_FEMALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_UP_FEMALE.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(sex==RUserInfo.SexEnum.FEMALE.getCode(),
+           $age:age,age!=null&&RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(age),
+                                                         RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_UP_FEMALE.getMessage()))))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AGE_UP_FEMALE.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄小于等于阈值上限(女)").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_LOW.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_LOW.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo($age:age,age!=null&&RuleUtils.lessThan(RuleUtils.valueOfStr(age),
+                                                         RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_LOW.getMessage()))))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.AGE_LOW.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄小于阈值下限").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.AGE_LOW.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.AGE_LOW.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo($age:age,age!=null&&RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(age),
+                                                         RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.AGE_LOW.getMessage()))))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.AGE_LOW.getMessage(),
+                                         RuleUtils.valueOfStr($age),
+                                         "年龄大于等于等于阈值下限").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_HOMEADDRESS_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(StringUtils.isEmpty(homeAddress))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage(),
+                                         "用户居住地址为空",
+                                         "用户居住地址为空").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(StringUtils.isNotEmpty(homeAddress)&&homeAddressNotBelongToJarkat!=null && homeAddressNotBelongToJarkat==true,
+                 $homeAddressBelongToJarkat:homeAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($homeAddressBelongToJarkat),
+                                         "居住地址不属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(StringUtils.isNotEmpty(homeAddress)&&homeAddressNotBelongToJarkat!=null && homeAddressNotBelongToJarkat==false,
+                        $homeAddressBelongToJarkat:homeAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.LIVE_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($homeAddressBelongToJarkat),
+                                         "居住地址属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCHOOL_ADDRESS_INVALID.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCHOOL_ADDRESS_INVALID.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(userRole!=null&& userRole == 1 && StringUtils.isNotEmpty(schoolAddress)
+                 &&schoolAddressNotBelongToJarkat!=null && schoolAddressNotBelongToJarkat==true,
+                 $addressMatch:schoolAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.SCHOOL_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "学校地址不属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SCHOOL_ADDRESS_INVALID.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SCHOOL_ADDRESS_INVALID.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(userRole!=null&& userRole == 1 && StringUtils.isNotEmpty(schoolAddress)
+                        &&schoolAddressNotBelongToJarkat!=null && schoolAddressNotBelongToJarkat==false,
+                        $addressMatch:schoolAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SCHOOL_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "学校地址属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_005_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_INVALID.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_INVALID.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(userRole!=null&& userRole == 2 && StringUtils.isNotEmpty(companyAddress)
+                 &&companyAddressNotBelongToJarkat!=null && companyAddressNotBelongToJarkat==true,
+                 $addressMatch:companyAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "工作地址不属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_005_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_INVALID.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_INVALID.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(userRole!=null&& userRole == 2 && StringUtils.isNotEmpty(companyAddress)
+                        &&companyAddressNotBelongToJarkat!=null && companyAddressNotBelongToJarkat==false,
+                        $addressMatch:companyAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "工作地址属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+
+//rule "IDENTITY_INFO_USERROLE_EMPTY"
+//    when
+//        RUserInfo(userRole==null|| userRole == 0)
+//    then
+//       RuleUtils.buildHitRuleResult(BlackListTypeEnum.DATA_EMPTY.getMessage(),
+//                                         "",
+//                                         "用户角色为空").addToResultList(ruleSetResultList);
+//end
+
+
+rule "IDENTITY_INFO_ORDERADDRESS_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(StringUtils.isEmpty(orderAddress))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage(),
+                                         "用户下单地址为空",
+                                         "用户下单地址为空").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_006_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(StringUtils.isNotEmpty(orderAddress)
+                 &&orderAddressNotBelongToJarkat!=null && orderAddressNotBelongToJarkat==true,
+                 $addressMatch:orderAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "下单地址不属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_006_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(StringUtils.isNotEmpty(orderAddress)
+                        &&orderAddressNotBelongToJarkat!=null && orderAddressNotBelongToJarkat==false,
+                        $addressMatch:orderAddressNotBelongToJarkat)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ORDER_ADDRESS_INVALID.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "下单地址属于雅加达大区和爪哇岛和巴厘岛").addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "IDENTITY_INFO_007_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(userRole!=null&& userRole ==2 && isCompanyTelphoneNotInJarkat!=null && isCompanyTelphoneNotInJarkat==true,
+                 $addressMatch:isCompanyTelphoneNotInJarkat)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch==null?null:!$addressMatch),
+                                         "公司电话不属于雅加达").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_007_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(userRole!=null&& userRole ==2 && isCompanyTelphoneNotInJarkat!=null && isCompanyTelphoneNotInJarkat==false,
+                                   $addressMatch:isCompanyTelphoneNotInJarkat)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch==null?null:!$addressMatch),
+                                         "公司电话属于雅加达").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_007_C"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(userRole!=null&& userRole ==2 && isCompanyTelphoneNotInJarkat==null)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_TEL_NOT_IN_JAKARTA.getMessage(),
+                                         "false",
+                                         "公司电话信息为空").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_008_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo($yituScore:yituScore,thirdType==null||thirdType!=1)
+       eval($yituScore==null||
+            RuleUtils.lessThan(RuleUtils.valueOfStr($yituScore),
+                               RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage())))
+            );
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage(),
+                                         RuleUtils.valueOfStr($yituScore),
+                                         "实名认证依图分数为空或者小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_008_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($yituScore:yituScore,thirdType==null||thirdType!=1)
+        eval(!($yituScore==null||
+                    RuleUtils.lessThan(RuleUtils.valueOfStr($yituScore),
+                                       RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage())))
+                    ));
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage(),
+                                         RuleUtils.valueOfStr($yituScore),
+                                         "实名认证依图分数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+rule "IDENTITY_INFO_008_face++_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(thirdType!=null &&thirdType==1,$facePlusPlusScore:facePlusPlusScore);
+       eval($facePlusPlusScore==null||
+            RuleUtils.lessThan(RuleUtils.valueOfStr($facePlusPlusScore),
+                               RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage())))
+            );
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage(),
+                                         RuleUtils.valueOfStr($facePlusPlusScore),
+                                         "face++人脸识别分数为空或者小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_008_face++_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(thirdType!=null &&thirdType==1,$facePlusPlusScore:facePlusPlusScore);
+        eval(!($facePlusPlusScore==null||
+                    RuleUtils.lessThan(RuleUtils.valueOfStr($facePlusPlusScore),
+                                       RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage())))
+                    ));
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CASH2_FACE_PLUS_PLUS_SCORE.getMessage(),
+                                         RuleUtils.valueOfStr($facePlusPlusScore),
+                                         "face++人脸识别分数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+//
+//rule "IDENTITY_INFO_008_C"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage()))
+//    when
+//        $thresholdValues:RuleThresholdValues();
+//        RUserInfo(yituScore==null)
+//    then
+//       RuleUtils.buildHitRuleResult(BlackListTypeEnum.YITU_SCORE_LIMIT.getMessage(),
+//                                         "",
+//                                         "依图实名验证分数为空").addToResultList(ruleSetResultList);
+//end
+
+
+rule "IDENTITY_INFO_009_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.EXCEPTION))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_009_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.ID_NUMBER_EMPTY))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_009_C"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.NAME_EMPTY))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_009_D"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType
+        .NAME_FULL_MATCH_SUCCESS)|| advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.TAX_VERIFY_FULL_MATCH)
+        || advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.XENDIT_REALNAME_VERIFY_MATCH)
+        || advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.IZI_PHONE_IDCARD_VERIFY_SUCCESS)
+        || advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.IZI_PHONE_IDCARD_VERIFY_ALREADY_SUCCESS)
+        || advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.IZI_REAL_NAME_VERIFY_ALREADY_SUCCESS)
+        )
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_009_E"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType
+        .NAME_FUZZY_MATCH_SUCCESS)|| advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.TAX_VERIFY_FUZZY_MATCH_SUCCESS))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_009_E2"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.JUXINLI_MATCH_SUCCESS))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_009_E3"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.FORWARD_MATCH_SUCCESS)
+        || advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.TAX_NUMBER_VERIFY_ALREADY_SUCCESS)
+        || advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.XENDIT_REALNAME_VERIFY_ALREADY_SUCCESS))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_009_F"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType
+        .NAME_FUZZY_MATCH_FAILED)||advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.TAX_VERIFY_FUZZY_MATCH_FAILED)
+        ||advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.XENDIT_REALNAME_VERIFY_DISMATCH))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_009_G"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.INTERFACE_FAILED)
+        ||advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.TAX_VERIFY_ERROR)
+        ||advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.TAX_VERIFY_RESPONSE_EMPTY)
+        ||advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.XENDIT_REALNAME_VERIFY_RESPONSE_EMPTY)
+        ||advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType.IZI_PHONE_IDCARD_VERIFY_FAILED)
+        )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_009_H"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($advanceVerifyResult:advanceVerifyResult,advanceVerifyResult.getAdvanceVerifyResultType().equals(IdentityVerifyResultType
+        .REAL_NAME_TAX_NUMBER_BLACKLIST));
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ADVANCE_VERIFY_RULE.getMessage(),
+                                         $advanceVerifyResult.getDesc(),
+                                         $advanceVerifyResult.getDesc()).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "IDENTITY_INFO_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NON_REVIEW_POSITION_NAMES.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NON_REVIEW_POSITION_NAMES.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($positionName:positionName);
+        eval(RuleUtils.constansStringIgnoreCase($positionName,RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum
+        .NON_REVIEW_POSITION_NAMES.getMessage()))))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.NON_REVIEW_POSITION_NAMES.getMessage(),
+                                         "true",
+                                         "命中职业是医务人员或老师或公务员").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NON_REVIEW_POSITION_NAMES.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NON_REVIEW_POSITION_NAMES.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($positionName:positionName);
+        eval(!RuleUtils.constansStringIgnoreCase($positionName,RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum
+        .NON_REVIEW_POSITION_NAMES.getMessage()))))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NON_REVIEW_POSITION_NAMES.getMessage(),
+                                         "false",
+                                         "未命中职业是医务人员或老师或公务员").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NON_REVIEW_RELIGION.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NON_REVIEW_RELIGION.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($regionName:religionName,$sex:sex);
+        eval(RuleUtils.constansStringIgnoreCase($regionName,RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum
+        .NON_REVIEW_RELIGION.getMessage()))) && RUserInfo.SexEnum.FEMALE.getCode()==$sex)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.NON_REVIEW_RELIGION.getMessage(),
+                                         "true",
+                                         "命中宗教是天主教或印度教").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NON_REVIEW_RELIGION.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NON_REVIEW_RELIGION.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($regionName:religionName,$sex:sex);
+        eval(!(RuleUtils.constansStringIgnoreCase($regionName,RuleUtils.valueOfStr($thresholdValues.getThresholdValue(BlackListTypeEnum
+               .NON_REVIEW_RELIGION.getMessage()))) && RUserInfo.SexEnum.FEMALE.getCode()==$sex)
+               )
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NON_REVIEW_RELIGION.getMessage(),
+                                         "false",
+                                         "未命中宗教是天主教或印度教").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_012_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_LINKMAN_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_LINKMAN_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($firstLinkmanExists:firstLinkmanExists);
+   eval($firstLinkmanExists!=null&&$firstLinkmanExists==true)
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.FIRST_LINKMAN_EXISTS.getMessage(),
+                                         "true",
+                                         "命中第一紧急联系人相同").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_012_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_LINKMAN_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_LINKMAN_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($firstLinkmanExists:firstLinkmanExists);
+   eval(!($firstLinkmanExists!=null&&$firstLinkmanExists==true));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FIRST_LINKMAN_EXISTS.getMessage(),
+                                         "false",
+                                         "未命中第一紧急联系人相同").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_012_01_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_NOT_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_NOT_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($firstLinkmanExists:firstLinkmanExists, $firstLinkmanExistsRelatedUserSettled: firstLinkmanExistsRelatedUserSettled);
+   eval($firstLinkmanExists!=null&&$firstLinkmanExists==true
+       && $firstLinkmanExistsRelatedUserSettled!=null && $firstLinkmanExistsRelatedUserSettled==true)
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_NOT_OVERDUE.getMessage(),
+                                         "true",
+                                         "命中第一紧急联系人相同&第一个用户是好用户").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_012_01_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_NOT_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_NOT_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($firstLinkmanExists:firstLinkmanExists, $firstLinkmanExistsRelatedUserSettled: firstLinkmanExistsRelatedUserSettled);
+   eval(!($firstLinkmanExists!=null&&$firstLinkmanExists==true
+          && $firstLinkmanExistsRelatedUserSettled!=null && $firstLinkmanExistsRelatedUserSettled==true)
+          )
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_NOT_OVERDUE.getMessage(),
+                                         "false",
+                                         "未命中第一紧急联系人相同&第一个用户是好用户").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_012_02_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($firstLinkmanExists:firstLinkmanExists, $firstLinkmanExistsRelatedUserSettled: firstLinkmanExistsRelatedUserSettled);
+   eval($firstLinkmanExists!=null&&$firstLinkmanExists==true
+       && !($firstLinkmanExistsRelatedUserSettled!=null && $firstLinkmanExistsRelatedUserSettled==true)
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_OVERDUE.getMessage(),
+                                         "true",
+                                         "命中第一紧急联系人相同&第一个用户是好用户").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_012_02_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($firstLinkmanExists:firstLinkmanExists, $firstLinkmanExistsRelatedUserSettled: firstLinkmanExistsRelatedUserSettled);
+   eval(!($firstLinkmanExists!=null&&$firstLinkmanExists==true
+          && !($firstLinkmanExistsRelatedUserSettled!=null && $firstLinkmanExistsRelatedUserSettled==true))
+          )
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FIRST_LINKMAN_EXISTS_OVERDUE.getMessage(),
+                                         "false",
+                                         "未命中第一紧急联系人相同&第一个用户是好用户").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_013_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMAIL_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMAIL_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($emailExists:emailExists);
+   eval($emailExists!=null&&$emailExists==true)
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMAIL_EXISTS.getMessage(),
+                                         RuleUtils.valueOfStr($emailExists),
+                                         "命中邮箱相同").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_013_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMAIL_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMAIL_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($emailExists:emailExists);
+   eval(!($emailExists!=null&&$emailExists==true));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMAIL_EXISTS.getMessage(),
+                                         RuleUtils.valueOfStr($emailExists),
+                                         "未命中邮箱相同").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_013_01_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMAIL_EXISTS_NOT_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMAIL_EXISTS_NOT_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($emailExists:emailExists, $firstEmailExistsRelatedUserSettled:firstEmailExistsRelatedUserSettled);
+   eval($emailExists!=null&&$emailExists==true
+        && $firstEmailExistsRelatedUserSettled!=null && $firstEmailExistsRelatedUserSettled ==true
+        )
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMAIL_EXISTS_NOT_OVERDUE.getMessage(),
+                                         RuleUtils.valueOfStr($emailExists),
+                                         "命中邮箱相同&第一个用户是好用户").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_013_01_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMAIL_EXISTS_NOT_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMAIL_EXISTS_NOT_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($emailExists:emailExists, $firstEmailExistsRelatedUserSettled:firstEmailExistsRelatedUserSettled);
+   eval(!($emailExists!=null&&$emailExists==true
+           && $firstEmailExistsRelatedUserSettled!=null && $firstEmailExistsRelatedUserSettled ==true
+   ))
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMAIL_EXISTS_NOT_OVERDUE.getMessage(),
+                                         RuleUtils.valueOfStr($emailExists),
+                                         "未命中邮箱相同&第一个用户是好用户").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_013_02_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMAIL_EXISTS_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMAIL_EXISTS_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($emailExists:emailExists, $firstEmailExistsRelatedUserSettled:firstEmailExistsRelatedUserSettled);
+   eval($emailExists!=null&&$emailExists==true
+        && !($firstEmailExistsRelatedUserSettled!=null && $firstEmailExistsRelatedUserSettled ==true)
+        )
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMAIL_EXISTS_OVERDUE.getMessage(),
+                                         RuleUtils.valueOfStr($emailExists),
+                                         "命中邮箱相同&第一个用户不是好用户").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_013_02_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMAIL_EXISTS_OVERDUE.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMAIL_EXISTS_OVERDUE.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($emailExists:emailExists, $firstEmailExistsRelatedUserSettled:firstEmailExistsRelatedUserSettled);
+   eval(!($emailExists!=null&&$emailExists==true
+           && !($firstEmailExistsRelatedUserSettled!=null && $firstEmailExistsRelatedUserSettled ==true)
+   ))
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMAIL_EXISTS_OVERDUE.getMessage(),
+                                         RuleUtils.valueOfStr($emailExists),
+                                         "未命中邮箱相同&第一个用户不是好用户").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_014_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($workAddressExists:workAddressExists,$orderAddressExists:orderAddressExists);
+   eval($workAddressExists!=null&&$workAddressExists==true&&$orderAddressExists!=null&&$orderAddressExists==true)
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage(),
+                                          "true",
+                                          "命中工作地址&下单位置").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_014_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($workAddressExists:workAddressExists,$orderAddressExists:orderAddressExists);
+   eval(!($workAddressExists!=null&&$workAddressExists==true&&$orderAddressExists!=null&&$orderAddressExists==true));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage(),
+                                          "false",
+                                          "未命中工作地址&下单位置").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_015_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_HOME_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_HOME_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($homeAddressExists:homeAddressExists,$orderAddressExists:orderAddressExists);
+   eval($homeAddressExists!=null&&$homeAddressExists==true&&$orderAddressExists!=null&&$orderAddressExists==true)
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_HOME_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage(),
+                                          "true",
+                                          "命中居住地址&下单位置").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_015_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_HOME_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_HOME_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($homeAddressExists:homeAddressExists,$orderAddressExists:orderAddressExists);
+   eval(!($homeAddressExists!=null&&$homeAddressExists==true&&$orderAddressExists!=null&&$orderAddressExists==true));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_HOME_ADDRESS_AND_ORDER_ADDRESS_EXISTS.getMessage(),
+                                          "false",
+                                          "未命中居住地址&下单位置").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_016_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_HOME_ADDRESS_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_HOME_ADDRESS_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($homeAddressExists:homeAddressExists,$workAddressExists:workAddressExists);
+   eval($homeAddressExists!=null&&$homeAddressExists==true&&$workAddressExists!=null&&$workAddressExists==true)
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_HOME_ADDRESS_EXISTS.getMessage(),
+                                          "true",
+                                          "命中工作地址&居住地址").addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "IDENTITY_INFO_016_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_HOME_ADDRESS_EXISTS.getMessage()))
+when
+   RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_HOME_ADDRESS_EXISTS.getMessage()));
+   $thresholdValues:RuleThresholdValues();
+   RUserInfo($homeAddressExists:homeAddressExists,$workAddressExists:workAddressExists);
+   eval(!($homeAddressExists!=null&&$homeAddressExists==true&&$workAddressExists!=null&&$workAddressExists==true));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_WORK_ADDRESS_AND_HOME_ADDRESS_EXISTS.getMessage(),
+                                          "false",
+                                          "未命中工作地址&居住地址").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_017_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(userRole!=null&& userRole == 2 && StringUtils.isNotEmpty(companyAddress)
+                 &&companyAddressNotBelongToJarkatNormal!=null && companyAddressNotBelongToJarkatNormal==true,
+                 $addressMatch:companyAddressNotBelongToJarkatNormal)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "工作地址不属于雅加达大区和爪哇岛和巴厘岛-新").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_017_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(userRole!=null&& userRole == 2 && StringUtils.isNotEmpty(companyAddress)
+                        &&companyAddressNotBelongToJarkatNormal!=null && companyAddressNotBelongToJarkatNormal==false,
+                        $addressMatch:companyAddressNotBelongToJarkatNormal)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "工作地址属于雅加达大区和爪哇岛和巴厘岛-新").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_018_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL_IOS.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL_IOS.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo(userRole!=null&& userRole == 2 && StringUtils.isNotEmpty(companyAddress)
+                 &&companyAddressNotBelongToJarkatIOS!=null && companyAddressNotBelongToJarkatIOS==true,
+                 $addressMatch:companyAddressNotBelongToJarkatIOS)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL_IOS.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "工作地址不属于雅加达大区和爪哇岛和巴厘岛-iOS(自有渠道)").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_018_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL_IOS.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL_IOS.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo(userRole!=null&& userRole == 2 && StringUtils.isNotEmpty(companyAddress)
+                        &&companyAddressNotBelongToJarkatIOS!=null && companyAddressNotBelongToJarkatIOS==false,
+                        $addressMatch:companyAddressNotBelongToJarkatIOS)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WORK_ADDRESS_NOT_VALID_NORMAL_IOS.getMessage(),
+                                         RuleUtils.valueOfStr($addressMatch),
+                                         "工作地址属于雅加达大区和爪哇岛和巴厘岛-iOS(自有渠道)").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_019_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_BIRTHDAY_NOT_SAME_WITH_USER_DETAIL.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_BIRTHDAY_NOT_SAME_WITH_USER_DETAIL.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo($birthday: birthday,$idCardBirthday: idCardBirthday);
+       eval(!RuleUtils.equalsIgnoreCase($idCardBirthday,$birthday))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ID_CARD_BIRTHDAY_NOT_SAME_WITH_USER_DETAIL.getMessage(),
+                                        "true",
+                                         "命中身份证号对应的生日与用户填写的不一致").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_019_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_BIRTHDAY_NOT_SAME_WITH_USER_DETAIL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_BIRTHDAY_NOT_SAME_WITH_USER_DETAIL.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        RUserInfo($birthday: birthday,$idCardBirthday: idCardBirthday);
+        eval(RuleUtils.equalsIgnoreCase($idCardBirthday,$birthday))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ID_CARD_BIRTHDAY_NOT_SAME_WITH_USER_DETAIL.getMessage(),
+                                         "false",
+                                         "未命中身份证号对应的生日与用户填写的不一致").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_020_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_SEX_NOT_SAME_WITH_USER_DETAIL.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_SEX_NOT_SAME_WITH_USER_DETAIL.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       RUserInfo($sex: sex,$idCardSex: idCardSex);
+       eval($idCardSex!=null && $idCardSex != $sex)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ID_CARD_SEX_NOT_SAME_WITH_USER_DETAIL.getMessage(),
+                                         "true",
+                                         "命中身份证号对应的性别与用户填写的不一致").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_020_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_SEX_NOT_SAME_WITH_USER_DETAIL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_SEX_NOT_SAME_WITH_USER_DETAIL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.ID_CARD_SEX_NOT_SAME_WITH_USER_DETAIL.getMessage()]);
+        RUserInfo($sex: sex,$idCardSex: idCardSex);
+        eval(!($idCardSex!=null && $idCardSex != $sex))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ID_CARD_SEX_NOT_SAME_WITH_USER_DETAIL.getMessage(),
+                                         "false",
+                                         "未命中身份证号对应的性别与用户填写的不一致").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_021_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage()]);
+       RUserInfo($countOfOverdueLessThan5UsersByEmergencyTel: countOfOverdueLessThan5UsersByEmergencyTel,$iziPhoneVerifyResult: iziPhoneVerifyResult);
+       eval(RuleUtils.greatThan(RuleUtils.valueOfStr($countOfOverdueLessThan5UsersByEmergencyTel),$threshData)
+           && $iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"MATCH"))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage(),
+                                         "true",
+                                         "命中紧急联系人是首借600已还款用户&IZI手机实名MATCH").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_021_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage()]);
+        RUserInfo($countOfOverdueLessThan5UsersByEmergencyTel: countOfOverdueLessThan5UsersByEmergencyTel,$iziPhoneVerifyResult: iziPhoneVerifyResult);
+        eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($countOfOverdueLessThan5UsersByEmergencyTel),$threshData)
+              && $iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"MATCH"))
+              )
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_FIRST_BORROW_600_IZI_PHONEVERIFY.getMessage(),
+                                         "false",
+                                         "未命中紧急联系人是首借600已还款用户&IZI手机实名MATCH").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_022_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage()]);
+       RUserInfo($iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+            && $iziPhoneVerifyResult!=null && (PhoneVerifyStatusEnum.NOT_FOUND==$iziPhoneVerifyResult.getStatus()
+            || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+            || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),$threshData))
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage(),
+                                         "true",
+                                         "命中男性&IZI手机实名&IZI在网时长").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_022_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage()]);
+        RUserInfo($iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex);
+        eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+             && $iziPhoneVerifyResult!=null && (PhoneVerifyStatusEnum.NOT_FOUND==$iziPhoneVerifyResult.getStatus()
+                || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))
+             && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+                    || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),$threshData))
+           ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE.getMessage(),
+                                         "false",
+                                         "未命中男性&IZI手机实名&IZI在网时长").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_023_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage()]);
+       RUserInfo($iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$age: age);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+            && $iziPhoneVerifyResult!=null && PhoneVerifyStatusEnum.OK==$iziPhoneVerifyResult.getStatus()
+            &&RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"MATCH")
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+              || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage(),
+                                         "true",
+                                         "命中男性&IZI手机实名&IZI在网时长").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_023_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage()]);
+        RUserInfo($iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex, $age: age);
+        eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+            && $iziPhoneVerifyResult!=null && PhoneVerifyStatusEnum.OK==$iziPhoneVerifyResult.getStatus()
+            &&RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"MATCH")
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+              || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+           ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_IZI_PHONEVERIFY_PHONEAGE_AGE.getMessage(),
+                                         "false",
+                                         "未命中男性&IZI手机实名&IZI在网时长").addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "IDENTITY_INFO_024_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage()]);
+       RUserInfo($sex: sex,$age: age,$monthlyIncome: monthlyIncome,$academic: academic, $hasDriverLicense: hasDriverLicense,
+       $hasCreditCard: hasCreditCard);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+            && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Undergraduate.getCode(),EducationEnum.GraduateStudent
+            .getCode(),EducationEnum
+            .Doctor.getCode()),RuleUtils.valueOfStr($academic))
+            && $hasDriverLicense == false
+            && $hasCreditCard!=null && $hasCreditCard == false
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage(),
+                                         "true",
+                                         "命中男性&月收入&年龄&学历&未上传驾驶证&未上传信用卡").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_024_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage()]);
+        RUserInfo($sex: sex,$age: age,$monthlyIncome: monthlyIncome,$academic: academic, $hasDriverLicense: hasDriverLicense,
+         $hasCreditCard: hasCreditCard);
+       eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+            && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Undergraduate.getCode(),EducationEnum.GraduateStudent
+            .getCode(),EducationEnum
+            .Doctor.getCode()),RuleUtils.valueOfStr($academic))
+            && $hasDriverLicense == false
+            && $hasCreditCard!=null && $hasCreditCard == false
+            ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_MONTHLY_INCOME_AGE_EDUCATION_HAS_CREDIT_CARD.getMessage(),
+                                         "false",
+                                         "未命中男性&月收入&年龄&学历&未上传驾驶证&未上传信用卡").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_025_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage()]);
+       RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$age: age,$gojekVerified: gojekVerified);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+                     || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+            && $gojekVerified!=null && $gojekVerified == false
+         )
+
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage(),
+                                         "true",
+                                         "命中未验证gojek&IZI在网时长&年龄&男性").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_025_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage()));
+       RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$age: age,$gojekVerified: gojekVerified);
+       eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+                     || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+            && $gojekVerified!=null && $gojekVerified == false
+         ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_AGE_MALE.getMessage(),
+                                         "false",
+                                         "未命中未验证gojek&IZI在网时长&年龄&男性").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_026_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage()]);
+       RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber,$gojekVerified: gojekVerified);
+       eval($sex== RUserInfo.SexEnum.FEMALE.getCode()
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+                     || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $gojekVerified!=null && $gojekVerified == false
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage(),
+                                         "true",
+                                         "命中未验证gojek&IZI在网时长&whatsapp账号不是本人手机号&女性").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_026_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage()));
+        RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber,$gojekVerified: gojekVerified);
+        eval(!($sex== RUserInfo.SexEnum.FEMALE.getCode()
+               && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+                           || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+               && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+               && $gojekVerified!=null && $gojekVerified == false
+             ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_WHATSAPP_MOBILE_NOT_SAME.getMessage(),
+                                         "false",
+                                         "未命中未验证gojek&IZI在网时长&whatsapp账号不是本人手机号&女性").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_027_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage()]);
+       RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$academic: academic,$gojekVerified: gojekVerified);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+                     || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+            && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.HighSchool.getCode(),
+            EducationEnum
+            .JuniorMiddleSchool.getCode(),EducationEnum.PrimarySchool.getCode()),$academic)
+            && $gojekVerified!=null && $gojekVerified == false
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage(),
+                                         "true",
+                                         "命中未验证gojek&IZI在网时长&男性&学历").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_027_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage()));
+        RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$academic: academic,$gojekVerified: gojekVerified);
+        eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+            && $iziPhoneAgeResult!=null && (PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+                     || RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+            && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.HighSchool.getCode(),
+            EducationEnum
+            .JuniorMiddleSchool.getCode(),EducationEnum.PrimarySchool.getCode()),$academic)
+            && $gojekVerified!=null && $gojekVerified == false
+         ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_MALE_EDUCATION.getMessage(),
+                                         "false",
+                                         "未命中未验证gojek&IZI在网时长&男性&学历").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_028_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage()]);
+       RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$academic: academic,$gojekVerified: gojekVerified);
+       eval($sex== RUserInfo.SexEnum.FEMALE.getCode()
+            && $iziPhoneAgeResult!=null && PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+            && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode()),$academic)
+            && $gojekVerified!=null && $gojekVerified == false
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage(),
+                                         "true",
+                                         "命中未验证gojek&IZI在网时长&女性&学历").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_028_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage()));
+        RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult,$sex: sex,$academic: academic,$gojekVerified: gojekVerified);
+        eval(!($sex== RUserInfo.SexEnum.FEMALE.getCode()
+             && $iziPhoneAgeResult!=null && PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND==$iziPhoneAgeResult.getStatus()
+             && $academic!=null && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode()),$academic)
+             && $gojekVerified!=null && $gojekVerified == false
+         ));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.NO_GOJEK_IZI_PHONEAGE_FEMALE_EDUCATION.getMessage(),
+                                         "false",
+                                         "未命中未验证gojek&IZI在网时长&女性&学历").addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "IDENTITY_INFO_029_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage()]);
+       RUserInfo($sex: sex,$academic: academic,$maritalStatus: maritalStatus,$age: age,$hasDriverLicense: hasDriverLicense);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+          && $maritalStatus!=null && MarriageEnum.Single.getCode() == $maritalStatus
+          && !RuleUtils.containsString(Arrays.asList(EducationEnum.GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),
+                                        RuleUtils.valueOfStr($academic))
+          && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+          && !$hasDriverLicense
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage(),
+                                         "true",
+                                         "命中男性&单身&学历&年龄&未上传驾驶证").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_029_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage()));
+        RUserInfo($sex: sex,$academic: academic,$maritalStatus: maritalStatus,$age: age,$hasDriverLicense: hasDriverLicense);
+        eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+          && $maritalStatus!=null && MarriageEnum.Single.getCode() == $maritalStatus
+          && !RuleUtils.containsString(Arrays.asList(EducationEnum.GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),
+                                        RuleUtils.valueOfStr($academic))
+          && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+          && !$hasDriverLicense
+         ));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_MARRIAGE_EDUCATION_DRIVER_LICENSE.getMessage(),
+                                         "false",
+                                         "未命中男性&单身&学历&年龄&未上传驾驶证").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_030_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage()]);
+       RUserInfo($sex: sex,$age: age, $monthlyIncome: monthlyIncome,$mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,
+       $hasTaxNumber: hasTaxNumber);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+           && !RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && $hasTaxNumber
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage(),
+                                         "true",
+                                         "命中男性&WhatsApp账号不一致&提交税卡&年龄&月收入").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_030_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage()));
+        RUserInfo($sex: sex,$age: age, $monthlyIncome: monthlyIncome,$mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,
+         $hasTaxNumber: hasTaxNumber);
+        eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+           && !RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && $hasTaxNumber
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+         ));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER_AGE_MONTHLY_INCOME.getMessage(),
+                                         "false",
+                                         "未命中男性&WhatsApp账号不一致&提交税卡&年龄&月收入").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_031_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage()]);
+       RUserInfo($sex: sex,$mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,$hasTaxNumber: hasTaxNumber);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+           && !RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && !$hasTaxNumber
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage(),
+                                         "true",
+                                         "命中男性&WhatsApp账号不一致&未提交税卡").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_031_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage()));
+        RUserInfo($sex: sex,$mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,$hasTaxNumber: hasTaxNumber);
+        eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+           && !RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && !$hasTaxNumber
+         ));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_NOT_SAME_TAX_NUMBER.getMessage(),
+                                         "false",
+                                         "未命中男性&WhatsApp账号不一致&未提交税卡").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_032_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage()]);
+       RUserInfo($sex: sex,$mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,$hasTaxNumber: hasTaxNumber,
+       $iziPhoneVerifyResult: iziPhoneVerifyResult,$monthlyIncome: monthlyIncome,$maritalStatus: maritalStatus,$age:age);
+       eval($sex== RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && !$hasTaxNumber
+           && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.OK
+           && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,0))
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage(),
+                                         "true",
+                                         "命中男性&WhatsApp账号一致&未提交税卡&IZI手机实名NOTMATCH&月收入&单身&年龄").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_032_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage()));
+        RUserInfo($sex: sex,$mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,$hasTaxNumber: hasTaxNumber,
+         $iziPhoneVerifyResult: iziPhoneVerifyResult,$monthlyIncome: monthlyIncome,$maritalStatus: maritalStatus,$age:age);
+        eval(!($sex== RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && !$hasTaxNumber
+           && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.OK
+           && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,0))
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+         ));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_SAME_TAX_NUMBER_IZI_PHONEVERIFY_MONNTHLY_INCOME_MARRIAGE_AGE.getMessage(),
+                                         "false",
+                                         "未命中男性&WhatsApp账号一致&未提交税卡&IZI手机实名NOTMATCH&月收入&单身&年龄").addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+rule "IDENTITY_INFO_033_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage()]);
+       RUserInfo($mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,$hasTaxNumber: hasTaxNumber,
+       $iziPhoneVerifyResult: iziPhoneVerifyResult,$age:age);
+       eval(RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && !$hasTaxNumber
+           && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage(),
+                                         "true",
+                                         "命中WhatsApp账号一致&未提交税卡&IZI手机实名NOTFOUND&年龄").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_033_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage()));
+        RUserInfo($mobileNumber: mobileNumber,$whatsappAccount: whatsappAccount,$hasTaxNumber: hasTaxNumber,
+          $iziPhoneVerifyResult: iziPhoneVerifyResult,$age:age);
+        eval(!(RuleUtils.equalsIgnoreCase($mobileNumber,$whatsappAccount)
+           && $hasTaxNumber!=null && !$hasTaxNumber
+           && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+           && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+         ))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WHATSAPP_NOT_SAME_TAX_NUMBER_IZI_PHONEVERIFY_AGE.getMessage(),
+                                         "false",
+                                         "未命中WhatsApp账号一致&未提交税卡&IZI手机实名NOTFOUND&年龄").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_034_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage()]);
+       RUserInfo($sex: sex,$age:age,$gojekVerified: gojekVerified,$bankCode: bankCode);
+       eval($sex == SexEnum.MALE.getCode()
+         && $gojekVerified!=null && !$gojekVerified
+         && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+         && RuleUtils.containsString(Arrays.asList("BRI","CIMB","BNI","PERMATA"),RuleUtils.valueOfStr($bankCode))
+         )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage(),
+                                         "true",
+                                         "命中男性&未验证gojek&年龄&银行").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_034_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage()));
+        RUserInfo($sex: sex,$age:age,$gojekVerified: gojekVerified,$bankCode: bankCode);
+        eval(!($sex == SexEnum.MALE.getCode()
+         && $gojekVerified!=null && !$gojekVerified
+         && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+         && RuleUtils.containsString(Arrays.asList("BRI","CIMB","BNI","PERMATA"),RuleUtils.valueOfStr($bankCode))
+         ));
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_GOJEK_AGE_BANKCODE.getMessage(),
+                                         "false",
+                                         "未命中男性&未验证gojek&年龄&银行").addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "IDENTITY_INFO_035_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage()]);
+       RUserInfo($companyName: companyName);
+       eval(RuleUtils.containsKeywords(RuleUtils.valueOfStr($companyName),$threshData))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage(),
+                                         "true",
+                                         "命中公司名称包含军人/警察关键字").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_035_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage()));
+        RUserInfo($companyName: companyName);
+        eval(!RuleUtils.containsKeywords(RuleUtils.valueOfStr($companyName),$threshData))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_NAME_BELONG_TO_ARMY.getMessage(),
+                                         "false",
+                                         "未命中公司名称包含军人/警察关键字").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_036_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage()]);
+       RUserInfo($sameBankcardNumberWithOthersCount: sameBankcardNumberWithOthersCount);
+       eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($sameBankcardNumberWithOthersCount),$threshData))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage(),
+                                         RuleUtils.valueOfStr($sameBankcardNumberWithOthersCount),
+                                         "命中相同银行卡命中多人").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_036_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage()));
+        RUserInfo($sameBankcardNumberWithOthersCount: sameBankcardNumberWithOthersCount);
+        eval(!RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($sameBankcardNumberWithOthersCount),$threshData))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_BANK_CARD_COUNT.getMessage(),
+                                         RuleUtils.valueOfStr($sameBankcardNumberWithOthersCount),
+                                         "未命中相同银行卡命中多人").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_037_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage()]);
+       RUserInfo($linkmanInMultiBankcardUser: linkmanInMultiBankcardUser);
+       eval($linkmanInMultiBankcardUser!=null && $linkmanInMultiBankcardUser)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage(),
+                                         "true",
+                                         "命中申请人任意联系人号码命中’相同银行卡命中多人‘用户手机号").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_037_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage()));
+        RUserInfo($linkmanInMultiBankcardUser: linkmanInMultiBankcardUser);
+        eval(!($linkmanInMultiBankcardUser!=null && $linkmanInMultiBankcardUser))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage(),
+                                         "false",
+                                         "未命中申请人任意联系人号码命中’相同银行卡命中多人‘用户手机号").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_038_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_MULTI_USER_BANK_CARD_EMERGENCY_TEL.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_MULTI_USER_BANK_CARD_EMERGENCY_TEL.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MOBILE_IN_MULTI_USER_BANK_CARD_EMERGENCY_TEL.getMessage()]);
+       RUserInfo($mobileInMultiBankcardUserEmergencyTel: mobileInMultiBankcardUserEmergencyTel);
+       eval($mobileInMultiBankcardUserEmergencyTel!=null && $mobileInMultiBankcardUserEmergencyTel)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IN_MULTI_USER_BANK_CARD_EMERGENCY_TEL.getMessage(),
+                                         "true",
+                                         "命中申请人手机号命中'相同银行卡命中多人‘用户的任意联系人号码").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_038_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_MULTI_USER_BANK_CARD_EMERGENCY_TEL.getMessage()))
+    when
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MOBILE_IN_MULTI_USER_BANK_CARD_EMERGENCY_TEL.getMessage()]);
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_MULTI_USER_BANK_CARD_EMERGENCY_TEL.getMessage()));
+        RUserInfo($mobileInMultiBankcardUserEmergencyTel: mobileInMultiBankcardUserEmergencyTel);
+        eval(!($mobileInMultiBankcardUserEmergencyTel!=null && $mobileInMultiBankcardUserEmergencyTel))
+
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_MULTI_USER_BANK_CARD.getMessage(),
+                                         "false",
+                                         "未命中申请人手机号命中'相同银行卡命中多人‘用户的任意联系人号码").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_039_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage()]);
+       RUserInfo($mobileInOverdueLessThan5UserEmergencyTel: mobileInOverdueLessThan5UserEmergencyTel,$iziPhoneVerifyResult: iziPhoneVerifyResult,
+       $sex: sex);
+       eval($mobileInOverdueLessThan5UserEmergencyTel!=null && $mobileInOverdueLessThan5UserEmergencyTel
+           && $iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"MATCH")
+           && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+           )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage(),
+                                         "true",
+                                         "命中用户是某个首借600已还款用户的联系人& IZI手机实名MATCH & 性别").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_039_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage()]);
+       RUserInfo($mobileInOverdueLessThan5UserEmergencyTel: mobileInOverdueLessThan5UserEmergencyTel,$iziPhoneVerifyResult: iziPhoneVerifyResult,
+       $sex: sex);
+       eval(!($mobileInOverdueLessThan5UserEmergencyTel!=null && $mobileInOverdueLessThan5UserEmergencyTel
+           && $iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"MATCH")
+           && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+           ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_OVERDUELESSTHAN5_USERS_IZI_SEX.getMessage(),
+                                         "false",
+                                         "未命中用户是某个首借600已还款用户的联系人& IZI手机实名MATCH & 性别").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_040_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage()]);
+       RUserInfo($sex: sex,$whatsAppCheckResult: whatsAppCheckResult);
+       eval($sex==RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.equalString($whatsAppCheckResult,"no")
+           )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage(),
+                                         "true",
+                                         "命中男性&IZI验证本人手机号未开通WhatsApp").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_040_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage()]);
+       RUserInfo($sex: sex,$whatsAppCheckResult: whatsAppCheckResult);
+       eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+            && RuleUtils.equalString($whatsAppCheckResult,"no")
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_IZI_WHATSAPP_RESULT.getMessage(),
+                                         "false",
+                                         "未命中男性&IZI验证本人手机号未开通WhatsApp").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_041_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage()]);
+       RUserInfo($sex: sex,$whatsAppCheckResult: whatsAppCheckResult, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+       eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+           && RuleUtils.equalString($whatsAppCheckResult,"no")
+          )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage(),
+                                         "true",
+                                         "命中女性&IZI验证本人手机号未开通WhatsApp&IZI手机实名认证").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_041_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage()]);
+       RUserInfo($sex: sex,$whatsAppCheckResult: whatsAppCheckResult, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+       eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+                   && RuleUtils.equalString($whatsAppCheckResult,"no")
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY.getMessage(),
+                                         "false",
+                                         "未命中女性&IZI验证本人手机号未开通WhatsApp&IZI手机实名认证").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_042_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage()]);
+       RUserInfo($sex: sex,$whatsAppCheckResult: whatsAppCheckResult, $iziPhoneVerifyResult: iziPhoneVerifyResult, $linkmanWhatsAppCheckWithNoCount:linkmanWhatsAppCheckWithNoCount);
+       eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+           && RuleUtils.equalString($whatsAppCheckResult,"no")
+           && $iziPhoneVerifyResult!=null && (
+            $iziPhoneVerifyResult.getStatus() == PhoneVerifyStatusEnum.NOT_FOUND
+            || RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+           )
+           && RuleUtils.greatThan(RuleUtils.valueOfStr($linkmanWhatsAppCheckWithNoCount),$threshData)
+       )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage(),
+                                         "true",
+                                         "命中女性&ZI本人WhatsApp&ZI手机实名认证&IZI联系人WhatsAppw未开通个数").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_042_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage()]);
+       RUserInfo($sex: sex,$whatsAppCheckResult: whatsAppCheckResult, $iziPhoneVerifyResult: iziPhoneVerifyResult, $linkmanWhatsAppCheckWithNoCount:linkmanWhatsAppCheckWithNoCount);
+       eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+                   && RuleUtils.equalString($whatsAppCheckResult,"no")
+                   && $iziPhoneVerifyResult!=null && (
+                               $iziPhoneVerifyResult.getStatus() == PhoneVerifyStatusEnum.NOT_FOUND
+                               || RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+                   )
+                   && RuleUtils.greatThan(RuleUtils.valueOfStr($linkmanWhatsAppCheckWithNoCount),$threshData)
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_IZI_WHATSAPP_IZI_PHONEVERIFY_IZI_LINKMAN_WHATSAPP.getMessage(),
+                                         "false",
+                                         "未命中女性&ZI本人WhatsApp&ZI手机实名认证&IZI联系人WhatsAppw未开通个数").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_043_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage()]);
+       RUserInfo($orderSmallDirectIsNull: orderSmallDirectIsNull)
+       eval($orderSmallDirectIsNull!=null && $orderSmallDirectIsNull==true)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage(),
+                                         "true",
+                                         "命中下单的小区为空").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_043_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage()]);
+       RUserInfo($orderSmallDirectIsNull: orderSmallDirectIsNull)
+       eval(!($orderSmallDirectIsNull!=null && $orderSmallDirectIsNull==true))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ORDER_SMALL_DIRECT.getMessage(),
+                                         "false",
+                                         "未命中下单的小区为空").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_044_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage()]);
+       RUserInfo($linkmanExists:linkmanExists,$existsLinkmanHasSettledOrder: existsLinkmanHasSettledOrder)
+       eval($linkmanExists!=null && $linkmanExists
+            && !($existsLinkmanHasSettledOrder!=null && $existsLinkmanHasSettledOrder))
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage(),
+                                         "true",
+                                         "命中任意一个联系人相同(无已决订单)").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_044_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage()]);
+       RUserInfo($linkmanExists:linkmanExists,$existsLinkmanHasSettledOrder: existsLinkmanHasSettledOrder)
+       eval(!($linkmanExists!=null && $linkmanExists
+                   && !($existsLinkmanHasSettledOrder!=null && $existsLinkmanHasSettledOrder))
+                   )
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_LINKMAN_WITH_SETTLED_ORDER.getMessage(),
+                                         "false",
+                                         "未命中任意一个联系人相同(无已决订单)").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_045_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage()]);
+       RUserInfo($linkmanExists:linkmanExists,$existsLinkmanWithoutSuccessOrder: existsLinkmanWithoutSuccessOrder)
+       eval($linkmanExists!=null && $linkmanExists
+            && $existsLinkmanWithoutSuccessOrder!=null && $existsLinkmanWithoutSuccessOrder)
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage(),
+                                         "true",
+                                         "命中任意一个联系人相同(无成功订单)").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_045_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage()]);
+       RUserInfo($linkmanExists:linkmanExists,$existsLinkmanWithoutSuccessOrder: existsLinkmanWithoutSuccessOrder)
+       eval(!($linkmanExists!=null && $linkmanExists
+                   && $existsLinkmanWithoutSuccessOrder!=null && $existsLinkmanWithoutSuccessOrder)
+                   )
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SAME_LINKMAN_WITHOUT_SUCCESS_ORDER.getMessage(),
+                                         "false",
+                                         "未命中任意一个联系人相同(无成功订单)").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_046_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail)
+       eval(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+            && $ownerWhatsAppDetail!=null
+            && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+            && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage(),
+                                         "true",
+                                         "命中女性&本人手机号开通whatsapp&状态更新时间&有头像").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_046_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail)
+       eval(!(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+            && $ownerWhatsAppDetail!=null
+            && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+            && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+            ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage(),
+                                         "false",
+                                         "未命中女性&本人手机号开通whatsapp&状态更新时间&有头像").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_046_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail)
+       eval(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+            && $ownerWhatsAppDetail!=null
+            && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+            && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage(),
+                                         "true",
+                                         "命中男性&本人手机号开通whatsapp&状态更新时间&有头像").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_046_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail)
+       eval(!(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+            && $ownerWhatsAppDetail!=null
+            && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+            && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+            ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR.getMessage(),
+                                         "false",
+                                         "未命中男性&本人手机号开通whatsapp&状态更新时间&有头像").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IDENTITY_INFO_047_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail,$hasDriverLicense: hasDriverLicense)
+       eval(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+            && $ownerWhatsAppDetail!=null
+            && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+             && RuleUtils.greatOrEqualThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,2),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+            && $hasDriverLicense
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage(),
+                                         "true",
+                                         "命中女性&本人手机号开通whatsapp&状态更新时间&有头像&上传了驾驶证").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_047_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail,$hasDriverLicense: hasDriverLicense)
+       eval(!(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+                  && $ownerWhatsAppDetail!=null
+                  && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+                   && RuleUtils.greatOrEqualThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+                  && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,2),DateUtil.FMT_YYYYMMDD)
+                  && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+                  && $hasDriverLicense
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMAIL_WHATSAPP_OPEN_UPDATETIME_AVATAR_DRIVERLICENSE.getMessage(),
+                                         "false",
+                                         "未命中女性&本人手机号开通whatsapp&状态更新时间&有头像&上传了驾驶证").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_048_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail,$academic: academic)
+       eval(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+            && $ownerWhatsAppDetail!=null
+            && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+             && RuleUtils.greatOrEqualThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,2),DateUtil.FMT_YYYYMMDD)
+            && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+            && RuleUtils.containsString(Arrays.asList(EducationEnum.Doctor.getCode(),EducationEnum.GraduateStudent.getCode(),EducationEnum
+            .Undergraduate.getCode()),RuleUtils.valueOfStr($academic))
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage(),
+                                         "true",
+                                         "命中男性&本人手机号开通whatsapp&状态更新时间&有头像&学历").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_048_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail,$academic: academic)
+       eval(!(RuleUtils.equalString(String.valueOf($sex),RuleUtils.getRuleParam($threshData,0))
+                  && $ownerWhatsAppDetail!=null
+                  && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"yes")
+                   && RuleUtils.greatOrEqualThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,1),DateUtil.FMT_YYYYMMDD)
+                  && RuleUtils.lessThanDate($ownerWhatsAppDetail.getStatusUpdateTime(),RuleUtils.getRuleParam($threshData,2),DateUtil.FMT_YYYYMMDD)
+                  && RuleUtils.equalString($ownerWhatsAppDetail.getAvatar(),"yes")
+                   && RuleUtils.containsString(Arrays.asList(EducationEnum.Doctor.getCode(),EducationEnum.GraduateStudent.getCode(),EducationEnum
+                              .Undergraduate.getCode()),RuleUtils.valueOfStr($academic))
+       ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_WHATSAPP_OPEN_UPDATETIME_AVATAR_EDUCATION.getMessage(),
+                                         "false",
+                                         "未命中男性&本人手机号开通whatsapp&状态更新时间&有头像&学历").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_049_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail)
+       eval($sex==RUserInfo.SexEnum.MALE.getCode()
+            && $ownerWhatsAppDetail!=null
+            && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"no")
+            )
+    then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage(),
+                                         "true",
+                                         "命中男性&本人手机号未开通whatsapp&IZI手机实名").addToResultList(ruleSetResultList);
+end
+
+rule "IDENTITY_INFO_049_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage()]);
+       RUserInfo($sex:sex, $ownerWhatsAppDetail: ownerWhatsAppDetail)
+       eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+               && $ownerWhatsAppDetail!=null
+               && RuleUtils.equalString($ownerWhatsAppDetail.getWhatsAppOpenStatus(),"no")
+        ))
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OWNER_IZIWHATSAPP_IZIPHONEVERIFY.getMessage(),
+                                         "false",
+                                         "未命中男性&本人手机号未开通whatsapp&IZI手机实名").addToResultList(ruleSetResultList);
+end
+
+
+rule "IDENTITY_INFO_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_AS_EMERGENCYTEL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_AS_EMERGENCYTEL_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $user:RUserInfo();
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_AS_EMERGENCYTEL_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($user.getMobileAsEmergencyTelCount()),
+                                     "借款人手机号码已作为紧急联系人出现次数").addToResultList(ruleSetResultList);
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HAS_INSURANCE_CARD.getMessage(),
+                                      RuleUtils.valueOfStr($user.getHasInsuranceCard()),
+                                      "有保险卡").addToResultList(ruleSetResultList);
+
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HAS_FAMILY_CARD.getMessage(),
+                                      RuleUtils.valueOfStr($user.getHasFamilyCard()),
+                                      "有家庭卡").addToResultList(ruleSetResultList);
+
+end
+
+
+
+

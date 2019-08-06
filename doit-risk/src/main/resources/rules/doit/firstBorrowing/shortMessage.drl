@@ -1,0 +1,391 @@
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.ShortMessage;
+import com.yqg.common.utils.StringUtils;
+import java.util.List
+
+global  List ruleSetResultList;
+
+
+rule "SHORT_MESSAGE_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($overdueCount:overdueWordsCount,
+                                   RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(overdueWordsCount),
+                                                              $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($overdueCount),
+                                     "短信中逾期词个数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($overdueCount:overdueWordsCount,
+                                    RuleUtils.lessThan(RuleUtils.valueOfStr(overdueWordsCount),
+                                                       $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($overdueCount),
+                                     "短信中逾期词个数小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+rule "SHORT_MESSAGE_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($negativeCount:negativeWordsCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(negativeWordsCount),$thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($negativeCount),
+                                     "短信中负面词个数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($negativeCount:negativeWordsCount,RuleUtils.lessThan(RuleUtils.valueOfStr(negativeWordsCount),$thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_NEGATIVE_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($negativeCount),
+                                     "短信中负面词个数小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_SAME_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_SAME_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($interrelatedCount:interrelatedWordsCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(interrelatedWordsCount),$thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_SAME_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_SAME_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($interrelatedCount),
+                                     "短信中同业词个数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_SAME_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_SAME_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($interrelatedCount:interrelatedWordsCount,RuleUtils.lessThan(RuleUtils.valueOfStr(interrelatedWordsCount),$thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_SAME_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_SAME_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($interrelatedCount),
+                                     "短信中同业词个数小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "SHORT_MESSAGE_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_ALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_ALL_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($totalCount:totalCount,RuleUtils.lessThan(RuleUtils.valueOfStr(totalCount),
+                                                                                    $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_ALL_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_ALL_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($totalCount),
+                                     "短信总条数小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_ALL_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_ALL_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($totalCount:totalCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(totalCount),
+                                                                                                $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_ALL_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_ALL_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($totalCount),
+                                     "短信总条数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+rule "SHORT_MESSAGE_005_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent90TotalCount:recent90TotalMsgCount,
+                                   RuleUtils.lessThan(RuleUtils.valueOfStr(recent90TotalMsgCount),
+                                                      $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent90TotalCount),
+                                     "近90天短信总条数小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_005_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent90TotalCount:recent90TotalMsgCount,RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90TotalMsgCount),
+                                                                                                $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_NINETY_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent90TotalCount),
+                                     "近90天短信总条数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "SHORT_MESSAGE_006_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent30TotalCount:recent30TotalMsgCount,
+                                   RuleUtils.lessThan(RuleUtils.valueOfStr(recent30TotalMsgCount),
+                                                              $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent30TotalCount),
+                                     "近30天短信总条数小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_006_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent30TotalCount:recent30TotalMsgCount,
+                                   RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30TotalMsgCount),
+                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_THIRTY_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent30TotalCount),
+                                     "近30天短信总条数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_007"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_LONG_DAY_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_LONG_DAY_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($diffDays:diffDaysForEarliestMsgAndApplyTime)
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_LONG_DAY_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($diffDays),
+                                     "最早的一条短信距离申请时间天数").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "SHORT_MESSAGE_008_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent30RejectedMsgCount:recent30RejectedMsgCount,
+                                   RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30RejectedMsgCount),
+                                                             $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent30RejectedMsgCount),
+                                     "近30天被拒绝的条数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_008_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent30RejectedMsgCount:recent30RejectedMsgCount,
+                                   RuleUtils.lessThan(RuleUtils.valueOfStr(recent30RejectedMsgCount),
+                                                      $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_REFUSE_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent30RejectedMsgCount),
+                                     "近30天被拒绝的条数小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "SHORT_MESSAGE_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent90OverdueMsgCount:recent90OverdueMsgDistinctCountByNumber,
+                                    RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90OverdueMsgDistinctCountByNumber),
+                                                               $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage(),
+                                     RuleUtils.valueOfStr($recent90OverdueMsgCount),
+                                     "30天出现的逾期短信条数（去重）大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent90OverdueMsgCount:recent90OverdueMsgDistinctCountByNumber,
+                                   RuleUtils.lessThan(RuleUtils.valueOfStr(recent90OverdueMsgDistinctCountByNumber),
+                                   $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_COUNT_NINETY_DAY.getMessage(),
+                                     RuleUtils.valueOfStr($recent90OverdueMsgCount),
+                                     "30天出现的逾期短信条数（去重）小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "SHORT_MESSAGE_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($count:recent30TotalMsgWithPhoneCount,
+                                   RuleUtils.lessThan(RuleUtils.valueOfStr(recent30TotalMsgWithPhoneCount),
+                                                              $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage(),
+                                     RuleUtils.valueOfStr($count),
+                                     "近30手机号码发送的短信数小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($count:recent30TotalMsgWithPhoneCount,
+                                    RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent30TotalMsgWithPhoneCount),
+                                                       $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_TELE_COUNT_THIRTY_DAY.getMessage(),
+                                     RuleUtils.valueOfStr($count),
+                                     "近30手机号码发送的短信数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "SHORT_MESSAGE_012_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($count:recent90TotalMsgWithPhoneCount,
+                                   RuleUtils.lessThan(RuleUtils.valueOfStr(recent90TotalMsgWithPhoneCount),
+                                                              $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage(),
+                                     RuleUtils.valueOfStr($count),
+                                     "近90手机号码发送的短信数小于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_012_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($count:recent90TotalMsgWithPhoneCount,
+                                   RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr(recent90TotalMsgWithPhoneCount),
+                                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_TELE_COUNT_NINETY_DAY.getMessage(),
+                                     RuleUtils.valueOfStr($count),
+                                     "近90手机号码发送的短信数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+// 命中逾期大于15天的短信条数
+rule "SMS_OVERDUE_MORETHAN_15DAYS_COUNT"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($count:morethan15Count,
+                                   RuleUtils.greatThan(RuleUtils.valueOfStr(morethan15Count),
+                                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage())))
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage(),RuleUtils.valueOfStr($count),
+                                     "命中逾期大于15天的短信条数").addToResultList(ruleSetResultList);
+end
+
+rule "SMS_OVERDUE_MORETHAN_15DAYS_COUNT_1"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($count:morethan15Count,
+                                   RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(morethan15Count),
+                                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage())))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_MORETHAN_15DAYS_COUNT.getMessage(),RuleUtils.valueOfStr($count),
+                                     "命中逾期大于15天的短信条数").addToResultList(ruleSetResultList);
+end
+
+// 短信中出现的最大逾期天数（只存数据）
+rule "SMS_OVERDUE_MAX_DAYS"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_OVERDUE_MAX_DAYS.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_OVERDUE_MAX_DAYS.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($count:smsOverdueMaxDays)
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_OVERDUE_MAX_DAYS.getMessage(),RuleUtils.valueOfStr($count),
+                                     "短信中出现的最大逾期天数").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "SHORT_MESSAGE_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SHORT_MESSAGE_KEY_INfO_EMPTY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SHORT_MESSAGE_KEY_INfO_EMPTY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        not ShortMessage();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SHORT_MESSAGE_KEY_INfO_EMPTY.getMessage(),
+        $thresholdValues.getRuleDesc(BlackListTypeEnum.SHORT_MESSAGE_KEY_INfO_EMPTY.getMessage()),
+        "用户短信为空").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "SHORT_MESSAGE_009_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent30OverdueMsgCount:recent30OverdueMsgDistinctCountByNumber)
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($recent30OverdueMsgCount),
+                                  $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage()))
+            )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent30OverdueMsgCount),
+                                     "30天出现的逾期短信条数（去重）大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_009_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $shortMessage:ShortMessage($recent30OverdueMsgCount:recent30OverdueMsgDistinctCountByNumber)
+        eval(!RuleUtils.greatThan(RuleUtils.valueOfStr($recent30OverdueMsgCount),
+                                          $thresholdValues.getThresholdValue(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage()))
+            )
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_RECENT30_OVERDUE_DISTINCT_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($recent30OverdueMsgCount),
+                                     "30天出现的逾期短信条数（去重）小于阈值").addToResultList(ruleSetResultList);
+end

@@ -1,0 +1,294 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.LoanInfo.LoanPurpose;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "ORDERSMALLDIRECT_RISK_SCORE_600_MEAL_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage()]);
+        RUserInfo($sex: sex, $orderSmallDirectIsNull: orderSmallDirectIsNull);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($orderSmallDirectIsNull != null && $orderSmallDirectIsNull))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage(),
+                                                        "true",
+                                                        "命中下单的小区为空&600模型分&男性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "ORDERSMALLDIRECT_RISK_SCORE_600_MEAL_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage()]);
+        RUserInfo($sex: sex, $orderSmallDirectIsNull: orderSmallDirectIsNull);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($orderSmallDirectIsNull != null && $orderSmallDirectIsNull))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_MEAL.getMessage(),
+                                                        "false",
+                                                        "未命中下单的小区为空&600模型分&男性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage()]);
+        RUserInfo($sex: sex, $orderSmallDirectIsNull: orderSmallDirectIsNull);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($orderSmallDirectIsNull != null && $orderSmallDirectIsNull))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage(),
+                                                        "true",
+                                                        "命中下单的小区为空&600模型分&女性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage()]);
+        RUserInfo($sex: sex, $orderSmallDirectIsNull: orderSmallDirectIsNull);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($orderSmallDirectIsNull != null && $orderSmallDirectIsNull))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ORDERSMALLDIRECT_RISK_SCORE_600_FEMEAL.getMessage(),
+                                                        "false",
+                                                        "未命中下单的小区为空&600模型分&女性")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult:iziPhoneAgeResult);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && (($iziPhoneVerifyResult != null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                     || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))))
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && $iziPhoneAgeResult!=null
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),"0")
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage(),
+                                                        "true",
+                                                        "命中男性&IZI实名认证为非match&600产品评分<=460&IZI在网时长")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult:iziPhoneAgeResult);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && (($iziPhoneVerifyResult != null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                     || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))))
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && $iziPhoneAgeResult!=null
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),"0")
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MEAL_IZINOTMATCH_RISK_SCORE_600_IZITIMELONG.getMessage(),
+                                                        "false",
+                                                        "未命中男性&IZI实名认证为非match&600产品评分<=460&IZI在网时长")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "FEMEAL_IZINOTMATCH_IZITIMELONG_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult:iziPhoneAgeResult);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && (($iziPhoneVerifyResult != null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                     || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))))
+             && $iziPhoneAgeResult!=null
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),"0")
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage(),
+                                                        "true",
+                                                        "命中女性&IZI实名认证为非match&IZI在网时长")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "FEMEAL_IZINOTMATCH_IZITIMELONG_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult:iziPhoneAgeResult);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && (($iziPhoneVerifyResult != null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                     || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))))
+             && $iziPhoneAgeResult!=null
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),"0")
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMEAL_IZINOTMATCH_IZITIMELONG.getMessage(),
+                                                        "false",
+                                                        "未命中女性&IZI实名认证为非match&IZI在网时长")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "MEALRISK_SCORE_600_IZITIMELONG_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneAgeResult:iziPhoneAgeResult);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && $iziPhoneAgeResult!=null
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),"0")
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage(),
+                                                        "true",
+                                                        "命中男性&600产品评分<=490&IZI在网时长")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "MEALRISK_SCORE_600_IZITIMELONG_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage()]);
+        RUserInfo($sex: sex, $iziPhoneAgeResult:iziPhoneAgeResult);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && $iziPhoneAgeResult!=null
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),"0")
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MEALRISK_SCORE_600_IZITIMELONG.getMessage(),
+                                                        "false",
+                                                        "未命中男性&600产品评分<=490&IZI在网时长")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "IZI_ONLINETIMEV2_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage()]);
+        RUserInfo($iziPhoneAgeResult:iziPhoneAgeResult);
+        eval($iziPhoneAgeResult!=null && (RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0))
+             ||$iziPhoneAgeResult.getStatus()==IziPhoneAgeResult.PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND)
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage(),
+                                                        "true",
+                                                        "命中IZI在网时长V2版")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "IZI_ONLINETIMEV2_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage()]);
+        RUserInfo($iziPhoneAgeResult:iziPhoneAgeResult);
+        eval(!($iziPhoneAgeResult!=null && (RuleUtils.lessThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0))
+             ||$iziPhoneAgeResult.getStatus()==IziPhoneAgeResult.PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND)
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IZI_ONLINETIMEV2.getMessage(),
+                                                        "false",
+                                                        "未命中IZI在网时长V2版")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "IZI_ONLINETIMEV2_IZIPHONEREALNAME_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage()]);
+        RUserInfo($iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult:iziPhoneAgeResult);
+         eval(($iziPhoneVerifyResult != null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                     || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")))
+             && ($iziPhoneAgeResult!=null &&
+                RuleUtils.equalTo(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage(),
+                                                        "true",
+                                                        "命中IZI在网时长V2版&IZI手机实名")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "IZI_ONLINETIMEV2_IZIPHONEREALNAME_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage()]);
+        RUserInfo($iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult:iziPhoneAgeResult);
+         eval(!(($iziPhoneVerifyResult != null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                     || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")))
+             && ($iziPhoneAgeResult!=null &&
+                RuleUtils.equalTo(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam($threshData,0)))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IZI_ONLINETIMEV2_IZIPHONEREALNAME.getMessage(),
+                                                        "false",
+                                                        "未命中IZI在网时长V2版&IZI手机实名")
+                                                        .addToResultList(ruleSetResultList);
+end

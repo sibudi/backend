@@ -1,0 +1,143 @@
+/***
+* 复借打标签规则
+***/
+package com.doit.reborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.ShortMessage;
+import com.yqg.drools.model.UserCallRecordsModel
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.FaceBookModel;
+import com.yqg.drools.model.InstalledAppInfo;
+import java.util.List
+import com.yqg.drools.utils.RuleUtils;
+
+global java.util.List ruleSetResultList;
+
+
+
+
+rule "REBORROW_REMARK_001"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_SMS_RECENT30_COUNT.getMessage()))
+when
+   $thresholdValues:RuleThresholdValues();
+   ShortMessage($recent30TotalMsgCount:recent30TotalMsgCount);
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_SMS_RECENT30_COUNT.getMessage(),
+                                    RuleUtils.valueOfStr($recent30TotalMsgCount),
+                                    "短信30天条数").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_REMARK_002"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CALLIN_NOTRECEIVED_RATIO_RECENT30.getMessage()))
+when
+   $thresholdValues:RuleThresholdValues();
+   $model:UserCallRecordsModel();
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CALLIN_NOTRECEIVED_RATIO_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30InNoRate()),
+                                    "近30天打入未接通占比").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CALLIN_NOTRECEIVED_COUNT_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30InNoCount()),
+                                    "近30天打入未接通次数").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_NOTCONNECTED_COUNT_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30NotConnectedCallCount()),
+                                    "近30天内未接通电话次数").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_NOTCONNECTED_RATIO_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30CallRate()),
+                                    "近30天内未接通电话占比").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_TOTAL_DURATION_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30Time()),
+                                    "近30天通话时长").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_TOTAL_TIMES_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30Count()),
+                                    "近30天通话次数").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CALLIN_DURATION_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30InTime()),
+                                    "近30天打入通话时长").addToResultList(ruleSetResultList);
+
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CALLOUT_PHONES_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30CallOutPhones()),
+                                    "近30天主叫号码数").addToResultList(ruleSetResultList);
+
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CALLIN_PHONES_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent30CallInPhones()),
+                                    "近30天被叫号码数").addToResultList(ruleSetResultList);
+
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_NOCONNECT_DAYS_RECENT180.getMessage(),
+                                    RuleUtils.valueOfStr($model.getRecent180NoCallDay()),
+                                    "180天内的无通话天数").addToResultList(ruleSetResultList);
+
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CONNECT_FIRSTCONTACT_TIMES_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getFirstCall30Count()),
+                                    "近30天与第一联系人通话次数").addToResultList(ruleSetResultList);
+
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CONNECT_SECONDCONTACT_TIMES_RECENT30.getMessage(),
+                                    RuleUtils.valueOfStr($model.getSecondCall30Count()),
+                                    "近30天与第二联系人通话次数").addToResultList(ruleSetResultList);
+
+end
+
+
+
+rule "REBORROW_REMARK_003"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_SAME_IP_APPLYTIMES.getMessage()))
+when
+   $thresholdValues:RuleThresholdValues();
+   $model:DeviceModel();
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_SAME_IP_APPLYTIMES.getMessage(),
+                                    RuleUtils.valueOfStr($model.getSameIpApplyCount()),
+                                    "同一天内同一个IP的申请次数").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_SAME_DEVICE_HITCOUNT.getMessage(),
+                                    RuleUtils.valueOfStr($model.getMatchedForOthersCount()),
+                                    "同一设备号命中2人及以上").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_REMARK_004"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_GOJEK_SAMEPHONE.getMessage()))
+when
+   $thresholdValues:RuleThresholdValues();
+   $model:GojekModel();
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_GOJEK_SAMEPHONE.getMessage(),
+                                    $model.getMobilePhoneNotSame()==null?"null":String.valueOf(!$model.getMobilePhoneNotSame()),
+                                    "gojek手机号是否一致").addToResultList(ruleSetResultList);
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_GOJEK_MAXFEE.getMessage(),
+                                    RuleUtils.valueOfStr($model.getMaxFare()),
+                                    "单次乘车的最大费用").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_REMARK_005"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FACEBOOK_MONTH_AVERAGE_REMARDS.getMessage()))
+when
+   $thresholdValues:RuleThresholdValues();
+   $model:FaceBookModel();
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_FACEBOOK_MONTH_AVERAGE_REMARDS.getMessage(),
+                                    RuleUtils.valueOfStr($model.getMonthAverageCommentCount()),
+                                    "facebook月均评论数").addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_REMARK_006"
+ salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_TOTAL_APPS.getMessage()))
+when
+   $thresholdValues:RuleThresholdValues();
+   $model:InstalledAppInfo();
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_TOTAL_APPS.getMessage(),
+                                    RuleUtils.valueOfStr($model.getTotalApps()),
+                                    "累计app个数").addToResultList(ruleSetResultList);
+end

@@ -1,0 +1,350 @@
+package rules.doit.autoCall;
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.AutoCallModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.AutoCallUserInfo;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.system.entity.TeleCallResult.CallResultTypeEnum;
+import java.util.Arrays;
+
+global java.util.List ruleSetResultList;
+
+rule "AUTO_CALL_COMB_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()]);
+        AutoCallModel($sex: sex,$academic: academic,$appCountForCreditCard: appCountForCreditCard,
+        $companyTelAutoCallResult:companyTelAutoCallResult, $iziPhoneVerify: iziPhoneVerifyResult);
+        eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && !RuleUtils.containsString(Arrays.asList(EducationEnum.PrimarySchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode()), $academic)
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult==CallResultTypeEnum.VALID.getCode()
+             && $iziPhoneVerify!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerify.getMessage(),"MATCH")
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage(),
+                                                        "true",
+                                                        "命中女性&学历&信用卡类APP个数&公司外呼&IZI实名匹配")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()]);
+        AutoCallModel($sex: sex,$academic: academic,$appCountForCreditCard: appCountForCreditCard,
+        $companyTelAutoCallResult:companyTelAutoCallResult, $iziPhoneVerify: iziPhoneVerifyResult);
+        eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && !RuleUtils.containsString(Arrays.asList(EducationEnum.PrimarySchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode()), $academic)
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult==CallResultTypeEnum.VALID.getCode()
+             && $iziPhoneVerify!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerify.getMessage(),"MATCH")
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_IZI_PHONEVERIFY.getMessage(),
+                                                        "false",
+                                                        "未命中女性&学历&信用卡类APP个数&公司外呼&IZI实名匹配")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_02_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage()]);
+        AutoCallModel($sex: sex,$academic: academic,$appCountForCreditCard: appCountForCreditCard,
+        $companyTelAutoCallResult:companyTelAutoCallResult, $iziPhoneVerify: iziPhoneVerifyResult);
+        AutoCallUserInfo($age: age)
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && !RuleUtils.containsString(Arrays.asList(EducationEnum.PrimarySchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode()), $academic)
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult==CallResultTypeEnum.VALID.getCode()
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage(),
+                                                        "true",
+                                                        "命中男性&学历&信用卡类APP个数&公司外呼&年龄")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_02_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage()]);
+        AutoCallModel($sex: sex,$academic: academic,$appCountForCreditCard: appCountForCreditCard,
+        $companyTelAutoCallResult:companyTelAutoCallResult, $iziPhoneVerify: iziPhoneVerifyResult);
+        AutoCallUserInfo($age: age)
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+                     && !RuleUtils.containsString(Arrays.asList(EducationEnum.PrimarySchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode()), $academic)
+                     && RuleUtils.greatThan(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+                     && $companyTelAutoCallResult!=null && $companyTelAutoCallResult==CallResultTypeEnum.VALID.getCode()
+                     && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+                     )
+             );
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_EDUCATION_CREDIT_CARD_COMPANY_TEL_AGE.getMessage(),
+                                                        "false",
+                                                        "未命中男性&学历&信用卡类APP个数&公司外呼&年龄")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_03_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage()]);
+        AutoCallModel($sex: sex,$appCountForCreditCard: appCountForCreditCard,$companyTelAutoCallResult:companyTelAutoCallResult,
+        $monthlyIncome:monthlyIncome);
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && $companyTelAutoCallResult!=null && ($companyTelAutoCallResult==CallResultTypeEnum.NOT_SURE.getCode()
+                                                   ||$companyTelAutoCallResult==CallResultTypeEnum.INVALID.getCode() )
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage(),
+                                                        "true",
+                                                        "命中男性&信用卡类APP个数&月收入小于2000RMB&公司外呼无效或可能有效")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_COMB_03_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage()]);
+        AutoCallModel($sex: sex,$appCountForCreditCard: appCountForCreditCard,$companyTelAutoCallResult:companyTelAutoCallResult,
+        $monthlyIncome:monthlyIncome);
+        eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && $companyTelAutoCallResult!=null && ($companyTelAutoCallResult==CallResultTypeEnum.NOT_SURE.getCode()
+                                                   ||$companyTelAutoCallResult==CallResultTypeEnum.INVALID.getCode() )
+             )
+             )
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL.getMessage(),
+                                                        "false",
+                                                        "未命中男性&信用卡类APP个数&月收入小于2000RMB&公司外呼无效或可能有效")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_04_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()]);
+        AutoCallModel($sex: sex,$appCountForCreditCard: appCountForCreditCard,$companyTelAutoCallResult:companyTelAutoCallResult,
+        $monthlyIncome:monthlyIncome, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult==CallResultTypeEnum.VALID.getCode()
+             && $iziPhoneVerifyResult!=null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                                               || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage(),
+                                                        "true",
+                                                        "命中男性&信用卡类APP个数&月收入小于2000RMB&公司外呼有效&IZI手机实名认证")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_COMB_04_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage()]);
+        AutoCallModel($sex: sex,$appCountForCreditCard: appCountForCreditCard,$companyTelAutoCallResult:companyTelAutoCallResult,
+            $monthlyIncome:monthlyIncome, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+        eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult==CallResultTypeEnum.VALID.getCode()
+             && $iziPhoneVerifyResult!=null && ($iziPhoneVerifyResult.getStatus()==PhoneVerifyStatusEnum.NOT_FOUND
+                                                || RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH"))
+            ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY.getMessage(),
+                                                        "false",
+                                                        "未命男性&信用卡类APP个数&月收入小于2000RMB&公司外呼有效&IZI手机实名认证")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_05_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage()]);
+        AutoCallModel($sex: sex,$appCountForCreditCard: appCountForCreditCard,$companyTelAutoCallResult:companyTelAutoCallResult,
+        $monthlyIncome:monthlyIncome, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             && $companyTelAutoCallResult!=null && ( $companyTelAutoCallResult == CallResultTypeEnum.INVALID.getCode()
+                                                    || $companyTelAutoCallResult == CallResultTypeEnum.NOT_SURE.getCode())
+             && $iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage(),
+                                                        "true",
+                                                        "命中男性&信用卡类APP个数&月收入2000-4000RMB&公司外呼&IZI手机实名NOT_MATCH")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_COMB_05_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage()]);
+         AutoCallModel($sex: sex,$appCountForCreditCard: appCountForCreditCard,$companyTelAutoCallResult:companyTelAutoCallResult,
+         $monthlyIncome:monthlyIncome, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+               && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,0))
+               && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+               && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+               && $companyTelAutoCallResult!=null && ( $companyTelAutoCallResult == CallResultTypeEnum.INVALID.getCode()
+                                                        || $companyTelAutoCallResult == CallResultTypeEnum.NOT_SURE.getCode())
+               && $iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_CREDIT_CARD_MONTHLY_SALARY_COMPANY_TEL_IZI_PHONEVERIFY_01.getMessage(),
+                                                        "false",
+                                                        "未命中男性&信用卡类APP个数&月收入2000-4000RMB&公司外呼&IZI手机实名NOT_MATCH")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_06_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage()]);
+        AutoCallModel($sex: sex,$companyTelAutoCallResult:companyTelAutoCallResult,$bankCode: bankCode);
+        AutoCallUserInfo($age: age, $gojekVerified: gojekVerified);
+        eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $gojekVerified!=null && !$gojekVerified
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult!=1
+             && RuleUtils.containsString(Arrays.asList("BRI","CIMB","BNI","PERMATA"),RuleUtils.valueOfStr($bankCode))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage(),
+                                                        "true",
+                                                        "命中女性&未验证gojek&年龄&公司外呼&银行")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_COMB_06_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage()]);
+         AutoCallModel($sex: sex,$companyTelAutoCallResult:companyTelAutoCallResult,$bankCode: bankCode);
+         AutoCallUserInfo($age: age, $gojekVerified: gojekVerified);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $gojekVerified!=null && !$gojekVerified
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult!=1
+             && RuleUtils.containsString(Arrays.asList("BRI","CIMB","BNI","PERMATA"),RuleUtils.valueOfStr($bankCode))
+             ));
+
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_GOJEK_AGE_COMP_TEL_BANK_CODE.getMessage(),
+                                                        "false",
+                                                        "未命中女性&未验证gojek&年龄&公司外呼&银行")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_07_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage()]);
+        AutoCallModel($sex: sex,$companyTelAutoCallResult:companyTelAutoCallResult);
+        AutoCallUserInfo($age: age, $gojekVerified: gojekVerified);
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $gojekVerified!=null && !$gojekVerified
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($age),$threshData)
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult!=1
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage(),
+                                                        "true",
+                                                        "命中男性&未验证gojek&年龄&公司外呼")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_COMB_07_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage()]);
+         AutoCallModel($sex: sex,$companyTelAutoCallResult:companyTelAutoCallResult);
+         AutoCallUserInfo($age: age, $gojekVerified: gojekVerified);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $gojekVerified!=null && !$gojekVerified
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($age),$threshData)
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult!=1
+             ));
+
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_GOJEK_AGE_COMP_TEL.getMessage(),
+                                                        "false",
+                                                        "未命中男性&未验证gojek&年龄&公司外呼")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "AUTO_CALL_COMB_08_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage()]);
+        AutoCallModel($sex: sex,$companyTelAutoCallResult:companyTelAutoCallResult);
+        AutoCallUserInfo($existsSameEmail: existsSameEmail);
+        eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $companyTelAutoCallResult!=null && $companyTelAutoCallResult == 3
+             && $existsSameEmail!=null && $existsSameEmail
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage(),
+                                                        "true",
+                                                        "命中性别&外呼结果&邮箱")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+rule "AUTO_CALL_COMB_08_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage()]);
+         AutoCallModel($sex: sex,$companyTelAutoCallResult:companyTelAutoCallResult);
+         AutoCallUserInfo($existsSameEmail: existsSameEmail);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $companyTelAutoCallResult!=null && $companyTelAutoCallResult == 3
+              && $existsSameEmail!=null && $existsSameEmail
+              )
+          )
+
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_COMPANY_TEL_EMAIL.getMessage(),
+                                                        "false",
+                                                        "未命中性别&外呼结果&邮箱")
+                                                        .addToResultList(ruleSetResultList);
+end

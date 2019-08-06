@@ -1,0 +1,120 @@
+package com.doit.reborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+
+global java.util.List ruleSetResultList;
+
+
+//安装的贷款app个数
+rule "INSTALLED_APP_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $installedApp: InstalledAppInfo(RuleUtils.greatThan(RuleUtils.valueOfStr(appForLoanCount),
+                                        $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($installedApp.getAppForLoanCount()),
+                                     "安装的贷款app个数大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "INSTALLED_APP_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $installedApp: InstalledAppInfo(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(appForLoanCount),
+                                        $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage())));
+    then
+        ruleSetResultList.add(RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage(),
+                            RuleUtils.valueOfStr($installedApp.getAppForLoanCount()),
+                            "安装的贷款app个数小于等于阈值"));
+end
+
+
+
+//安装的贷款app占比
+rule "INSTALLED_APP_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $installedApp: InstalledAppInfo(RuleUtils.greatThan(RuleUtils.valueOfStr(appForLoanRatio),
+                                        $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage(),
+                            RuleUtils.valueOfStr($installedApp.getAppForLoanRatio()),
+                            "安装的贷款app占比大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "INSTALLED_APP_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $installedApp: InstalledAppInfo(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(appForLoanRatio),
+                                        $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage(),
+                            RuleUtils.valueOfStr($installedApp.getAppForLoanRatio()),
+                            "安装的贷款app占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+//安装的贷款app相比上次增加的个数
+rule "INSTALLED_APP_003"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_ADD_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_ADD_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $installedApp: InstalledAppInfo();
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_ADD_USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage(),
+                            RuleUtils.valueOfStr($installedApp.getIncrementalAppForLoanCount()),
+                            "贷款app相比上次增加的个数").addToResultList(ruleSetResultList);
+end
+
+
+//安装的贷款app占比变化
+rule "INSTALLED_APP_004"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_ADD_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_ADD_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        $installedApp: InstalledAppInfo();
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_ADD_USER_INSTALLED_SENSITIVE_APP_RATE.getMessage(),
+                            RuleUtils.valueOfStr($installedApp.getAppForLoanRatioChange()),
+                            "贷款app占比变化值").addToResultList(ruleSetResultList);
+end
+
+
+////是否有上笔贷款[针对异常数据]
+//rule "INSTALLED_APP_005"
+//    when
+//        $installedApp: InstalledAppInfo(!hasLatestOrder);
+//    then
+//        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_HAS_LATEST_ORDER_DATA_EMPTY.getMessage(),
+//                            "",
+//                            "上笔贷款信息为空").addToResultList(ruleSetResultList);
+//end
+
+
+//无app列表数据
+rule "INSTALLED_APP_006"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_INSTALLED_APP_DATA_EMPTY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_INSTALLED_APP_DATA_EMPTY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        not InstalledAppInfo();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_INSTALLED_APP_DATA_EMPTY.getMessage(),
+                           $thresholdValues.getRuleDesc(BlackListTypeEnum.MULTI_INSTALLED_APP_DATA_EMPTY.getMessage()),
+                            "用户app列表为空").addToResultList(ruleSetResultList);
+end
+

@@ -1,0 +1,476 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.LoanInfo.LoanPurpose;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "HOME_PROVINCE_MALE_PRODUCT600_150_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage()]);
+        RUserInfo($sex: sex, $hitHomeProviceMan150: hitHomeProviceMan150);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitHomeProviceMan150 != null && $hitHomeProviceMan150))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage(),
+                                                        "true",
+                                                        "命中居住地（省）高风险&男性&600产品模型分(150)")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "HOME_PROVINCE_MALE_PRODUCT600_150_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage()]);
+        RUserInfo($sex: sex, $hitHomeProviceMan150: hitHomeProviceMan150);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitHomeProviceMan150 != null && $hitHomeProviceMan150))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_150.getMessage(),
+                                                        "false",
+                                                        "未命中居住地（省）高风险&男性&600产品模型分(150)")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "HOME_PROVINCE_FEMALE_PRODUCT600_150_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage()]);
+        RUserInfo($sex: sex, $hitHomeProviceFeMen150: hitHomeProviceFeMen150);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitHomeProviceFeMen150 != null && $hitHomeProviceFeMen150))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage(),
+                                                        "true",
+                                                        "命中居住地（省）高风险&女性&600产品模型分(150)")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "HOME_PROVINCE_FEMALE_PRODUCT600_150_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage()]);
+        RUserInfo($sex: sex, $hitHomeProviceFeMen150: hitHomeProviceFeMen150);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitHomeProviceFeMen150 != null && $hitHomeProviceFeMen150))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_PROVINCE_FEMALE_PRODUCT600_150.getMessage(),
+                                                        "false",
+                                                        "未命中居住地（省）高风险&女性&600产品模型分(150)")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "HOME_PROVINCE_MALE_PRODUCT600_80_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage()]);
+        RUserInfo($sex: sex, $hitHomeProviceMan80: hitHomeProviceMan80);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitHomeProviceMan80 != null && $hitHomeProviceMan80))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage(),
+                                                        "true",
+                                                        "命中居住地（省）高风险&男性&600产品模型分(80)")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "HOME_PROVINCE_MALE_PRODUCT600_80_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage()]);
+        RUserInfo($sex: sex, $hitHomeProviceMan80: hitHomeProviceMan80);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),RuleUtils.getRuleParam($threshData,0))
+             && (($hitHomeProviceMan80 != null && $hitHomeProviceMan80))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_PROVINCE_MALE_PRODUCT600_80.getMessage(),
+                                                        "false",
+                                                        "未命中居住地（省）高风险&男性&600产品模型分(80)")
+                                                        .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190422_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage()]);
+        RUserInfo($sex: sex, $age: age);
+        LoanInfo($borrowingPurpose: borrowingPurpose);
+        InstalledAppInfo($appCountForCreditCard: appCountForCreditCard)
+        eval($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.containsString( Arrays.asList(LoanPurpose.HealthCare.getName(),LoanPurpose.Marriage.getName()),RuleUtils.valueOfStr($borrowingPurpose))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,2))
+             )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage(),
+                                                                "true",
+                                                                "命中性别&借款用途&年龄&信用卡类app个数")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190422_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage()]);
+        RUserInfo($sex: sex, $age: age);
+        LoanInfo($borrowingPurpose: borrowingPurpose);
+        InstalledAppInfo($appCountForCreditCard: appCountForCreditCard)
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode()
+             && RuleUtils.containsString( Arrays.asList(LoanPurpose.HealthCare.getName(),LoanPurpose.Marriage.getName()),RuleUtils.valueOfStr($borrowingPurpose))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,2))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_BORROWING_PURPOSE_AGE_APPCOUNTOFCREDIT.getMessage(),
+                                                                "false",
+                                                                "未命中性别&借款用途&年龄&信用卡类app个数")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190426_01_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage(),
+                                                                "true",
+                                                                "命中600产品评分<=435,拒绝处理")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_01_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        eval(!RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD100.getMessage(),
+                                                                "false",
+                                                                "未命中600产品评分<=435,拒绝处理")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_02_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage()]);
+        RUserInfo($sex: sex);
+        ModelScoreResult($product100Score: product100Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage(),
+                                                                "true",
+                                                                "命中男性&100产品评分<=675,拒绝处理")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_02_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage()]);
+        ModelScoreResult($product100Score: product100Score);
+        RUserInfo($sex: sex);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),$threshData)));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_MALE.getMessage(),
+                                                                "false",
+                                                                "未命中男性&100产品评分<=675,拒绝处理")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_190426_03_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage()]);
+        RUserInfo($sex: sex);
+        ModelScoreResult($product100Score: product100Score);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage(),
+                                                                "true",
+                                                                "命中女性&100产品评分")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_03_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage()]);
+        ModelScoreResult($product100Score: product100Score);
+        RUserInfo($sex: sex);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),$threshData)));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_100_FOR_PRD100_FEMALE.getMessage(),
+                                                                "false",
+                                                                "未命中女性&100产品评分")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_04_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage()]);
+        RUserInfo($sex: sex);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.MALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage(),
+                                                                "true",
+                                                                "命中男性&600产品评分<=430,拒绝处理")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_04_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        RUserInfo($sex: sex);
+        eval(!($sex == RUserInfo.SexEnum.MALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData)));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_MALE.getMessage(),
+                                                                "false",
+                                                                "未命中男性&600产品评分<=430,拒绝处理")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_05_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage()]);
+        RUserInfo($sex: sex);
+        ModelScoreResult($product600Score: product600Score);
+        eval($sex == RUserInfo.SexEnum.FEMALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage(),
+                                                                "true",
+                                                                "命中女性&600产品模型分<=425")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_05_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage()]);
+        ModelScoreResult($product600Score: product600Score);
+        RUserInfo($sex: sex);
+        eval(!($sex == RUserInfo.SexEnum.FEMALE.getCode() && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600Score),$threshData)));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_FOR_PRD50_FEMALE.getMessage(),
+                                                                "false",
+                                                                "未命中女性&600产品模型分<=425")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_06_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZIPHONEAGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZIPHONEAGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZIPHONEAGE.getMessage()]);
+        RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult);
+        eval($iziPhoneAgeResult!=null && $iziPhoneAgeResult.getStatus() == RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND);
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.IZIPHONEAGE.getMessage(),
+                                                                "true",
+                                                                "命中IZI手机在网时长返回值为PHONENUMBER_NOT_FOUND")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+rule "COMB_190426_06_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IZIPHONEAGE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IZIPHONEAGE.getMessage()));
+        $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.IZIPHONEAGE.getMessage()]);
+        RUserInfo($iziPhoneAgeResult: iziPhoneAgeResult);
+        eval(!($iziPhoneAgeResult!=null && $iziPhoneAgeResult.getStatus() == RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IZIPHONEAGE.getMessage(),
+                                                                "false",
+                                                                "未命中IZI手机在网时长返回值为PHONENUMBER_NOT_FOUND")
+                                                                .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB_20190528_01_A"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage()))
+   when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage()]);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       RUserInfo($sex: sex);
+       eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+            && $sex==RUserInfo.SexEnum.MALE.getCode())
+   then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage(),
+                                     "true",
+                                     "命中600模型分V2版&男性")
+                .addToResultList(ruleSetResultList);
+
+end
+
+
+rule "COMB_20190528_01_B"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage()))
+   when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage()]);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       RUserInfo($sex: sex);
+       eval(!(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+            && $sex==RUserInfo.SexEnum.MALE.getCode())
+            )
+   then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_V2_MALE.getMessage(),
+                                     "false",
+                                     "未命中600模型分V2版&男性")
+                .addToResultList(ruleSetResultList);
+
+end
+
+rule "COMB_20190528_02_A"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage()))
+   when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage()]);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       RUserInfo($sex: sex);
+       eval(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+            && $sex==RUserInfo.SexEnum.FEMALE.getCode())
+   then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage(),
+                                     "true",
+                                     "命中600模型分V2版&女性")
+                .addToResultList(ruleSetResultList);
+
+end
+
+
+rule "COMB_20190528_02_B"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage()))
+   when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage()]);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       RUserInfo($sex: sex);
+       eval(!(RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData)
+            && $sex==RUserInfo.SexEnum.FEMALE.getCode())
+            )
+   then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE.getMessage(),
+                                     "false",
+                                     "未命中600模型分V2版&女性")
+                .addToResultList(ruleSetResultList);
+
+end
+
+
+rule "COMB_20190528_03_A"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage()))
+   when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage()]);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+       eval(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+            && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $iziPhoneVerifyResult!=null && (
+                             $iziPhoneVerifyResult.getStatus() == IziPhoneVerifyResult.PhoneVerifyStatusEnum.NOT_FOUND
+                             || RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+                            )
+        )
+   then
+       RuleUtils.buildHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage(),
+                                     "true",
+                                     "命中600模型分V2版&女性&IZI手机实名认证")
+                .addToResultList(ruleSetResultList);
+
+end
+
+
+rule "COMB_20190528_03_B"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage()))
+   when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage()));
+       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage()]);
+       ModelScoreResult($product600ScoreV2: product600ScoreV2);
+       RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+       eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product600ScoreV2),RuleUtils.getRuleParam($threshData,1))
+            && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+            && $iziPhoneVerifyResult!=null && (
+                             $iziPhoneVerifyResult.getStatus() == IziPhoneVerifyResult.PhoneVerifyStatusEnum.NOT_FOUND
+                             || RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+                            )
+        ))
+   then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.RISK_SCORE_600_V2_FEMALE_IZI_PHONEVERIFY.getMessage(),
+                                     "false",
+                                     "未命中600模型分V2版&女性&IZI手机实名认证")
+                .addToResultList(ruleSetResultList);
+
+end
+

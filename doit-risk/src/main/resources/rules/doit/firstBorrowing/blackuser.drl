@@ -1,0 +1,1376 @@
+package com.uanguang.firstborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.BlackListUserCheckModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+global java.util.List ruleSetResultList;
+
+
+rule "BLACKLIST_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_IN_OVERDUE7_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_IN_OVERDUE7_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $blackModel: BlackListUserCheckModel($deviceIdInOverdue30DaysUser:deviceIdInOverdue30DaysUser);
+    then
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ID_CARD_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getIdCardNoInOverdue7BlackList()),
+                                   "申请人身份证命中逾期7天以上用户身份证号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getMobileInOverdue7BlackList()),
+                                   "申请手机号命中逾期7天以上用户手机号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.BANKCARD_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getBankcardInOverdue7BlackList()),
+                                   "申请人银行卡命中逾期7天以上用户银行卡号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getEmergencyTelInOverdue7BlackListEmergencyTel()),
+                                   "申请人的紧急联系人手机号码是逾期7天以上用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_OVERDUE7_BLACK.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getMobileInOverdue7BlackListEmergencyTel()),
+                                   "申请人手机号码是逾期7天以上用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                       RuleUtils.valueOfStr($blackModel.getEmergencyTelInOverdue7BlackList()),
+                                       "申请人的紧急联系人手机号码是逾期7天以上用户"
+                                      ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_REMARK_01"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.WHATSAPP_IN_OVERDUE7_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.WHATSAPP_IN_OVERDUE7_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      $blackModel: BlackListUserCheckModel();
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WHATSAPP_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getWhatsappInOverdue7BlackList()),
+                                   "申请人的va号码命中逾期7天用户的号码"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.WHATSAPP_IN_OVERDUE7_EMERGENCY_LINKMAN.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getWhatsappInOverdue7BlackListEmergencyTel()),
+                                   "申请人的va号码命中逾期7天用户紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_LINKMAN_IN_FRAUD_USER_EMERGENCY_LINKMAN.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getEmergencyTelInFraudUserEmergencyTel()),
+                                   "申请人的紧急联系人号码命中欺诈用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_LINKMAN_IN_FRAUD_USER_WHATSAPP.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getEmergencyTelInFraudUserWhatsapp()),
+                                   "申请人的紧急联系人号码命中欺诈用户的va"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_TEL_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getCompanyTelInOverdue7BlackList()),
+                                   "申请人公司电话命中逾期7天用户的公司电话"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_ADDRESS_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getCompanyAddressInOverdue7BlackList()),
+                                   "申请人公司地址命中逾期7天用户的公司地址"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_ADDRESS_IN_OVERDUE7_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getHomeAddressInOverdue7BlackList()),
+                                   "申请人居住地址命中逾期7天用户的居住地址"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_TEL_IN_FRAUD_USER_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getCompanyTelInFraudBlackList()),
+                                   "申请人公司电话命中欺诈用户的公司电话"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMPANY_ADDRESS_IN_FRAUD_USER_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getCompanyAddressInFraudBlackList()),
+                                   "申请人公司地址命中欺诈用户的公司地址"
+                                  ).addToResultList(ruleSetResultList);
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HOME_ADDRESS_IN_FRAUD_USER_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($blackModel.getHomeAddressInFraudBlackList()),
+                                   "申请人居住地址命中欺诈用户的居住地址"
+                                  ).addToResultList(ruleSetResultList);
+
+
+end
+
+
+
+rule "BLACKLIST_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_IN_OVERDUE15_BLACKLIST.getMessage()))
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($idCardNoInOverdue15BlackList: idCardNoInOverdue15BlackList);
+      eval($idCardNoInOverdue15BlackList!=null&&$idCardNoInOverdue15BlackList==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.ID_CARD_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($idCardNoInOverdue15BlackList),
+                                   "申请人身份证命中逾期15天以上用户身份证号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_IN_OVERDUE15_BLACKLIST.getMessage()))
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($idCardNoInOverdue15BlackList: idCardNoInOverdue15BlackList);
+      eval(!($idCardNoInOverdue15BlackList!=null&&$idCardNoInOverdue15BlackList==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ID_CARD_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($idCardNoInOverdue15BlackList),
+                                   "申请人身份证未命中逾期15天以上用户身份证号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+rule "BLACKLIST_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACKLIST.getMessage()))
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileInOverdue15BlackList);
+      eval($checkItem!=null&&$checkItem==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请手机号命中逾期15天以上用户手机号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACKLIST.getMessage()))
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileInOverdue15BlackList);
+      eval(!($checkItem!=null&&$checkItem==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请手机号未命中逾期15天以上用户手机号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "BLACKLIST_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:emergencyTelInOverdue15BlackListEmergencyTel);
+      eval($checkItem!=null&&$checkItem==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人的紧急联系人手机号码是逾期15天以上用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:emergencyTelInOverdue15BlackListEmergencyTel);
+      eval(!($checkItem!=null&&$checkItem==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人的紧急联系人手机号码不是逾期15天以上用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.BANKCARD_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.BANKCARD_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:bankcardNoInOverdue15BlackList);
+      eval($checkItem!=null&&$checkItem==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.BANKCARD_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人银行卡命中逾期15天以上用户银行卡号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.BANKCARD_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.BANKCARD_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:bankcardNoInOverdue15BlackList);
+      eval(!($checkItem!=null&&$checkItem==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.BANKCARD_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人银行卡未命中逾期15天以上用户银行卡号黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_006_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACK_LIST_USER_EMERGENCY_TEL.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACK_LIST_USER_EMERGENCY_TEL.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileIsOverdue15BlackListEmergencyTel);
+      eval($checkItem!=null&&$checkItem==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACK_LIST_USER_EMERGENCY_TEL.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号码是逾期15天以上用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_006_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACK_LIST_USER_EMERGENCY_TEL.getMessage()))
+    when
+       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACK_LIST_USER_EMERGENCY_TEL.getMessage()));
+       $thresholdValues:RuleThresholdValues();
+       BlackListUserCheckModel($checkItem:mobileIsOverdue15BlackListEmergencyTel);
+      eval(!($checkItem!=null&&$checkItem==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IN_OVERDUE15_BLACK_LIST_USER_EMERGENCY_TEL.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号码不是逾期15天以上用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "BLACKLIST_007_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_EMERGENCY_TEL.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_EMERGENCY_TEL.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileIsFraudUserEmergencyTel);
+      eval($checkItem!=null&&$checkItem==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_EMERGENCY_TEL.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号命中欺诈用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_007_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_EMERGENCY_TEL.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_EMERGENCY_TEL.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileIsFraudUserEmergencyTel);
+      eval(!($checkItem!=null&&$checkItem==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_EMERGENCY_TEL.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号未命中欺诈用户的紧急联系人"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_008_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileInFraudUserCallRecordsCount);
+      eval(RuleUtils.greatThan(RuleUtils.valueOfStr($checkItem),$thresholdValues.getThresholdValue(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage())));
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号命中欺诈用户的通话记录次数大于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_008_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileInFraudUserCallRecordsCount);
+      eval(!RuleUtils.greatThan(RuleUtils.valueOfStr($checkItem),$thresholdValues.getThresholdValue(BlackListTypeEnum
+      .MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage())));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_FRAUD_USER_CALL_RECORD_COUNT.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号命中欺诈用户的通话记录次数小于等于阈值"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_009_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_FRAUD_USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_FRAUD_USER.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileInFraudUser);
+      eval($checkItem!=null && $checkItem==true)
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IN_FRAUD_USER.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号属于欺诈用户手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_009_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_FRAUD_USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_FRAUD_USER.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:mobileInFraudUser);
+      eval(!($checkItem!=null && $checkItem==true))
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IN_FRAUD_USER.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人手机号不属于欺诈用户手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_NO_IN_FRAUD_USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_NO_IN_FRAUD_USER.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:idCardNoInFraudUser);
+      eval($checkItem!=null && $checkItem==true)
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.ID_CARD_NO_IN_FRAUD_USER.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人身份证号属于欺诈用户手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.ID_CARD_NO_IN_FRAUD_USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.ID_CARD_NO_IN_FRAUD_USER.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:idCardNoInFraudUser);
+      eval(!($checkItem!=null && $checkItem==true))
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.ID_CARD_NO_IN_FRAUD_USER.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "申请人身份证号不属于欺诈用户手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_FRAUD_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_FRAUD_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:hitFraudUserInfo);
+      eval($checkItem!=null && $checkItem==true)
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.HIT_FRAUD_USER_INFO.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "命中欺诈用户AB属性组"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_FRAUD_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_FRAUD_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:hitFraudUserInfo);
+      eval(!($checkItem!=null && $checkItem==true))
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HIT_FRAUD_USER_INFO.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "未命中欺诈用户AB属性组"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_012_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IMEI_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IMEI_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($imeiInOverdue15BlackList: imeiInOverdue15BlackList);
+      eval($imeiInOverdue15BlackList!=null&&$imeiInOverdue15BlackList==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.IMEI_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($imeiInOverdue15BlackList),
+                                   "申请手机IMEI命中逾期15天以上用户IMEI黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_012_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.IMEI_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.IMEI_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($imeiInOverdue15BlackList: imeiInOverdue15BlackList);
+      eval(!($imeiInOverdue15BlackList!=null&&$imeiInOverdue15BlackList==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.IMEI_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($imeiInOverdue15BlackList),
+                                   "申请手机IMEI未命中逾期15天以上用户IMEI黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_013_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelInOverdue15BlackList: emergencyTelInOverdue15BlackList);
+      eval($emergencyTelInOverdue15BlackList!=null && $emergencyTelInOverdue15BlackList==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($emergencyTelInOverdue15BlackList),
+                                   "命中紧急联系人手机号码是逾期15天以上用户"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_013_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelInOverdue15BlackList: emergencyTelInOverdue15BlackList);
+      eval(!($emergencyTelInOverdue15BlackList!=null && $emergencyTelInOverdue15BlackList==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($emergencyTelInOverdue15BlackList),
+                                   "未命中紧急联系人手机号码是逾期15天以上用户"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "BLACKLIST_014_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_CONTACT_OF_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_CONTACT_OF_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($mobileInOverdue15BlackListContacts: mobileInOverdue15BlackListContacts);
+      eval($mobileInOverdue15BlackListContacts!=null && $mobileInOverdue15BlackListContacts==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IN_CONTACT_OF_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($mobileInOverdue15BlackListContacts),
+                                   "申请手机号命中逾期15天用户的通讯录"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_014_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_CONTACT_OF_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_CONTACT_OF_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($mobileInOverdue15BlackListContacts: mobileInOverdue15BlackListContacts);
+      eval(!($mobileInOverdue15BlackListContacts!=null && $mobileInOverdue15BlackListContacts==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IN_CONTACT_OF_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($mobileInOverdue15BlackListContacts),
+                                   "申请手机号未命中逾期15天用户的通讯录"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_015_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_CALL_RECORD_OF_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_CALL_RECORD_OF_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($mobileInOverdue15BlackListCallRecords: mobileInOverdue15BlackListCallRecords);
+      eval($mobileInOverdue15BlackListCallRecords!=null && $mobileInOverdue15BlackListCallRecords==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IN_CALL_RECORD_OF_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($mobileInOverdue15BlackListCallRecords),
+                                   "申请手机号命中逾期15天用户的通话记录"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_015_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_CALL_RECORD_OF_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_CALL_RECORD_OF_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($mobileInOverdue15BlackListCallRecords: mobileInOverdue15BlackListCallRecords);
+      eval(!($mobileInOverdue15BlackListCallRecords!=null && $mobileInOverdue15BlackListCallRecords==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IN_CALL_RECORD_OF_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($mobileInOverdue15BlackListCallRecords),
+                                   "申请手机号未命中逾期15天用户的通话记录"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_016_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_SHORT_MSG_OF_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_SHORT_MSG_OF_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($mobileInOverdue15BlackListShortMsg: mobileInOverdue15BlackListShortMsg);
+      eval($mobileInOverdue15BlackListShortMsg!=null && $mobileInOverdue15BlackListShortMsg==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IN_SHORT_MSG_OF_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($mobileInOverdue15BlackListShortMsg),
+                                   "申请手机号命中逾期15天用户的短信对象"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_016_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IN_SHORT_MSG_OF_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IN_SHORT_MSG_OF_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($mobileInOverdue15BlackListShortMsg: mobileInOverdue15BlackListShortMsg);
+      eval(!($mobileInOverdue15BlackListShortMsg!=null && $mobileInOverdue15BlackListShortMsg==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IN_SHORT_MSG_OF_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($mobileInOverdue15BlackListShortMsg),
+                                   "申请手机号未命中逾期15天用户的短信对象"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_017_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CONTACT_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($contactInOverdue15BlackList: contactInOverdue15BlackList);
+      eval($contactInOverdue15BlackList!=null && $contactInOverdue15BlackList==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.CONTACT_PHONE_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($contactInOverdue15BlackList),
+                                   "通讯录命中逾期15天黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_017_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CONTACT_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CONTACT_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($contactInOverdue15BlackList: contactInOverdue15BlackList);
+      eval(!($contactInOverdue15BlackList!=null && $contactInOverdue15BlackList==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CONTACT_PHONE_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($contactInOverdue15BlackList),
+                                   "通讯录未命中逾期15天黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_018_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_RECORD_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_RECORD_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($callRecordInOverdue15BlackList: callRecordInOverdue15BlackList);
+      eval($callRecordInOverdue15BlackList!=null && $callRecordInOverdue15BlackList==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.CALL_RECORD_PHONE_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($callRecordInOverdue15BlackList),
+                                   "通话记录对象命中逾期15天及以上黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_018_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CALL_RECORD_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CALL_RECORD_PHONE_IN_OVERDUE15_BLACKLIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($callRecordInOverdue15BlackList: callRecordInOverdue15BlackList);
+      eval(!($callRecordInOverdue15BlackList!=null && $callRecordInOverdue15BlackList==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CALL_RECORD_PHONE_IN_OVERDUE15_BLACKLIST.getMessage(),
+                                   RuleUtils.valueOfStr($callRecordInOverdue15BlackList),
+                                   "通话记录对象未命中逾期15天及以上黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_019_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_PHONES_IN_OVERDUE15_BLACK_LIST_USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_PHONES_IN_OVERDUE15_BLACK_LIST_USER.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($smsContactOverdue15DaysCount: smsContactOverdue15DaysCount)
+      eval($smsContactOverdue15DaysCount!=null && $smsContactOverdue15DaysCount>0);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.SMS_PHONES_IN_OVERDUE15_BLACK_LIST_USER.getMessage(),
+                                   "true",
+                                   "申请人短信通话对象命中逾期15天以上黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_019_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SMS_PHONES_IN_OVERDUE15_BLACK_LIST_USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SMS_PHONES_IN_OVERDUE15_BLACK_LIST_USER.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($smsContactOverdue15DaysCount: smsContactOverdue15DaysCount)
+      eval(!($smsContactOverdue15DaysCount!=null && $smsContactOverdue15DaysCount>0));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SMS_PHONES_IN_OVERDUE15_BLACK_LIST_USER.getMessage(),
+                                   "false",
+                                   "申请人短信通话对象未命中逾期15天以上黑名单"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_020_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_SENSITIVE_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_SENSITIVE_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitSensitiveUserInfo:hitSensitiveUserInfo)
+      eval($hitSensitiveUserInfo!=null && $hitSensitiveUserInfo==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.HIT_SENSITIVE_USER_INFO.getMessage(),
+                                   "true",
+                                   "命中敏感人员身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_020_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_SENSITIVE_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_SENSITIVE_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitSensitiveUserInfo:hitSensitiveUserInfo)
+      eval(!($hitSensitiveUserInfo!=null && $hitSensitiveUserInfo==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HIT_SENSITIVE_USER_INFO.getMessage(),
+                                   "false",
+                                   "未命中敏感人员身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_021_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_COLLECTOR_BLACK_LIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_COLLECTOR_BLACK_LIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitCollectorBlackUserInfo:hitCollectorBlackUserInfo)
+      eval($hitCollectorBlackUserInfo!=null && $hitCollectorBlackUserInfo==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.HIT_COLLECTOR_BLACK_LIST.getMessage(),
+                                   "true",
+                                   "命中催收黑名单用户身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_021_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_COLLECTOR_BLACK_LIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_COLLECTOR_BLACK_LIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitCollectorBlackUserInfo:hitCollectorBlackUserInfo)
+      eval(!($hitCollectorBlackUserInfo!=null && $hitCollectorBlackUserInfo==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HIT_COLLECTOR_BLACK_LIST.getMessage(),
+                                   "false",
+                                   "未命中催收黑名单用户身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+rule "BLACKLIST_022_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_COMPLAINT_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_COMPLAINT_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitComplaintUserInfo: hitComplaintUserInfo)
+      eval($hitComplaintUserInfo!=null && $hitComplaintUserInfo==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.HIT_COMPLAINT_USER_INFO.getMessage(),
+                                   "true",
+                                   "命中投诉人员身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "BLACKLIST_022_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.HIT_COMPLAINT_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_COMPLAINT_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitComplaintUserInfo: hitComplaintUserInfo)
+      eval(!($hitComplaintUserInfo!=null && $hitComplaintUserInfo==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HIT_COMPLAINT_USER_INFO.getMessage(),
+                                   "false",
+                                   "未命中投诉人员身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+//
+//rule "BLACKLIST_023_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($mobileIsEmergencyTelForOverdue7UserWith1th: mobileIsEmergencyTelForOverdue7UserWith1th)
+//      eval($mobileIsEmergencyTelForOverdue7UserWith1th!=null && $mobileIsEmergencyTelForOverdue7UserWith1th==true);
+//    then
+//      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage(),
+//                                   "true",
+//                                   "命中申请人手机号是首借逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_023_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($mobileIsEmergencyTelForOverdue7UserWith1th: mobileIsEmergencyTelForOverdue7UserWith1th)
+//      eval(!($mobileIsEmergencyTelForOverdue7UserWith1th!=null && $mobileIsEmergencyTelForOverdue7UserWith1th==true));
+//    then
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage(),
+//                                   "false",
+//                                   "未命中申请人手机号是首借逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_024_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($hemergencyTelIsEmergencyTelForOverdue7UserWith1th: emergencyTelIsEmergencyTelForOverdue7UserWith1th)
+//      eval($hemergencyTelIsEmergencyTelForOverdue7UserWith1th!=null && $hemergencyTelIsEmergencyTelForOverdue7UserWith1th==true);
+//    then
+//      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage(),
+//                                   "true",
+//                                   "命中申请人联系人号码是首借逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_024_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($hemergencyTelIsEmergencyTelForOverdue7UserWith1th: emergencyTelIsEmergencyTelForOverdue7UserWith1th)
+//      eval(!($hemergencyTelIsEmergencyTelForOverdue7UserWith1th!=null && $hemergencyTelIsEmergencyTelForOverdue7UserWith1th==true));
+//    then
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_1THORDER_OVERDUE7_USER.getMessage(),
+//                                   "false",
+//                                   "未命中申请人联系人号码是首借逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_025_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_1THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_1THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsOverdue7UserWith1th: emergencyTelIsOverdue7UserWith1th)
+//      eval($emergencyTelIsOverdue7UserWith1th!=null && $emergencyTelIsOverdue7UserWith1th==true);
+//    then
+//      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_1THORDER_OVERDUE7_USER.getMessage(),
+//                                   "true",
+//                                   "命中申请人联系人号码是首借逾期7天及以上用户的本人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_025_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_1THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_1THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsOverdue7UserWith1th: emergencyTelIsOverdue7UserWith1th)
+//      eval(!($emergencyTelIsOverdue7UserWith1th!=null && $emergencyTelIsOverdue7UserWith1th==true));
+//    then
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_1THORDER_OVERDUE7_USER.getMessage(),
+//                                   "false",
+//                                   "未命中申请人联系人号码是首借逾期7天及以上用户的本人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_026_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($mobileIsEmergencyTelForOverdue7UserWith2th: mobileIsEmergencyTelForOverdue7UserWith2th)
+//      eval($mobileIsEmergencyTelForOverdue7UserWith2th!=null && $mobileIsEmergencyTelForOverdue7UserWith2th==true);
+//    then
+//      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage(),
+//                                   "true",
+//                                   "命中申请人手机号是第2笔逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_026_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($mobileIsEmergencyTelForOverdue7UserWith2th: mobileIsEmergencyTelForOverdue7UserWith2th)
+//      eval(!($mobileIsEmergencyTelForOverdue7UserWith2th!=null && $mobileIsEmergencyTelForOverdue7UserWith2th==true));
+//    then
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage(),
+//                                   "false",
+//                                   "未命中申请人手机号是第2笔逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_027_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsEmergencyTelForOverdue7UserWith2th: emergencyTelIsEmergencyTelForOverdue7UserWith2th)
+//      eval($emergencyTelIsEmergencyTelForOverdue7UserWith2th!=null && $emergencyTelIsEmergencyTelForOverdue7UserWith2th==true);
+//    then
+//      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage(),
+//                                   "true",
+//                                   "命中申请人联系人号码是第2笔逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_027_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsEmergencyTelForOverdue7UserWith2th: emergencyTelIsEmergencyTelForOverdue7UserWith2th)
+//      eval(!($emergencyTelIsEmergencyTelForOverdue7UserWith2th!=null && $emergencyTelIsEmergencyTelForOverdue7UserWith2th==true));
+//    then
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_2THORDER_OVERDUE7_USER.getMessage(),
+//                                   "false",
+//                                   "未命中申请人联系人号码是第2笔逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_028_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_2THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_2THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsOverdue7UserWith2th: emergencyTelIsOverdue7UserWith2th)
+//      eval($emergencyTelIsOverdue7UserWith2th!=null && $emergencyTelIsOverdue7UserWith2th==true);
+//    then
+//      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_2THORDER_OVERDUE7_USER.getMessage(),
+//                                   "true",
+//                                   "命中申请人联系人号码是第2笔逾期7天及以上用户的本人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_028_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_2THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_2THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsOverdue7UserWith2th: emergencyTelIsOverdue7UserWith2th)
+//      eval(!($emergencyTelIsOverdue7UserWith2th!=null && $emergencyTelIsOverdue7UserWith2th==true));
+//    then
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_2THORDER_OVERDUE7_USER.getMessage(),
+//                                   "false",
+//                                   "未命中申请人联系人号码是第2笔逾期7天及以上用户的本人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_029_A"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_3THOR4THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_3THOR4THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th: emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th)
+//      eval($emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th!=null && $emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th==true);
+//    then
+//      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_3THOR4THORDER_OVERDUE7_USER.getMessage(),
+//                                   "true",
+//                                   "命中申请人联系人号码是第3/4笔逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+//rule "BLACKLIST_029_B"
+//    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_3THOR4THORDER_OVERDUE7_USER.getMessage()))
+//    when
+//      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_3THOR4THORDER_OVERDUE7_USER.getMessage()));
+//      $thresholdValues:RuleThresholdValues();
+//      BlackListUserCheckModel($emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th: emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th)
+//      eval(!($emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th!=null && $emergencyTelIsEmergencyTelForOverdue7UserWith3Or4th==true));
+//    then
+//      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCYTEL_IS_EMERGENCYTEL_FOR_3THOR4THORDER_OVERDUE7_USER.getMessage(),
+//                                   "false",
+//                                   "未命中申请人联系人号码是第3/4笔逾期7天及以上用户的联系人号码"
+//                                  ).addToResultList(ruleSetResultList);
+//end
+//
+
+
+rule "BLACKLIST_030_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForUnSettledOverdue7UserWith1th: mobileIsEmergencyTelForUnSettledOverdue7UserWith1th)
+      eval($mobileIsEmergencyTelForUnSettledOverdue7UserWith1th!=null && $mobileIsEmergencyTelForUnSettledOverdue7UserWith1th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人手机号是（首借逾期7天及以上并且当前逾期未还）用户的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_030_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForUnSettledOverdue7UserWith1th: mobileIsEmergencyTelForUnSettledOverdue7UserWith1th)
+      eval(!($mobileIsEmergencyTelForUnSettledOverdue7UserWith1th!=null && $mobileIsEmergencyTelForUnSettledOverdue7UserWith1th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人手机号是（首借逾期7天及以上并且当前逾期未还）用户的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_031_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsUnSettledOverdue7UserWith1th: emergencyTelIsUnSettledOverdue7UserWith1th)
+      eval($emergencyTelIsUnSettledOverdue7UserWith1th!=null && $emergencyTelIsUnSettledOverdue7UserWith1th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（首借逾期7天及以上并且当前逾期未还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_031_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsUnSettledOverdue7UserWith1th: emergencyTelIsUnSettledOverdue7UserWith1th)
+      eval(!($emergencyTelIsUnSettledOverdue7UserWith1th!=null && $emergencyTelIsUnSettledOverdue7UserWith1th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（首借逾期7天及以上并且当前逾期未还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_032_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th: emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th)
+      eval($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th!=null && $emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（首借逾期7天及以上并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_032_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th: emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th)
+      eval(!($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th!=null && $emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（首借逾期7天及以上并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_033_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsUnSettledOverdue7UserWith2th: emergencyTelIsUnSettledOverdue7UserWith2th)
+      eval($emergencyTelIsUnSettledOverdue7UserWith2th!=null && $emergencyTelIsUnSettledOverdue7UserWith2th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是(第2笔逾期7天及以上并且当前逾期未还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_033_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsUnSettledOverdue7UserWith2th: emergencyTelIsUnSettledOverdue7UserWith2th)
+      eval(!($emergencyTelIsUnSettledOverdue7UserWith2th!=null && $emergencyTelIsUnSettledOverdue7UserWith2th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是(第2笔逾期7天及以上并且当前逾期未还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_034_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th: emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th)
+      eval($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th!=null && $emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（第2笔逾期7天及以上并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_034_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th: emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th)
+      eval(!($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th!=null && $emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（第2笔逾期7天及以上并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_035_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForUnSettledOverdue7UserWith2th: mobileIsEmergencyTelForUnSettledOverdue7UserWith2th)
+      eval($mobileIsEmergencyTelForUnSettledOverdue7UserWith2th!=null && $mobileIsEmergencyTelForUnSettledOverdue7UserWith2th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人手机号是（第2笔逾期7天及以上用户并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_035_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForUnSettledOverdue7UserWith2th: mobileIsEmergencyTelForUnSettledOverdue7UserWith2th)
+      eval(!($mobileIsEmergencyTelForUnSettledOverdue7UserWith2th!=null && $mobileIsEmergencyTelForUnSettledOverdue7UserWith2th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人手机号是（第2笔逾期7天及以上用户并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_036_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th: emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th)
+      eval($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th!=null && $emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（第3/4笔逾期7天及以上并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_036_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_UNSETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_UNSETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th: emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th)
+      eval(!($emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th!=null && $emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_UNSETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（第3/4笔逾期7天及以上并且当前逾期未还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_037_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForSettledOverdue7UserWith1th: mobileIsEmergencyTelForSettledOverdue7UserWith1th)
+      eval($mobileIsEmergencyTelForSettledOverdue7UserWith1th!=null && $mobileIsEmergencyTelForSettledOverdue7UserWith1th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人手机号是（首借逾期7天及以上并且当前逾期已还）用户的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_037_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForSettledOverdue7UserWith1th: mobileIsEmergencyTelForSettledOverdue7UserWith1th)
+      eval(!($mobileIsEmergencyTelForSettledOverdue7UserWith1th!=null && $mobileIsEmergencyTelForSettledOverdue7UserWith1th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人手机号是（首借逾期7天及以上并且当前逾期已还）用户的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_038_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsSettledOverdue7UserWith1th: emergencyTelIsSettledOverdue7UserWith1th)
+      eval($emergencyTelIsSettledOverdue7UserWith1th!=null && $emergencyTelIsSettledOverdue7UserWith1th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（首借逾期7天及以上并且当前逾期已还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_038_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsSettledOverdue7UserWith1th: emergencyTelIsSettledOverdue7UserWith1th)
+      eval(!($emergencyTelIsSettledOverdue7UserWith1th!=null && $emergencyTelIsSettledOverdue7UserWith1th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_1TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（首借逾期7天及以上并且当前逾期已还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_039_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th: emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th)
+      eval($emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th!=null && $emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（首借逾期7天及以上并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_039_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th: emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th)
+      eval(!($emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th!=null && $emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_1TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（首借逾期7天及以上并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_040_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsSettledOverdue7UserWith2th: emergencyTelIsSettledOverdue7UserWith2th)
+      eval($emergencyTelIsSettledOverdue7UserWith2th!=null && $emergencyTelIsSettledOverdue7UserWith2th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是(第2笔逾期7天及以上并且当前逾期已还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_040_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsSettledOverdue7UserWith2th: emergencyTelIsSettledOverdue7UserWith2th)
+      eval(!($emergencyTelIsSettledOverdue7UserWith2th!=null && $emergencyTelIsSettledOverdue7UserWith2th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_OWNER_FOR_2TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是(第2笔逾期7天及以上并且当前逾期已还用户）的本人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_041_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th: emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th)
+      eval($emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th!=null && $emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（第2笔逾期7天及以上并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_041_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th: emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th)
+      eval(!($emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th!=null && $emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（第2笔逾期7天及以上并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_042_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForSettledOverdue7UserWith2th: mobileIsEmergencyTelForSettledOverdue7UserWith2th)
+      eval($mobileIsEmergencyTelForSettledOverdue7UserWith2th!=null && $mobileIsEmergencyTelForSettledOverdue7UserWith2th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人手机号是（第2笔逾期7天及以上用户并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_042_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($mobileIsEmergencyTelForSettledOverdue7UserWith2th: mobileIsEmergencyTelForSettledOverdue7UserWith2th)
+      eval(!($mobileIsEmergencyTelForSettledOverdue7UserWith2th!=null && $mobileIsEmergencyTelForSettledOverdue7UserWith2th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MOBILE_IS_EMERGENCY_TEL_FOR_2TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人手机号是（第2笔逾期7天及以上用户并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_043_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th: emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th)
+      eval($emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th!=null && $emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "true",
+                                   "命中申请人联系人号码是（第3/4笔逾期7天及以上并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_043_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_SETTLED_OVERDUE7USER.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_SETTLED_OVERDUE7USER.getMessage()));
+      $thresholdValues: RuleThresholdValues();
+      BlackListUserCheckModel($emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th: emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th)
+      eval(!($emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th!=null && $emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.EMERGENCY_TEL_IS_EMERGENCY_TEL_FOR_3OR4TH_SETTLED_OVERDUE7USER.getMessage(),
+                                   "false",
+                                   "未命中申请人联系人号码是（第3/4笔逾期7天及以上并且当前逾期已还用户）的联系人号码"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+

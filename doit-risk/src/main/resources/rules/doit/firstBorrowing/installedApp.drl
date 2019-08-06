@@ -1,0 +1,145 @@
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.common.utils.StringUtils;
+import java.util.List;
+
+
+global  List ruleSetResultList;
+
+rule "INSTALLED_APP_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        InstalledAppInfo($appForLoanCount:appForLoanCount,RuleUtils.greatThan(RuleUtils.valueOfStr(appForLoanCount),
+                                             $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage(),
+                                    RuleUtils.valueOfStr($appForLoanCount),
+                                    "贷款App个数大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "INSTALLED_APP_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        InstalledAppInfo($appForLoanCount:appForLoanCount,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(appForLoanCount),
+                                             $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_COUNT.getMessage(),
+                                    RuleUtils.valueOfStr($appForLoanCount),
+                                    "贷款App个数小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "INSTALLED_APP_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        InstalledAppInfo($appForLoanRatio:appForLoanRatio,RuleUtils.greatThan(RuleUtils.valueOfStr(appForLoanRatio),
+                                             $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage(),
+                                    RuleUtils.valueOfStr($appForLoanRatio),
+                                    "贷款App占比大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "INSTALLED_APP_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        InstalledAppInfo($appForLoanRatio:appForLoanRatio,RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(appForLoanRatio),
+                                             $thresholdValues.getThresholdValue(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage())));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.USER_INSTALLED_SENSITIVE_APP_PERSENT.getMessage(),
+                                    RuleUtils.valueOfStr($appForLoanRatio),
+                                    "贷款App占比小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+rule "INSTALLED_APP_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.INSTALL_APP_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.INSTALL_APP_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $appInfo: InstalledAppInfo($totalApps:totalApps,
+                         $diffDaysBetweenLatestUpdateTimeAndCommitTime: diffDaysBetweenLatestUpdateTimeAndCommitTime,
+                         $diffDaysBetweenEarliestUpdateTimeAndCommitTime:diffDaysBetweenEarliestUpdateTimeAndCommitTime,
+                         $diffDaysBetweenForEarliestAndLatestUpdateTime:diffDaysBetweenForEarliestAndLatestUpdateTime)
+    then
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.INSTALL_APP_COUNT.getMessage(),
+                                      RuleUtils.valueOfStr($totalApps),
+                                      "总app数量").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.INSTALLPED_APP_DIFFDAYS_OF_LASTEST_COMMIT_TIME.getMessage(),
+                                      RuleUtils.valueOfStr($diffDaysBetweenLatestUpdateTimeAndCommitTime),
+                                      "APP最后一次更新时间距提交的天数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.INSTALLPED_APP_DIFFDAYS_OF_EARLIEST_COMMIT_TIME.getMessage(),
+                                      RuleUtils.valueOfStr($diffDaysBetweenEarliestUpdateTimeAndCommitTime),
+                                      "APP最早一次更新时间距提交的天数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.INSTALLPED_APP_DIFFDAYS_OF_EARLIEST_LATEST_TIME.getMessage(),
+                                      RuleUtils.valueOfStr($diffDaysBetweenForEarliestAndLatestUpdateTime),
+                                      "APP最后一次更新时间-最早一次更新时间").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_NEWS.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForNews()),
+                                      "新闻类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_ENTERPRISE.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForEnterprise()),
+                                      "企业类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_BEAUTY.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForBeauty()),
+                                      "美容类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_GAMBLING.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForGambling()),
+                                      "赌博类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_CREDIT_CARD.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForCreditCard()),
+                                      "信用卡类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_BEAUTY_PICTURE.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForBeautyPicture()),
+                                      "美图类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_PHOTOGRAPHY.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForPhotography()),
+                                      "摄影类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_E_COMMERCE.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForEcommerce()),
+                                      "电商类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_GAME.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForGame()),
+                                      "游戏类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_SOCIAL.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForSocial()),
+                                      "社交类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_TAX_BPJS.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForTaxBPJS()),
+                                      "税卡和bpjs类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_BANK.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForBank()),
+                                      "银行类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_CINEMA.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForCinema()),
+                                      "电影院类app个数").addToResultList(ruleSetResultList);
+       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.APP_COUNT_FOR_TICKET.getMessage(),
+                                      RuleUtils.valueOfStr($appInfo.getAppCountForTicket()),
+                                      "票务类app个数").addToResultList(ruleSetResultList);
+
+end
+
+
+rule "INSTALLED_APP_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.INSTALLED_APP_DATA_EMPTY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.INSTALL_APP_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        not InstalledAppInfo();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.INSTALLED_APP_DATA_EMPTY.getMessage(),
+                                      $thresholdValues.getRuleDesc(BlackListTypeEnum.INSTALLED_APP_DATA_EMPTY.getMessage()),
+                                      "用户app列表为空").addToResultList(ruleSetResultList);
+end
