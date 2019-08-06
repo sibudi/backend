@@ -1,0 +1,260 @@
+server:
+    port: 8080
+mysql:
+    datasource:
+        readSize: 2  #????
+        type: com.alibaba.druid.pool.DruidDataSource
+        write:
+            name: yishu_write
+            url: jdbc:mysql://47.94.1.62:3366/doit?useUnicode=true&characterEncoding=utf-8
+            username: userdoit
+            password: PJf4jqQZ0igtKQ
+            # ??druid???
+            type: com.alibaba.druid.pool.DruidDataSource
+            driver-class-name: com.mysql.jdbc.Driver
+            filters: stat
+            maxActive: 300
+            initialSize: 1
+            maxWait: 60000
+            minIdle: 1
+            timeBetweenEvictionRunsMillis: 60000
+            minEvictableIdleTimeMillis: 300000
+            # validationQuery: select 'x'
+            testWhileIdle: true
+            testOnBorrow: false
+            testOnReturn: false
+            poolPreparedStatements: true
+            maxOpenPreparedStatements: 20
+        read01:
+                    name: yishu_read01
+                    url: jdbc:mysql://47.94.1.62:3366/doit?useUnicode=true&characterEncoding=utf-8
+                    username: userdoit
+                    password: PJf4jqQZ0igtKQ
+                    # ??druid???
+                    type: com.alibaba.druid.pool.DruidDataSource
+                    driver-class-name: com.mysql.jdbc.Driver
+                    filters: stat
+                    maxActive: 300
+                    initialSize: 1
+                    maxWait: 60000
+                    minIdle: 1
+                    timeBetweenEvictionRunsMillis: 60000
+                    minEvictableIdleTimeMillis: 300000
+                    # validationQuery: select 'x'
+                    testWhileIdle: true
+                    testOnBorrow: false
+                    testOnReturn: false
+                    poolPreparedStatements: true
+                    maxOpenPreparedStatements: 20
+        read02:
+                    name: yishu_read02
+                    url: jdbc:mysql://47.94.1.62:3366/doit?useUnicode=true&characterEncoding=utf-8
+                    username: userdoit
+                    password: PJf4jqQZ0igtKQ
+                    # ??druid???
+                    type: com.alibaba.druid.pool.DruidDataSource
+                    driver-class-name: com.mysql.jdbc.Driver
+                    filters: stat
+                    maxActive: 300
+                    initialSize: 1
+                    maxWait: 60000
+                    minIdle: 1
+                    timeBetweenEvictionRunsMillis: 60000
+                    minEvictableIdleTimeMillis: 300000
+                    # validationQuery: select 'x'
+                    testWhileIdle: true
+                    testOnBorrow: false
+                    testOnReturn: false
+                    poolPreparedStatements: true
+                    maxOpenPreparedStatements: 20
+jedis:
+      pool:
+#        单点配置
+#         host: 47.94.1.62 #哨兵模式下不用配置
+#         port: 6679 # 哨兵模式下不用配置
+#         password: uangtest2017
+#        哨兵配置
+         database: 1
+         password: doit2019
+         timeout: 3000
+         config:
+            maxTotal: 500         #连接池的最大数据库连接数。设为0表示无限制,如果是jedis 2.4以后用redis.maxTotal
+            maxIdle: 10          #最大空闲数
+            minIdle: 0
+            maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+         sentinel:
+            master: mymaster
+            nodes: 47.74.191.190:26379,47.74.191.190:26479,47.74.191.190:26579
+
+mongo:
+    repleSet: 47.94.1.62:27927
+    username: do-it-use
+    password: do-it-pwd
+    dbName: do-it
+    connectionsPerHost: 20
+    threadsAllowedToBlockForConnectionMultiplier: 10
+count:
+    smsCount: 10
+HttpUrl:
+    smsUrl: http://47.74.157.197:8899/sms/send
+    smsUrlTwilio: http://47.74.157.197:8899/sms/login/code
+    smsUrlTwilioVerify: http://47.74.157.197:8899/sms/login/verify
+    smsUrlInforbip: http://47.74.157.197:8899/infobip/send/pin
+    smsUrlInforbipVerify: http://47.74.157.197:8899/infobip/verify/pin
+SmsChannelType:
+    type: ZENZIVA
+third:
+    advance:
+       accessKey: 7fedec835807752c
+       secretKey: 588ff85a56f2562c
+       apiHost: https://api.advance.ai
+#       identityCheckApi: /advance_api/openapi/anti-fraud/v1/identity-check
+       identityCheckApi: /openapi/anti-fraud/v2/identity-check
+    yitu:
+       url:
+          verify: http://ina.face.situdata.com/face/v1/algorithm/recognition/face_pair_verification
+          token: a71ea753a88544a8b5fd9931f32af58b
+    pay:
+    # ?bin????url?token
+       cardBinUrl: http://47.74.157.197:8888/bankcard/verify
+       cardBinToken: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
+    upload:
+       uploadHost: http://47.74.157.197:8081
+       uploadFilePath: /uploadFile
+       uploadBase64Path: /uploadBase64
+    cashcash:
+               #订单状态回调地址
+               orderStatusFeedback: http://testloanapi.cashcash.id/call-back/order-status
+               #订单审核结果回调地址
+               orderCheckResultFeedback: http://testloanapi.cashcash.id/call-back/approval-result
+               #银行卡绑卡结果回调地址
+               cardCash2Url: http://testloanapi.cashcash.id/call-back/bind-bank-status
+               #aesKey
+               aesKey: 27oovmz7gueaud8l
+               initVector: abc123rty456nji7
+               md5Token: KY8GZ-42A0A-Q8OXB-HOJJY-4U8UM-KLTGM
+               appId: 10000
+               version: 1
+               partnerName: UangUang
+               partnerKey: 8uv4g8z33rcg6mh5ejziq5b8h
+               ipWhiteList: 47.88.221.171
+    inforbip:
+        userName: do-it
+        password: do-it2018
+        host: https://api.infobip.com
+        mobileLookUpUrl: /tts/3/single
+        mobileLookUpUrlMulti: /tts/3/multi
+        reportUrl: /tts/3/reports
+        fromTel: 02166685333
+
+    cheetah:
+        accessKey: 123456
+        secretKey: 8b125cc228adcc57
+        #订单状态回调地址
+        orderStatusFeedback: http://financial.sta.uangme.com/api/v3/order/callback/doit
+    izi:
+      accessKey: WUZaMYxRkIfWlbyVslDM
+      secretKey: YPIJQtWrHvwplAvqJjdNMLcBlELpyEYxSnHjknaK
+      phoneVerifyUrl: https://api.izi.credit/v1/phoneverify
+      phoneAgeUrl: https://api.izi.credit/v1/phoneage
+      identityCheck3Url: https://api.izi.credit/v3/identitycheck
+      monitorWhatsAppUrl: https://api.izi.credit/v1/iswhatsapp
+      whatsAppDetailUrl: https://api.izi.credit/v1/iswadetail
+    asli:
+      name: glotech_poc
+      token: 9d63e8ed-3075-4208-88af-58621818e63f
+      identityUrl: /verify_text
+      selfieUrl: /verify_selfie
+      verifyProfessionalPlus: /verify_profesional_plus
+      host: https://api.asliri.id:8443/
+    digiSign:
+      token: atXytejhMO5pMsaAtLdcrkQ2WFlb7uHSCBXXhmnv6jV5AWIdFGofaM4nD6EGQT
+      doitAdminEmail: it@do-it.id
+      #test env
+#      registerUrl: https://api.tandatanganku.com/REG-MITRA.html
+#      activationUrl: https://api.tandatanganku.com/ACTMitra-M.html
+#      sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
+#      signUrl: https://api.tandatanganku.com/SignWebView.html
+#      tmpContractDir: C:/Users/zxc20/Desktop/digSign/contract-tmp
+#      automaticSignKUser: e8r5QbytnJ5g2HOo
+#      apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
+#      apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
+#      apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA.html
+
+      #uat env
+      registerUrl: https://apiuat.tandatanganku.com/REG-MITRA.html
+      activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
+      sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
+      signUrl: https://apiuat.tandatanganku.com/SignWebView.html
+      contractDir: /MyUpload/DOIT_CONTRACT
+      #contractDir: C:/Users/zxc20/Desktop
+      automaticSignKUser: e8r5QbytnJ5g2HOo
+      automaticSignEmail: it@do-it.id
+      automaticSignRealName: it@do-it.id
+      apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
+      apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
+      apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
+      #tmpContractDir: /home/doit-api/contract
+    jxl:
+      apiKey: 43f4df6b145a47dcbd7e5d894104fec3
+      secret: f68deeb0493e4f79be9b1e24d8db4b8f
+      createReportTaskUrl: https://id.dotconnect.io/authorize_api/createReportTask
+      ktpVerifyUrl: https://id.dotconnect.io/authorize_api/fast_pass/ktp
+upload:
+    path: http://image.uanguang.co.id
+des:
+  file:
+     #path: C:/Users/zxc20/Desktop/SECRET/des-test.cer
+#    path: /Users/NeverMore/Desktop/Cer/des-test.cer
+     path: /SECRET/des-test.cer
+
+rsa:
+  file:
+    privateKey: /SECRET/rsa-pri-test.cer
+    publicKey: /SECRET/rsa-pub-test.cer
+p2p:
+  repaySuccessUrl: http://47.94.1.62:9090/doit/investment/getNormalRefundTask
+  host: http://47.93.7.219:9020
+  url:
+      #推送标的
+      #sendCreditorInfo: /api-order/doit/sendCreditorinfo
+      sendCreditorInfo: /doit/sendCreditorinfo
+      #是否有再投
+      haveInvesting: /doit/haveInvesting
+      #查询订单状态
+      checkOrderStatus: /doit/selectScatterstandard
+      #还款
+      userRepay: /doit/userRepay
+
+telk:
+  url: http://47.94.1.62:8086/spider/telk/getDetail
+  url2: http://47.94.1.62:8086/spider/telk/accountInfo
+  sendSmsUrl: http://47.94.1.62:8086/spider/telk/sendSms
+tokopedia:
+  url: http://47.74.157.197:8086/spider/toko/getDetail
+xl:
+  url: http://47.94.1.62:8086/spider/xl/getDetail
+jxl:
+  beginurl: http://47.74.157.197:8086/spider/jxl/begin
+  authurl: http://47.74.157.197:8086/spider/jxl/auth
+  resendCaptchaurl: http://47.74.157.197:8086/spider/jxl/resendCaptcha
+  getReportDataurl: http://47.74.157.197:8086/spider/jxl/getJXLReportData
+  tokoPediaAuthurl: http://47.74.157.197:8086/spider/jxl/tokopedia
+  faceBookUrl: http://47.74.157.197:8086/spider/jxl/facebook/generateUrl
+  faceBookCallbackUrl: https://f05a3377.ngrok.io/facebook/getFacebookData
+  sendReportTokenUrl: http://47.74.157.197:8086/spider/jxl/finishProcess/
+  jxlIdentityUrl: http://47.74.157.197:8086/spider/jxl/ktp
+pay:
+  commitRepayUrl: http://47.74.157.197:8888/repayment/deposit
+  inactiveOrderUrl: http://47.74.157.197:8888/payment/inactive/
+  token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
+mobox:
+  partnerCode: DoIt_id_test
+  partnerKey: dfb7778403db453f90cd2137e5846b17
+  checkTaskResultUrl: https://talosapi.shujumohe.com/octopus/sdk.service.task.query/v3
+  appName: DoIt_and
+tongdun:
+  partnerCode: qinyan_id
+  partnerKey: 6bb7dbc7b7614b54b8c91afd19a12c3d
+  appName: DoIt2_and
+  checkBeforeCreditUrl: https://apitest.tongdun.net/aurora/apply/v1
