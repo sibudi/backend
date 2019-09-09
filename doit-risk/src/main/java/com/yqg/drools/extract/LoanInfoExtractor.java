@@ -72,8 +72,10 @@ public class LoanInfoExtractor implements BaseExtractor<LoanInfo> {
         if(firstOrder.isPresent()){
             loanInfo.setFirstBorrowingAmount(firstOrder.get().getAmountApply());
         }
-
         loanInfo.setBorrowingAmount(order.getAmountApply());
+
+
+
         return Optional.of(loanInfo);
     }
 

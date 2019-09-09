@@ -57,8 +57,8 @@ rule "PRD100_EXTEND_002_A"
   when
       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_NON_MANUAL_RULES.getMessage()));
       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HIT_NON_MANUAL_RULES.getMessage()]);
-      ExtendModel($hit600NonManualRules:hit600NonManualRules)
-      eval($hit600NonManualRules!=null && $hit600NonManualRules);
+      ExtendModel($hit600NonManualRulesForPrd100: hit600NonManualRulesForPrd100);
+      eval($hit600NonManualRulesForPrd100!=null && $hit600NonManualRulesForPrd100);
   then
       RuleUtils.buildHitRuleResult(BlackListTypeEnum.HIT_NON_MANUAL_RULES.getMessage(),
                  "true",
@@ -71,8 +71,8 @@ rule "PRD100_EXTEND_002_B"
   when
       RuleConditionModel(isSuitableForRule(BlackListTypeEnum.HIT_NON_MANUAL_RULES.getMessage()));
       $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.HIT_NON_MANUAL_RULES.getMessage()]);
-      ExtendModel($hit600NonManualRules:hit600NonManualRules)
-      eval(!($hit600NonManualRules!=null && $hit600NonManualRules));
+      ExtendModel($hit600NonManualRulesForPrd100: hit600NonManualRulesForPrd100);
+      eval(!($hit600NonManualRulesForPrd100!=null && $hit600NonManualRulesForPrd100));
   then
       RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.HIT_NON_MANUAL_RULES.getMessage(),
                  "false",

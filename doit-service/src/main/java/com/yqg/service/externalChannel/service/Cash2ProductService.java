@@ -309,7 +309,7 @@ public class Cash2ProductService {
                 "    \"order_time\": 1555750336,\n" +
                 "    \"status\": 80,\n" +
                 "    \"product_id\": \"10000\",\n" +
-                "    \"product_name\": \"Do-it\",\n" +
+                "    \"product_name\": \"Do-It\",\n" +
                 "    \"user_name\": \"Emah Rohemah Hidayat\",\n" +
                 "    \"user_mobile\": \"082129173291\",\n" +
                 "    \"user_idcard\": \"3207076612820001\"\n" +

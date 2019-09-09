@@ -21,4 +21,9 @@ public interface OrdHistoryDao extends BaseMapper<OrdHistory> {
     @Select("select * from ordHistory where orderId = #{orderNo} and status = 19;")
     List<OrdHistory> getDeratingRecord(@Param("orderNo") String orderNo);
 
+    @Select("select count(1) from ordHistory s where orderId=#{orderNo} and disabled=0 and not exists(" +
+            "select 1 from ordHistory ss where ss.orderId =#{orderNo} and ss.status =3 and disabled=0 " +
+            ")")
+    Integer orderWithoutManualStatus(@Param("orderNo") String orderNo);
+
 }

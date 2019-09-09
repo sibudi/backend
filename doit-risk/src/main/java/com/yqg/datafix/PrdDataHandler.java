@@ -1,6 +1,8 @@
 package com.yqg.datafix;
 
 
+import com.yqg.common.enums.user.CertificationEnum;
+import com.yqg.common.enums.user.CertificationResultEnum;
 import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
@@ -8,6 +10,7 @@ import com.yqg.common.utils.UUIDGenerateUtil;
 import com.yqg.drools.model.RUserInfo;
 import com.yqg.drools.service.RealNameVerificationService;
 import com.yqg.drools.utils.DateUtil;
+import com.yqg.drools.utils.JsonUtil;
 import com.yqg.mongo.dao.MongoPageQueryDal;
 import com.yqg.mongo.entity.AdvanceMongoData;
 import com.yqg.mongo.entity.MongoPageEntity;
@@ -33,7 +36,11 @@ import com.yqg.service.third.izi.Client;
 import com.yqg.service.third.izi.IziService;
 import com.yqg.service.third.izi.config.IziConfig;
 import com.yqg.service.third.izi.response.IziResponse;
+import com.yqg.service.third.jxl.JXLConfig;
+import com.yqg.service.third.jxl.JXLService;
+import com.yqg.service.third.jxl.response.JXLBaseResponse;
 import com.yqg.service.user.service.UserVerifyResultService;
+import com.yqg.service.user.service.UsrService;
 import com.yqg.system.dao.TeleCallResultDao;
 import com.yqg.system.entity.TeleCallResult;
 import com.yqg.user.dao.UsrDao;
@@ -72,6 +79,8 @@ public class PrdDataHandler {
     private UsrDao usrDao;
     @Autowired
     private IziService iziService;
+    @Autowired
+    private UsrService usrService;
 
 
     public void iziHistory() {
@@ -527,6 +536,110 @@ public class PrdDataHandler {
 
         timer.schedule(task, 10 * 1000, 60 * 1000);
 
+    }
+
+    @Autowired
+    private JXLService jxlService;
+
+    @Autowired
+    private JXLConfig jxlConfig;
+    public void newJXLCheck(){
+//        System.err.println(jxlConfig.getKtpVerifyUrl());
+//        if(true){
+//            return;
+//        }
+        List<String> orderList = Arrays.asList("011904011238318030",
+                "011903251525048420",
+                "011903291746549230",
+                "011904120913583970",
+                "011904102016270640",
+                "011904021314564910",
+                "011810021856304480",
+                "011904050841447580",
+                "011904090636095820",
+                "011903311615203270",
+                "011901171239076040",
+                "011904152359041720",
+                "011903301311087880",
+                "011903291042054650",
+                "011904121236599350",
+                "011903292018570880",
+                "011904181900085730",
+                "011904170924060410",
+                "011904111521459540",
+                "011904122245038460",
+                "011904121228474320",
+                "011904011300128450",
+                "011903250747590790",
+                "011903251031109750",
+                "011903241123434690",
+                "011904211715500590",
+                "011904081420258270",
+                "011904190822125430",
+                "011904031437143670",
+                "011904181755494570",
+                "011904121156176260",
+                "011903301059245540",
+                "011903261621503710",
+                "011903281759121800",
+                "011904051400303200",
+                "011904091125000230",
+                "011903212327010970",
+                "011903241703031270",
+                "011903212107108870",
+                "011904021818540180",
+                "011904051338023070",
+                "011903300641290570",
+                "011904032151064480",
+                "011903251510245180",
+                "011904031212158510",
+                "011903201534113230",
+                "011903242205348290",
+                "011903261142235960",
+                "011904052221211200",
+                "011904061339461230",
+                "011903281950478250",
+                "011904050701368820",
+                "011904061015319470",
+                "011903251153263440",
+                "011903301737435930",
+                "011903281343321080",
+                "011903261919157890",
+                "011903311452313450",
+                "011903301504069560",
+                "011903200729202120",
+                "011903302124212420",
+                "011904080058292730",
+                "011903230821338220",
+                "011903262206421550",
+                "011903221259506590",
+                "011903271221369250",
+                "011904061730346580",
+                "011903252128136880",
+                "011904081043369430",
+                "011904050125581800"
+                );
+
+        for (String orderNo : orderList) {
+            try {
+                OrdOrder order = ordService.getOrderByOrderNo(orderNo);
+                UsrUser user = usrService.getUserByUuid(order.getUserUuid());
+                JXLBaseResponse jxlBaseResponse = jxlService.identityVerify(user.getIdCardNo(), user.getRealName());
+
+
+                riskDataSynService.initVerifyResult(orderNo, order.getUserUuid(), UsrVerifyResult.VerifyTypeEnum.KTP);
+
+                boolean jxlMatch = false;
+                if (jxlBaseResponse != null && jxlBaseResponse.isResponseSuccess() && jxlBaseResponse.getData() != null) {
+                    JXLBaseResponse.IdentityVerifyData data = JsonUtils.deserialize(JsonUtils.serialize(jxlBaseResponse.getData()), JXLBaseResponse.IdentityVerifyData.class);
+                    jxlMatch = "SUCCESS".equalsIgnoreCase(data.getVerifyResult());
+                }
+                riskDataSynService.updateVerifyResult(orderNo, order.getUserUuid(), jxlBaseResponse == null ? null : JsonUtils.serialize(jxlBaseResponse),
+                        jxlMatch ? UsrVerifyResult.VerifyResultEnum.SUCCESS : UsrVerifyResult.VerifyResultEnum.FAILED, UsrVerifyResult.VerifyTypeEnum.KTP);
+            } catch (Exception e) {
+                log.error("invoke jxl ktp check error: " + orderNo, e);
+            }
+        }
     }
 
 }

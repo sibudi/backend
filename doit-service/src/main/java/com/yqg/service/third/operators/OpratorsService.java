@@ -42,89 +42,6 @@ public class OpratorsService {
     int connectTimeout = 30000;
     int readTimeout = 10000;
 
-//
-//    public String getInfo(String url, OpratorsRequest request)
-//            throws Exception {
-//
-//        String result = HttpTools.post(url, null, JSONObject.toJSON(request).toString(), connectTimeout, readTimeout);
-//        log.info(result);
-//
-//        if (null!=result){
-//
-//            JSONObject res = JSONObject.parseObject(result);
-//            String code = res.get("code").toString();
-//            if (code.equals("0")){
-//
-//                if (!StringUtils.isEmpty(request.getType())){
-//
-//                    // ?????batchId
-//                    if(res.get("batchId") != null){
-//                        // ????
-//                        String certType = request.getType();
-//                        UsrCertificationInfo certificationInfo = new UsrCertificationInfo();
-//                        certificationInfo.setUserUuid(request.getUserUuid());
-//
-//                        UserCertificationInfoInRedis cerInfoRedis = new UserCertificationInfoInRedis();
-//                        cerInfoRedis.setBatchId(res.get("batchId").toString());
-//                        cerInfoRedis.setUserUuid(request.getUserUuid());
-//                        String pwdDes = DESUtils.encrypt(request.getPwd());
-//                        cerInfoRedis.setPwd(pwdDes);
-//                        cerInfoRedis.setCertType(certType);
-//                        cerInfoRedis.setOrderNo(request.getOrderNo());
-//
-//                        if (certType.equals("xl")){
-//
-//                            cerInfoRedis.setPhoneNo(request.getPhoneNo());
-//                            certificationInfo.setCertificationType(CertificationEnum.XL_IDENTITY.getType());
-//                        }else if (certType.equals("tokoPedia")){
-//
-//                            cerInfoRedis.setEmail(request.getEmail());
-//                            certificationInfo.setCertificationType(CertificationEnum.TOKOPEDIA_IDENTITY.getType());
-//                        }else if (certType.equals("telk1")){
-//
-//                            cerInfoRedis.setPhoneNo(request.getPhoneNo());
-//                            certificationInfo.setCertificationType(CertificationEnum.TELK_IDENTITY.getType());
-//                        }else if (certType.equals("telk2")){
-//
-//                            cerInfoRedis.setPhoneNo(request.getPhoneNo());
-//                            certificationInfo.setCertificationType(CertificationEnum.TELK2_IDENTITY.getType());
-//                        }
-//
-////            TODO:  ???? ???
-//
-//                        List<UsrCertificationInfo> scanList =  this.usrCertificationInfoDao.scan(certificationInfo);
-//                        if (CollectionUtils.isEmpty(scanList)){
-//
-//                            certificationInfo.setCertificationData(JSONObject.toJSON(cerInfoRedis).toString());
-//                            certificationInfo.setRemark(res.get("batchId").toString());
-//                            certificationInfo.setCertificationResult(CertificationResultEnum.AUTH_SUCCESS.getType());
-//                            this.usrCertificationInfoDao.insert(certificationInfo);
-//                        }else  {
-//                            UsrCertificationInfo update = scanList.get(0);
-//                            update.setCertificationData(JSONObject.toJSON(cerInfoRedis).toString());
-//                            update.setRemark(res.get("batchId").toString());
-//                            certificationInfo.setCertificationResult(CertificationResultEnum.AUTH_SUCCESS.getType());
-//                            this.usrCertificationInfoDao.update(update);
-//                        }
-//
-//                        // ???redis ???task??????batchId ??????
-//                        this.redisClient.listAdd(RedisContants.USER_CERTIFICATION_LIST ,cerInfoRedis);
-//
-//                    }
-//                }
-//            }else  if(code.equals("-1")){
-//
-//                //  ??????
-//                log.error("???????");
-//                throw new ServiceException(ExceptionEnum.USER_PASSWORD_OR_ACCOUNT_ERROR);
-//
-//            }else  {
-//                log.error("?????");
-//                throw new ServiceException(ExceptionEnum.USER_BASE_PARAMS_ILLEGAL);
-//            }
-//        }
-//        return result;
-//    }
 
     /**
      *    ???????
@@ -156,7 +73,7 @@ public class OpratorsService {
                 UserCertificationInfoInRedis cerInfoRedis = new UserCertificationInfoInRedis();
                 cerInfoRedis.setUserUuid(request.getUserUuid());
                 cerInfoRedis.setOrderNo(request.getOrderNo());
-                cerInfoRedis.setPwd(DESUtils.encrypt(request.getPwd()));
+                cerInfoRedis.setPwd(DESUtils.encryptNew(request.getPwd()));
                 cerInfoRedis.setCertType("tokoPedia");
                 cerInfoRedis.setEmail(request.getEmail());
                 cerInfoRedis.setReport_task_token(res.get("report_task_token").toString());

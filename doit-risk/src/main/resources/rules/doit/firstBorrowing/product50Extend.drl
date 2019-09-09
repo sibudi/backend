@@ -1,0 +1,482 @@
+package rules.doit.firstBorrowing;
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.LoanInfo.LoanPurpose;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.MarriageEnum;
+import com.yqg.drools.model.RUserInfo.IziPhoneAgeResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.ModelScoreResult;
+import com.yqg.drools.model.InstalledAppInfo;
+import com.yqg.drools.model.GojekModel;
+import com.yqg.drools.model.ScoreModel;
+import com.yqg.drools.model.ExtendModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "PRD50_EXTEND_001_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage()]);
+      RUserInfo($sex: sex, $gojekVerified: gojekVerified, $hasPayroll: hasPayroll);
+      InstalledAppInfo($appForLoanCount: appForLoanCount);
+      eval($sex==RUserInfo.SexEnum.MALE.getCode()
+          && $gojekVerified!=null && $gojekVerified
+          && $hasPayroll!=null  && $hasPayroll
+          && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appForLoanCount),RuleUtils.getRuleParam($threshData,0))
+      );
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage(),
+                 "true",
+                 "hit male&gojekVerified&hasSalaryPic&loanAppCount")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_001_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage()]);
+      RUserInfo($sex: sex, $gojekVerified: gojekVerified, $hasPayroll: hasPayroll);
+      InstalledAppInfo($appForLoanCount: appForLoanCount);
+      eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+               && $gojekVerified!=null && $gojekVerified
+               && $hasPayroll!=null  && $hasPayroll
+               && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appForLoanCount),RuleUtils.getRuleParam($threshData,0))
+       ));
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_GOJEKVERIFIED_HAS_SALARY_PIC_LOAN_APPCOUNT.getMessage(),
+                 "false",
+                 "not hit male&gojekVerified&hasSalaryPic&loanAppCount ")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_002_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage()]);
+      InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+      eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard),$threshData))
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage(),
+                 "true",
+                 "hit creditCardAppCount")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_002_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage()]);
+      InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+      eval(!RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForCreditCard),$threshData))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_CREDITCARD_APPCOUNT.getMessage(),
+                 "false",
+                 "not hit creditCardAppCount")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_003_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage()]);
+      InstalledAppInfo($appCountForCreditCard: appCountForCreditCard, $appCountForEcommerce: appCountForEcommerce);
+      RUserInfo($sex: sex, $gojekVerified: gojekVerified)
+      eval(
+         $sex == RUserInfo.SexEnum.MALE.getCode()
+         && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+         && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,1))
+         && $gojekVerified!=null && $gojekVerified
+      )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage(),
+                 "true",
+                 "hit male&ecommerceAppCount&creditCardAppCount&gojekVerified")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_003_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage()]);
+      InstalledAppInfo($appCountForCreditCard: appCountForCreditCard, $appCountForEcommerce: appCountForEcommerce);
+      RUserInfo($sex: sex, $gojekVerified: gojekVerified)
+      eval(!(
+         $sex == RUserInfo.SexEnum.MALE.getCode()
+         && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+         && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,1))
+         && $gojekVerified!=null && $gojekVerified
+      ));
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_CREDITCARD_APPCOUNT_GOJEKVERIFIED.getMessage(),
+                 "false",
+                 "not hit male&ecommerceAppCount&creditCardAppCount&gojekVerified")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_004_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage()]);
+      RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult, $iziPhoneAgeResult: iziPhoneAgeResult)
+      eval(
+         $sex == RUserInfo.SexEnum.FEMALE.getCode()
+         && $iziPhoneVerifyResult!=null && RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"MATCH")
+         && $iziPhoneAgeResult!=null && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),$threshData)
+      )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage(),
+                 "true",
+                 "hit female&iziPhoneVerify&iziPhoneAge")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_004_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage()]);
+      RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult, $iziPhoneAgeResult: iziPhoneAgeResult)
+      eval(!(
+         $sex == RUserInfo.SexEnum.FEMALE.getCode()
+         && $iziPhoneVerifyResult!=null && RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"MATCH")
+         && $iziPhoneAgeResult!=null && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),$threshData)
+      ))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE.getMessage(),
+                 "false",
+                 "not hit female&iziPhoneVerify&iziPhoneAge")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD50_EXTEND_005_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage()]);
+      RUserInfo($sex: sex);
+      ModelScoreResult($product100Score: product100Score);
+      eval(
+         $sex == RUserInfo.SexEnum.MALE.getCode()
+         && RuleUtils.greatThan(RuleUtils.valueOfStr($product100Score),$threshData)
+      )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage(),
+                 "true",
+                 "hit male&product600ModelScore")
+               .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "PRD50_EXTEND_005_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage()]);
+      RUserInfo($sex: sex);
+      ModelScoreResult($product100Score: product100Score);
+      eval(!(
+         $sex == RUserInfo.SexEnum.MALE.getCode()
+         && RuleUtils.greatThan(RuleUtils.valueOfStr($product100Score),$threshData)
+      ))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE.getMessage(),
+                 "false",
+                 "not hit male&product600ModelScore")
+               .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "PRD50_EXTEND_006_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage()]);
+      ModelScoreResult($product600ScoreV2: product600ScoreV2);
+      eval(RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData))
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage(),
+                 "true",
+                 "hit product600ModelScoreV2")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD50_EXTEND_006_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage()]);
+      ModelScoreResult($product600ScoreV2: product600ScoreV2);
+      eval(!RuleUtils.greatThan(RuleUtils.valueOfStr($product600ScoreV2),$threshData))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_PRODUCT600V2_MODELSCORE.getMessage(),
+                 "false",
+                 "not hit product600ModelScoreV2")
+               .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "PRD50_EXTEND_007_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage()]);
+      ModelScoreResult($product600Score: product600Score);
+      RUserInfo($sex: sex);
+      eval(RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),$threshData)
+          && $sex == RUserInfo.SexEnum.MALE.getCode()
+        )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage(),
+                 "true",
+                 "hit male&product600ModelScoreV1")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD50_EXTEND_007_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage()]);
+      ModelScoreResult($product600Score: product600Score);
+      RUserInfo($sex: sex);
+      eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($product600Score),$threshData)
+          && $sex == RUserInfo.SexEnum.MALE.getCode()
+        ))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_PRODUCT600V1_MODELSCORE.getMessage(),
+                 "false",
+                 "not hit male&product600ModelScoreV1")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD50_EXTEND_008_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage()]);
+      ModelScoreResult($product600Score: product600Score);
+      RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult: iziPhoneAgeResult,$hasDriverLicense: hasDriverLicense);
+      InstalledAppInfo($appForLoanCount: appForLoanCount,$appCountForEcommerce: appCountForEcommerce);
+      eval(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && $iziPhoneVerifyResult!=null && RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"MATCH")
+           && $iziPhoneAgeResult!=null && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam
+           ($threshData,0))
+           && $hasDriverLicense
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appForLoanCount),RuleUtils.getRuleParam($threshData,1))
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,2))
+        )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage(),
+                 "true",
+                 "hit male&iziPhoneVerify&iziPhoneAge&driverLicense&loanAppCount&eCommerceAppCount")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_008_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage()]);
+      ModelScoreResult($product600Score: product600Score);
+      RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult,$iziPhoneAgeResult: iziPhoneAgeResult,$hasDriverLicense: hasDriverLicense);
+      InstalledAppInfo($appForLoanCount: appForLoanCount,$appCountForEcommerce: appCountForEcommerce);
+      eval(!(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && $iziPhoneVerifyResult!=null && RuleUtils.equalString(RuleUtils.valueOfStr($iziPhoneVerifyResult.getMessage()),"MATCH")
+           && $iziPhoneAgeResult!=null && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam
+           ($threshData,0))
+           && $hasDriverLicense
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appForLoanCount),RuleUtils.getRuleParam($threshData,1))
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,2))
+        ))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_IZIPHONEVERIFY_IZIPHONEAGE_HAS_DRIVING_LICENSE_APPCOUNT_LOAN_ECOMMERCE.getMessage(),
+                 "false",
+                 "not hit male&iziPhoneVerify&iziPhoneAge&driverLicense&loanAppCount&eCommerceAppCount")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD50_EXTEND_009_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage()]);
+      ModelScoreResult($product100Score: product100Score);
+      RUserInfo($sex: sex, $hasPayroll: hasPayroll);
+      InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+      eval(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.greatThan(RuleUtils.valueOfStr($product100Score),RuleUtils.getRuleParam($threshData,0))
+           && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),RuleUtils.getRuleParam($threshData,1))
+           && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,2))
+           && $hasPayroll!=null && $hasPayroll
+        )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage(),
+                 "true",
+                 "hit male&product100ModelScore&creditCardAppCount&salaryPic")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_009_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage()]);
+      ModelScoreResult($product100Score: product100Score);
+      RUserInfo($sex: sex, $hasPayroll: hasPayroll);
+      InstalledAppInfo($appCountForCreditCard: appCountForCreditCard);
+      eval(!(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.greatThan(RuleUtils.valueOfStr($product100Score),RuleUtils.getRuleParam($threshData,0))
+           && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($product100Score),RuleUtils.getRuleParam($threshData,1))
+           && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForCreditCard),RuleUtils.getRuleParam($threshData,2))
+           && $hasPayroll!=null && $hasPayroll
+        ))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_PRODUCT100_MODELSCORE_CREDITCARD_APPCOUNT_HAS_SALARY_PIC.getMessage(),
+                 "false",
+                 "not hit male&product100ModelScore&creditCardAppCount&salaryPic")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD50_EXTEND_010_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage()]);
+      RUserInfo($sex: sex, $academic: academic, $hasTaxNumber: hasTaxNumber,$monthlyIncome: monthlyIncome);
+      eval(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.GraduateStudent.getCode(),EducationEnum
+           .Undergraduate.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($academic))
+           && RuleUtils.greatThan(RuleUtils.valueOfStr($monthlyIncome),$threshData)
+           && $hasTaxNumber!=null && $hasTaxNumber
+
+        )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage(),
+                 "true",
+                 "hit male&education&monthlyIncome&hasTaxNumber")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_010_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage()]);
+      RUserInfo($sex: sex, $academic: academic, $hasTaxNumber: hasTaxNumber,$monthlyIncome: monthlyIncome);
+      eval(!(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.GraduateStudent.getCode(),EducationEnum
+           .Undergraduate.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($academic))
+           && RuleUtils.greatThan(RuleUtils.valueOfStr($monthlyIncome),$threshData)
+           && $hasTaxNumber!=null && $hasTaxNumber
+
+        ))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_EDUCATION_INCOME_HAS_TAXCARD.getMessage(),
+                 "false",
+                 "not hit male&education&monthlyIncome&hasTaxNumber")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD50_EXTEND_011_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage()]);
+      RUserInfo($sex: sex, $iziPhoneAgeResult: iziPhoneAgeResult);
+      InstalledAppInfo($appCountForEcommerce: appCountForEcommerce)
+      eval(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+           && $iziPhoneAgeResult!= null && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam
+           ($threshData,1))
+        )
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage(),
+                 "true",
+                 "hit male&ecommerceAppCount")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD50_EXTEND_011_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage()]);
+      RUserInfo($sex: sex, $iziPhoneAgeResult: iziPhoneAgeResult);
+      InstalledAppInfo($appCountForEcommerce: appCountForEcommerce)
+      eval(!(
+           $sex == RUserInfo.SexEnum.MALE.getCode()
+           && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($appCountForEcommerce),RuleUtils.getRuleParam($threshData,0))
+           && $iziPhoneAgeResult!= null && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($iziPhoneAgeResult.getAge()),RuleUtils.getRuleParam
+                      ($threshData,1))
+        ))
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_SEX_ECOMMERCE_APPCOUNT_IZI_PHONEAGE.getMessage(),
+                 "false",
+                 "not hit male&ecommerceAppCount")
+               .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD100_EXTEND_012_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage()]);
+      ExtendModel($hit600NonManualRules:hit600NonManualRules)
+      eval($hit600NonManualRules!=null && $hit600NonManualRules);
+  then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage(),
+                 "true",
+                 "命中命中600产品免审核规则50")
+               .addToResultList(ruleSetResultList);
+end
+
+rule "PRD100_EXTEND_012_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage()))
+  when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage()));
+      $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage()]);
+      ExtendModel($hit600NonManualRules:hit600NonManualRules)
+      eval(!($hit600NonManualRules!=null && $hit600NonManualRules));
+  then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PRD50_HIT_NON_MANUAL_RULES.getMessage(),
+                 "false",
+                 "未命中命中600产品免审核规则50")
+               .addToResultList(ruleSetResultList);
+end

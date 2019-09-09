@@ -85,32 +85,7 @@ public class Product100ExtendRuleExecutionChain extends BaseExecutionChain  impl
 
     @Override
     public RuleSetExecutedResult postProcessExecuteResult(RuleSetExecutedResult result, Map<String, SysAutoReviewRule> allRules, OrdOrder order) {
-        List<RuleResult> flowRuleResultList = this.getRuleResultDetailList();
-        if (!CollectionUtils.isEmpty(flowRuleResultList)) {
-            Optional<RuleResult> firstPassRule = flowRuleResultList.stream().filter(elem -> elem.isPass()).findFirst();
-            if (firstPassRule.isPresent()) {
-                //pass
-                log.info("pass for 100rmd extend rules");
-                return BaseExecutionChain.DEFAULT_PASS_RESULT;
-            }
-        }
-        SysAutoReviewRule rule = allRules.get(BlackListTypeEnum.NO_PRODUCT_100_EXTEND_RULE_HIT.getMessage());
-        if (rule != null && rule.getRuleResult() == 2) {
-            //reject, insert reject rule
-            List<RuleResult> limitResultList = new ArrayList<>();
-            RuleResult ruleResult = RuleUtils.buildHitRuleResult(BlackListTypeEnum.NO_PRODUCT_100_EXTEND_RULE_HIT.getMessage(),
-                    "true", rule.getRuleDesc()
-
-            );
-            limitResultList.add(ruleResult);
-            ruleResultService.batchRecordRuleResult(order, allRules, limitResultList, getFLowType());
-            return new RuleSetExecutedResult(false, rule);
-        } else {
-            log.info("not config the product 100 extend rule reject rule");
-        }
-
-        return result;
-
+        return super.doPostProcessForExecutedResult(result, allRules, order, BlackListTypeEnum.NO_PRODUCT_100_EXTEND_RULE_HIT);
     }
 
     @Override

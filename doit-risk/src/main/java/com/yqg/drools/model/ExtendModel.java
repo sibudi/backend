@@ -7,4 +7,7 @@ import lombok.Setter;
 @Setter
 public class ExtendModel {
     private Boolean hit600NonManualRules;
+
+
+    private Boolean hit600NonManualRulesForPrd100;
 }

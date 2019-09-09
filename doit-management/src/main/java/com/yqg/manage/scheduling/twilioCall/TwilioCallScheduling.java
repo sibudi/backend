@@ -4,6 +4,7 @@ import com.yqg.common.models.ResponseEntitySpec;
 import com.yqg.common.models.builders.ResponseEntitySpecBuilder;
 import com.yqg.service.third.Inforbip.InforbipCollectionService;
 import com.yqg.service.third.twilio.TwilioService;
+import com.yqg.service.third.twilio.config.TwilioConfig;
 import com.yqg.service.third.twilio.request.TwilioCallResultRequest;
 import com.yqg.system.entity.TwilioCallResult;
 import org.slf4j.Logger;
@@ -34,6 +35,9 @@ public class TwilioCallScheduling {
 
     @Autowired
     private ExecutorService executorService;
+
+    @Autowired
+    private TwilioConfig config;
 
     @RequestMapping(value = "/call8D_1/managerTask", method = RequestMethod.POST)
     public ResponseEntitySpec<Object> call8D_1() {

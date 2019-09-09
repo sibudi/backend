@@ -45,7 +45,7 @@ public class Activity4AppController {
 
 
     @ApiOperation("佣金排行榜")
-    @RequestMapping(value = "/  getAccountTop10", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @RequestMapping(value = "/getAccountTop10", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
     public ResponseEntity<List<JSONObject>> getAccountTop10(HttpServletRequest request, @RequestBody BaseRequest baseRequest) throws Exception {
         log.info("查询佣金账户表------佣金排行榜");

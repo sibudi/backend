@@ -183,7 +183,8 @@ public class UsrService {
         if (mobileNumber.substring(0, 1).equals("0")) {
             mobileNumber = mobileNumber.substring(1, mobileNumber.length());
         }
-        smsService.checkSmsCode(mobileNumber, usrRequst.getSmsCode());
+        //ahalim: Disable SMS
+        //smsService.checkSmsCode(mobileNumber, usrRequst.getSmsCode());
 
         List<UsrUser> userList = this.scanUser(usrRequst);
         if (CollectionUtils.isEmpty(userList)) {
@@ -1066,11 +1067,11 @@ public class UsrService {
             }
 
 
-            if (!isWhatsappChecked(ownerWhatsapp, "0", finishedNumbers) && !StringUtils.isEmpty(ownerWhatsapp)) {
-                IziResponse iziResponse = iziService.whatsAppIsOpen(ownerWhatsapp, currentOrder.get().getUuid(), userUuid);
-                iziService.saveIziWhatsApp(currentOrder.get().getUuid(), userUuid, ownerWhatsapp, JsonUtils.deserialize(JsonUtils.serialize(iziResponse),
-                        IziService.IziWhatsappDetail.class), "0");
-            }
+//            if (!isWhatsappChecked(ownerWhatsapp, "0", finishedNumbers) && !StringUtils.isEmpty(ownerWhatsapp)) {
+//                IziResponse iziResponse = iziService.whatsAppIsOpen(ownerWhatsapp, currentOrder.get().getUuid(), userUuid);
+//                iziService.saveIziWhatsApp(currentOrder.get().getUuid(), userUuid, ownerWhatsapp, JsonUtils.deserialize(JsonUtils.serialize(iziResponse),
+//                        IziService.IziWhatsappDetail.class), "0");
+//            }
 
             //号码详情版whatsapp
             IziWhatsAppDetailEntity ownerWhatsAppDetail = iziWhatsAppService.getLatestIziWhatsDetail(userUuid,0,ownerWhatsapp);

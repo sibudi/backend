@@ -32,6 +32,7 @@ public enum RuleSetEnum {
     RE_BORROWING_INSTALLED_APP,//复借手机安装的app
     RE_BORROWING_BLACK_LIST_USER,//黑名单用户
     RE_BORROWING_USER_IDENTITY,//复借用户信息
+    LAST_LOAN_FOR_EXTEND,//扩展规则使用的上笔借款
 
     SPECIAL_RULE,//特殊规则
 

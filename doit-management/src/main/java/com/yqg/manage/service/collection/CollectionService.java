@@ -12,6 +12,9 @@ import com.yqg.common.utils.JsonUtils;
 import com.yqg.manage.constants.ConstantsForDicItem;
 import com.yqg.manage.constants.ConstantsForLock;
 import com.yqg.manage.dal.collection.CollectionOrderDetailDao;
+import com.yqg.manage.dal.collection.ManQualityCheckConfigDao;
+import com.yqg.manage.entity.collection.ManQualityCheckConfig;
+import com.yqg.manage.entity.collection.ManQualityCheckRecord;
 import com.yqg.manage.enums.ManCollectorOperatorEnum;
 import com.yqg.manage.enums.ManOperatorEnum;
 import com.yqg.manage.service.order.CommonService;
@@ -56,6 +59,7 @@ import com.yqg.system.dao.SysDicDao;
 import com.yqg.system.dao.SysDicItemDao;
 import com.yqg.system.entity.SysDic;
 import com.yqg.system.entity.SysDicItem;
+import com.yqg.user.dao.UsrDao;
 import com.yqg.user.entity.UsrBank;
 import com.yqg.user.entity.UsrUser;
 
@@ -154,6 +158,9 @@ public class CollectionService {
 
     @Autowired
     private ManAuthManagerService manAuthManagerService;
+
+    @Autowired
+    private UsrDao usrDao;
 
     public List<CollectorResponseInfo> getCollectorsByThirdType(Integer isThird, Integer sourceType) {
         //查询催收岗位的角色id
@@ -414,8 +421,9 @@ public class CollectionService {
 
     public PageData<List<CollectionOrderResponse>> getAssignableCollectionOrderList(
             AssignableCollectionOrderReq req) {
-        PageHelper.startPage(req.getPageNo(), req.getPageSize());
+
         getManOrderOrderRequest(req);
+        PageHelper.startPage(req.getPageNo(), req.getPageSize());
         List<CollectionOrderResponse> orderList;
         if (req.getSourceType().equals(0)) {
             orderList = manCollectionDao
@@ -429,55 +437,23 @@ public class CollectionService {
         if (CollectionUtils.isEmpty(orderList)) {
             return PageDataUtils.mapPageInfoToPageData(pageInfo);
         }
+        //set collection check data
+        if (req.getSourceType() != null && req.getSourceType() == 1) {
+            setCheckData(orderList);
+        }
 
-        orderList.stream().forEach(elem -> {
-            //设置复借信息
-            elem.setIsRepeatBorrowing(
-                    elem.getBorrowingCount() != null && elem.getBorrowingCount() > 1 ? 1 : 0);
-            elem.setReBorrowingCount(
-                    elem.getBorrowingCount() == null ? 0 : elem.getBorrowingCount() - 1);
-            //设置逾期信息
-            elem.setOverdueDays(DateUtils.getDiffDaysIgnoreHours(elem.getRefundTime(), new Date()));
-        });
-
-        //设置是否展期
-        orderList.stream().forEach(elem -> {
-            if (elem.getOrderType() != null) {
-                if (elem.getOrderType().equals(1)) {
-                    elem.setExtendType(1);
-                } else if (elem.getOrderType().equals(2)) {
-                    elem.setCalType(1);
-                }
-            }
-        });
-
-        //设置催收人员信息(或者质检人员信息）
+        //设置催收人员信息
         List<Integer> collectorIds = new ArrayList<>();
         for (CollectionOrderResponse response : orderList) {
 
-            //如果来源于质检 就需要查询催收人员ID
-            if (response.getSourceType() != null && response.getSourceType().equals(1)
-                    && req.getSourceType().equals(1)) {
-                CollectionOrderDetail coll = new CollectionOrderDetail();
-                coll.setDisabled(0);
-                coll.setOrderUUID(response.getUuid());
-                coll.setSourceType(0);
-                List<CollectionOrderDetail> details = collectionOrderDetailDao.scan(coll);
-                if (!CollectionUtils.isEmpty(details) && details.size() == 1) {
-                    response.setQualityCollectorName(getUserRealName((details.get(0).getSubOutSourceId() != null &&
-                            !details.get(0).getSubOutSourceId().equals(0)) ? details.get(0).getSubOutSourceId() :
-                            details.get(0).getOutsourceId()));
-                }
-            }
-            //如果是质检，没有分配的时候，质检人员为空
-            if (response.getSourceType() != null && response.getSourceType().equals(0)
-                    && req.getSourceType().equals(1)) {
-                response.setIsAssigned(0);
-                response.setQualityCollectorName(getUserRealName((response.getSubOutSourceId() != null &&
-                !response.getSubOutSourceId().equals(0)) ? response.getSubOutSourceId() : response.getOutsourceId()));
-                continue;
-            }
-            response.setIsAssigned(1);
+            //设置复借信息
+            response.setIsRepeatBorrowing(
+                    response.getBorrowingCount() != null && response.getBorrowingCount() > 1 ? 1 : 0);
+            response.setReBorrowingCount(
+                    response.getBorrowingCount() == null ? 0 : response.getBorrowingCount() - 1);
+            //设置逾期信息
+            response.setOverdueDays(DateUtils.getDiffDaysIgnoreHours(response.getRefundTime(), new Date()));
+
             if (response.getSubOutSourceId() != null
                     && response.getSubOutSourceId() != 0) {
                 response.setOutsourceId(response.getSubOutSourceId());
@@ -485,6 +461,9 @@ public class CollectionService {
             if (response.getOutsourceId() != null
                     && response.getOutsourceId() != 0) {
                 collectorIds.add(response.getOutsourceId());
+                if (req.getSourceType() == null || req.getSourceType() == 0) {
+                    response.setIsAssigned(1);
+                }
             }
             commonService.setCollectionOrdTerms(response);
         }
@@ -497,7 +476,6 @@ public class CollectionService {
         if (CollectionUtils.isEmpty(sysUserList)) {
             return PageDataUtils.mapPageInfoToPageData(pageInfo);
         }
-
         Map<String, ManUser> sysUserMap = sysUserList.stream()
                 .collect(Collectors.toMap(elem -> elem.getId().toString(), elem -> elem));
         orderList.stream().filter(elem -> elem.getOutsourceId() != null).forEach(elem -> {
@@ -508,6 +486,114 @@ public class CollectionService {
         });
         return PageDataUtils.mapPageInfoToPageData(pageInfo);
     }
+
+    private void setCheckData(List<CollectionOrderResponse> result) {
+
+        result.stream().forEach(elem -> {
+            OrdOrder ordOrder = new OrdOrder();
+            ordOrder.setDisabled(0);
+            ordOrder.setUuid(elem.getUuid());
+            List<OrdOrder> ordOrders = manOrderOrderDao.scan(ordOrder);
+            if (!CollectionUtils.isEmpty(ordOrders)) {
+                ordOrder = ordOrders.get(0);
+                elem.setOrderType(Integer.valueOf(ordOrder.getOrderType()));
+                elem.setBorrowingCount(ordOrder.getBorrowingCount());
+                elem.setBorrowingTerm(ordOrder.getBorrowingTerm().toString());
+                elem.setRefundTime(ordOrder.getRefundTime());
+                elem.setUserUuid(ordOrder.getUserUuid());
+                elem.setAmountApply(ordOrder.getAmountApply());
+                //search user name;
+                UsrUser usrUser = new UsrUser();
+                usrUser.setDisabled(0);
+                usrUser.setUuid(ordOrder.getUserUuid());
+                List<UsrUser> usrUsers = usrDao.scan(usrUser);
+                if (!CollectionUtils.isEmpty(usrUsers)) {
+                    elem.setRealName(usrUsers.get(0).getRealName());
+                }
+            }
+
+            //search voice check config.
+            getConfig(elem);
+            CollectionOrderDetail coll = new CollectionOrderDetail();
+            coll.setDisabled(0);
+            coll.setOrderUUID(elem.getUuid());
+            coll.setSourceType(1);
+            List<CollectionOrderDetail> details = collectionOrderDetailDao.scan(coll);
+            if (!CollectionUtils.isEmpty(details)) {
+                elem.setQualityCollectorName(getUserRealName((details.get(0).getSubOutSourceId() != null &&
+                        !details.get(0).getSubOutSourceId().equals(0)) ? details.get(0).getSubOutSourceId() :
+                        details.get(0).getOutsourceId()));
+                elem.setIsAssigned(1);
+            }
+
+        });
+
+    }
+    @Autowired
+    private ManQualityCheckConfigDao manQualityCheckConfigDao;
+
+    /**
+     * 查询质检记录表 并分装数据
+     * @param response
+     * @return
+     */
+    private void getConfig(CollectionOrderResponse response) {
+
+        List<CollectionOrderResponse> lists = manQualityCheckConfigDao.listCheckReordByOrderNo(response.getUuid());
+        if (CollectionUtils.isEmpty(lists)) {
+            return ;
+        }
+        Map<Integer, List<CollectionOrderResponse>> maps = lists.stream().
+                collect(Collectors.groupingBy(CollectionOrderResponse::getOrderTag));
+
+        for (Integer key : maps.keySet()) {
+            List<CollectionOrderResponse> responses = maps.get(key);
+            if (CollectionUtils.isEmpty(responses)) {
+                continue;
+            }
+            Optional<CollectionOrderResponse> optional  = responses.stream().sorted(Comparator.comparing(CollectionOrderResponse:: getId)
+                    .reversed()).findFirst();
+            if (optional.isPresent()) {
+                CollectionOrderResponse collectionOrderResponse = optional.get();
+                switch (collectionOrderResponse.getOrderTag()) {
+                    case 0:
+                        response.setCheckResult(collectionOrderResponse.getCheckResult());
+                        response.setCheckResultInn(collectionOrderResponse.getCheckResultInn());
+                        response.setCheckResultRemark(collectionOrderResponse.getCheckResultRemark());
+                        break;
+                    case 1:
+                        response.setVoiceCheckResult(collectionOrderResponse.getCheckResult());
+                        response.setVoiceCheckResultInn(collectionOrderResponse.getCheckResultInn());
+                        response.setVoiceCheckResultRemark(collectionOrderResponse.getCheckResultRemark());
+                        break;
+                    case 2:
+                        response.setWACheckResult(collectionOrderResponse.getCheckResult());
+                        response.setWACheckResultInn(collectionOrderResponse.getCheckResultInn());
+                        response.setWACheckResultRemark(collectionOrderResponse.getCheckResultRemark());
+                        break;
+                    case 3:
+                        response.setCheckResultSec(collectionOrderResponse.getCheckResult());
+                        response.setCheckResultSecInn(collectionOrderResponse.getCheckResultInn());
+                        break;
+                    case 4:
+                        response.setVoiceCheckResultSec(collectionOrderResponse.getCheckResult());
+                        response.setVoiceCheckResultSecInn(collectionOrderResponse.getCheckResultInn());
+                        break;
+                    case 5:
+                        response.setWACheckResultSec(collectionOrderResponse.getCheckResult());
+                        response.setWACheckResultSecInn(collectionOrderResponse.getCheckResultInn());
+                        break;
+                    default :
+                        break;
+                }
+
+
+            }
+        }
+
+
+    }
+
 
     private String getUserRealName(Integer id) {
         ManUser manUser = new ManUser();
@@ -1497,5 +1583,92 @@ public class CollectionService {
             row.createCell(4).setCellValue(countResponses.get(i).getServiceMentality());
             row.createCell(5).setCellValue(countResponses.get(i).getCommunicationBility());
         }
+    }
+
+    /**
+     * 二次质检列表
+     * @param request
+     */
+    public PageData<List<CollectionOrderResponse>> secondQualityCheck(AssignableCollectionOrderReq request) {
+
+        PageHelper.startPage(request.getPageNo(), request.getPageSize());
+
+        List<CollectionOrderResponse> result = manCollectionDao.secondQualityCheck(request);
+        PageInfo pageInfo = new PageInfo(result);
+        if (CollectionUtils.isEmpty(result)) {
+            return PageDataUtils.mapPageInfoToPageData(pageInfo);
+        }
+        //设置催收人员信息
+        List<Integer> collectorIds = new ArrayList<>();
+        result.stream().filter(e -> !StringUtils.isEmpty(e.getUuid())).forEach(elem -> {
+            //查询最新质检结果
+            getConfig(elem);
+            if (elem.getSubOutSourceId() != null
+                    && elem.getSubOutSourceId() != 0) {
+                elem.setOutsourceId(elem.getSubOutSourceId());
+            }
+            if (elem.getOutsourceId() != null
+                    && elem.getOutsourceId() != 0) {
+                collectorIds.add(elem.getOutsourceId());
+            }
+            OrdOrder ordOrder = new OrdOrder();
+            ordOrder.setDisabled(0);
+            ordOrder.setUuid(elem.getUuid());
+            List<OrdOrder> ordOrders = manOrderOrderDao.scan(ordOrder);
+            if (!CollectionUtils.isEmpty(ordOrders)) {
+                ordOrder = ordOrders.get(0);
+                elem.setBorrowingCount(ordOrder.getBorrowingCount());
+                elem.setBorrowingTerm(ordOrder.getBorrowingTerm().toString());
+                elem.setRefundTime(ordOrder.getRefundTime());
+                elem.setUserUuid(ordOrder.getUserUuid());
+                elem.setAmountApply(ordOrder.getAmountApply());
+                //search user name;
+                UsrUser usrUser = new UsrUser();
+                usrUser.setDisabled(0);
+                usrUser.setUuid(ordOrder.getUserUuid());
+                List<UsrUser> usrUsers = usrDao.scan(usrUser);
+                if (!CollectionUtils.isEmpty(usrUsers)) {
+                    elem.setRealName(usrUsers.get(0).getRealName());
+                }
+
+                //设置复借信息
+                elem.setIsRepeatBorrowing(
+                        elem.getBorrowingCount() != null && elem.getBorrowingCount() > 1 ? 1 : 0);
+                elem.setReBorrowingCount(
+                        elem.getBorrowingCount() == null ? 0 : elem.getBorrowingCount() - 1);
+                //设置逾期信息
+                elem.setOverdueDays(DateUtils.getDiffDaysIgnoreHours(elem.getRefundTime(), new Date()));
+            }
+
+        });
+        if (CollectionUtils.isEmpty(collectorIds)) {
+            return PageDataUtils.mapPageInfoToPageData(pageInfo);
+        }
+        List<ManUser> sysUserList = manUserService.getSysUserByIds(collectorIds);
+        if (CollectionUtils.isEmpty(sysUserList)) {
+            return PageDataUtils.mapPageInfoToPageData(pageInfo);
+        }
+        Map<String, ManUser> sysUserMap = sysUserList.stream()
+                .collect(Collectors.toMap(elem -> elem.getId().toString(), elem -> elem));
+        result.stream().filter(elem -> elem.getOutsourceId() != null).forEach(elem -> {
+            if (sysUserMap != null && sysUserMap.get(elem.getOutsourceId().toString()) != null) {
+                elem.setQualityCollectorName(
+                        sysUserMap.get(elem.getOutsourceId().toString()).getRealname());
+            }
+        });
+        return PageDataUtils.mapPageInfoToPageData(pageInfo);
+    }
+
+    public CollectionOrderResponse getQualityRecordLast(AssignableCollectionOrderReq request) {
+
+        if (StringUtils.isEmpty(request.getUuid())) {
+            log.error("getQualityRecordLast is null");
+            return null;
+        }
+        CollectionOrderResponse response = new CollectionOrderResponse();
+        response.setUuid(request.getUuid());
+        getConfig(response);
+
+        return response;
     }
 }

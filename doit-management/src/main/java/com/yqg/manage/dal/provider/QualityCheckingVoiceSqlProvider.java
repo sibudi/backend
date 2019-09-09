@@ -20,7 +20,8 @@ public class QualityCheckingVoiceSqlProvider {
     private final List<String> allowOrderByField = Arrays.asList("recordBeginTime", "recordEndTime", "recordLength");
 
     public String getQualityCheckingVoiceList(QualityCheckingVoiceRequest searchRequest) {
-        StringBuilder selectSql = new StringBuilder("select realName,userName,orderNo,id,uuid,extNumber,remark,destNumber as phone,attachmentSavePath,applyAmount," + "applyDeadline,createUser,createTime,updateUser,updateTime,answerStartTime,recordBeginTime,recordEndTime,recordLength from qualityCheckingVoice  " + "where disabled=0 and recordLength != 0 ");
+        StringBuilder selectSql = new StringBuilder("select realName,userName,orderNo,id,uuid,extNumber,remark,destNumber as phone,attachmentSavePath,applyAmount," + "applyDeadline,createUser,createTime,updateUser,updateTime,answerStartTime,recordBeginTime,recordEndTime,recordLength from qualityCheckingVoice  "
+                + "where disabled=0 and recordLength != 0 and sourceType = 0 ");
 
         StringBuilder conditionSql = this.generateConditionAllOrd(searchRequest);
         if (searchRequest.getOrderFields() != null) {
@@ -36,7 +37,7 @@ public class QualityCheckingVoiceSqlProvider {
 
     public String getQualityCheckingVoiceCount(QualityCheckingVoiceRequest searchRequest) {
         StringBuilder selectSql = new StringBuilder();
-        selectSql.append("select count(1) from qualityCheckingVoice  where disabled=0 and recordLength != 0  ");
+        selectSql.append("select count(1) from qualityCheckingVoice  where disabled=0 and recordLength != 0 and sourceType = 0 ");
         StringBuilder conditionSql = this.generateConditionAllOrd(searchRequest);
         selectSql.append(conditionSql);
         return selectSql.toString();

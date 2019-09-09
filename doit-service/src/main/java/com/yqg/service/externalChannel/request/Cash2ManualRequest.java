@@ -1,4 +1,5 @@
 package com.yqg.service.externalChannel.request;
+
 import lombok.Data;
 
 /**
@@ -6,6 +7,8 @@ import lombok.Data;
  */
 @Data
 public class Cash2ManualRequest {
+
     private String orderNo;//订单号
+
     private Integer orderStatus;// 订单状态
 }

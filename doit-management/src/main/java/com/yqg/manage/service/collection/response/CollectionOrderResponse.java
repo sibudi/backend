@@ -44,10 +44,8 @@ public class CollectionOrderResponse extends CollectionBaseResponse{
     @ApiModelProperty(value = "质检列表中催收人员姓名")
     private String qualityCollectorName;
 
-    @JsonIgnore
     private Integer outsourceId;
 
-    @JsonIgnore
     private Integer subOutSourceId;
 
     @ApiModelProperty(value = "应还时间")
@@ -69,18 +67,51 @@ public class CollectionOrderResponse extends CollectionBaseResponse{
 
     @ApiModelProperty(value = "质检结果")
     private String checkResult;
+    @ApiModelProperty(value = "备注质检记录")
+    private String checkResultRemark;
 
     @ApiModelProperty(value = "质检结果印尼文")
     private String checkResultInn;
 
     @ApiModelProperty(value = "语音质检结果")
     private String voiceCheckResult;
+    @ApiModelProperty(value = "语音质检记录")
+    private String voiceCheckResultRemark;
 
     @ApiModelProperty(value = "语音质检结果印尼文")
     private String voiceCheckResultInn;
 
+    @ApiModelProperty(value = "WA质检结果")
+    private String wACheckResult;
+    @ApiModelProperty(value = "WA质检记录")
+    private String wACheckResultRemark;
+
+    @ApiModelProperty(value = "WA质检结果印尼文")
+    private String wACheckResultInn;
+
+    @ApiModelProperty(value = "二次质检结果")
+    private String checkResultSec;
+
+    @ApiModelProperty(value = "二次质检结果印尼文")
+    private String checkResultSecInn;
+
+    @ApiModelProperty(value = "二次语音质检结果")
+    private String voiceCheckResultSec;
+
+    @ApiModelProperty(value = "二次语音质检结果印尼文")
+    private String voiceCheckResultSecInn;
+
+    @ApiModelProperty(value = "二次WA质检结果")
+    private String wACheckResultSec;
+
+    @ApiModelProperty(value = "二次WA质检结果印尼文")
+    private String wACheckResultSecInn;
+
     @ApiModelProperty(value = "最新质检时间")
     private Date updateTime;
+
+    @ApiModelProperty(value = "最新催收时间")
+    private Date collectTimeLast;
 
     @ApiModelProperty(value = "是否已分配1:是0:否")
     private Integer isAssigned;

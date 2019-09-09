@@ -22,6 +22,8 @@ public class UsrQuestionnaireAttach extends BaseEntity implements Serializable {
     private String attachmentSavePath;
     private String comment;
 
+    private Integer sourceType; //1.后台管理的补充资料； 0，不是
+
 
     public enum AttachmentTypeEnum {
 

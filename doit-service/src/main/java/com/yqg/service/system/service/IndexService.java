@@ -1081,6 +1081,7 @@ public class IndexService {
         UsrQuestionnaireAttach attach = new UsrQuestionnaireAttach();
         attach.setDisabled(0);
         attach.setUserUuid(userUuid);
+        attach.setSourceType(0);
         List<UsrQuestionnaireAttach> scanList =  this.usrQuestionnaireAttactDao.scan(attach);
         if (CollectionUtils.isEmpty(scanList)){
             return "0";

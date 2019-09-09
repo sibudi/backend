@@ -26,4 +26,6 @@ public class UsrQuestionnaireBaseResponse {
 
     private String checkerName;
 
+    private String userName;
+
 }

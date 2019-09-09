@@ -1,0 +1,171 @@
+package rules.doit.loanLimit.api
+
+
+
+import com.yqg.drools.model.LoanLimitModel;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.utils.RuleUtils;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.model.base.LoanLimitRuleResult;
+
+global List limitRuleResultList;
+
+
+rule "prd50_rule_01"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true, $iziPhoneVerifyResult: iziPhoneVerifyResult)
+        eval($model.getSex()==1
+             && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()<0
+             && $iziPhoneVerifyResult!=null && RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"MATCH")
+             )
+    then
+        limitRuleResultList.add(LoanLimitRuleResult.buildResult("prd50_rule_01",true,"男性&上一笔逾期天数<0&izi验证match"));
+end
+
+rule "prd50_rule_02"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true, $iziPhoneVerifyResult: iziPhoneVerifyResult)
+        eval($model.getSex()==1
+             && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()<0
+             && $iziPhoneVerifyResult!=null && RuleUtils.equalString($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+             && $model.getHasDriverLicense()!=null && $model.getHasDriverLicense()
+             && $model.getHasSalaryPic()!=null && $model.getHasSalaryPic()
+             )
+    then
+        limitRuleResultList.add(LoanLimitRuleResult.buildResult("prd50_rule_02",true,"男性&上一笔逾期天数<0&有驾驶证&有工资单&izi验证not_match"));
+end
+
+rule "prd50_rule_03"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true)
+        eval($model.getSex()==1
+             && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()<0
+             && (($model.getHasDriverLicense()!=null && $model.getHasDriverLicense())
+                 || ($model.getHasSalaryPic()!=null && $model.getHasSalaryPic())
+                 || (RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                 .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($model.getAcademic())))
+             )
+             && $model.getUserInHighQualityLiveCity()!=null && $model.getUserInHighQualityLiveCity()
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_03",true,"男性&上一笔逾期天数<0&(驾驶证or工资单or学历大专及以上)&优质居住城市"));
+end
+
+rule "prd50_rule_04"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true, $iziPhoneVerifyResult: iziPhoneVerifyResult)
+        eval($model.getSex()==1
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($model.getValidBankCount()),"1")
+             && (RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                              .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($model.getAcademic())))
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_04",true,"男性&有效银行卡个数>1&学历大专及以上"));
+end
+
+rule "prd50_rule_05"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true, $iziPhoneVerifyResult: iziPhoneVerifyResult)
+        eval($model.getSex()==1
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($model.getAppCountForCreditCard()),"2")
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_05",true,"男性&信用卡app个数"));
+end
+
+rule "prd50_rule_06"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true, $iziPhoneVerifyResult: iziPhoneVerifyResult)
+        eval($model.getSex()==1
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($model.getAppCountForEcommerce()),"7")
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_06",true,"男性&电商类app个数"));
+end
+
+rule "prd50_rule_07"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true, $iziPhoneVerifyResult: iziPhoneVerifyResult)
+        eval($model.getSex()==1
+              && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()>=0
+              && RuleUtils.equalString(RuleUtils.valueOfStr($model.getIziWhatsappOpenResult()),"yes")
+              && $model.getUserInHighQualityIndustryFor50()!=null && $model.getUserInHighQualityIndustryFor50()
+              && (
+                 ($model.getUserInHighQualityPostFor50()!=null && $model.getUserInHighQualityPostFor50())
+                 || (RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($model.getDiffMinutesForRegisterAddOrderCreate()),"30")
+                     && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($model.getDiffMinutesForCreateAndSubmitTime()),"1920"))
+                 || ($model.getEmergencyTelIsFirstBorrowNotOverdueUser()!=null && $model.getEmergencyTelIsFirstBorrowNotOverdueUser())
+              )
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_07",true,"男性&上一笔逾期天数>=0&whatsapp账号&优质行业&(优质职业or注册到申请时间0.5小时-32小时or本人是好用户联系人)"));
+end
+
+rule "prd50_rule_08"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true)
+        eval($model.getSex()==2
+              && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()<0
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_08",true,"女性&上一笔逾期天数<0"));
+end
+
+rule "prd50_rule_09"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true)
+        eval($model.getSex()==2
+              && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()==0
+              && RuleUtils.greatThan(RuleUtils.valueOfStr($model.getAge()),"42")
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_09",true,"女性&上一笔逾期天数=0&年龄>42"));
+end
+
+rule "prd50_rule_10"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true)
+        eval($model.getSex()==2
+              && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()==0
+              && RuleUtils.greatThan(RuleUtils.valueOfStr(RuleUtils.strLen($model.getFirstLinkmanName())),"20")
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_10",true,"女性&上一笔逾期天数=0&第一联系人姓名长度>20"));
+end
+
+rule "prd50_rule_11"
+    salience(-1)
+    when
+        $model: LoanLimitModel(isProduct50==true)
+        eval($model.getSex()==2
+              && $model.getLastLoanOverdueDays()!=null && $model.getLastLoanOverdueDays()==0
+              && $model.getHasSalaryPic()!=null && $model.getHasSalaryPic()
+              && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                                               .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($model.getAcademic()))
+             )
+    then
+        limitRuleResultList.add(
+          LoanLimitRuleResult.buildResult("prd50_rule_11",true,"女性&上一笔逾期天数=0&有工资单&学历大专及以上"));
+end

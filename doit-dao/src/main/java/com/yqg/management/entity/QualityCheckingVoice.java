@@ -107,6 +107,8 @@ public class QualityCheckingVoice extends BaseEntity implements Serializable {
 
     private String userId;
 
+    private Integer sourceType;
+
     private String phone;
 
 }

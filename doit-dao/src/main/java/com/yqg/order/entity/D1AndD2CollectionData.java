@@ -8,12 +8,12 @@ import lombok.Data;
 @Data
 public class D1AndD2CollectionData {
 
-    private String date;
-    private String realName;
-    private String parentName;
-    private String taskNum;
-    private String recoveryNum;
-    private String ratio;
-    private String todayNum;
+    private String Date;
+    private String Staff;
+    private String Groups;
+    private String taskOrders;
+    private String repayOrders;
+    private String Rate;
+    private String todayRepay;
 
 }

@@ -94,7 +94,14 @@ public class DigiSignService {
             //成功
             log.info("order already ekyc identity success. orderNo: {}", orderNo);
             return true;
+        }else{
+            //检查是否有上一笔记录
+            if(stepInfo!=null){
+                log.info("asli ekyc failed. go to loaning directly. orderNo: {}", orderNo);
+                return false;
+            }
         }
+
         String invokeAsliSwitch = redisClient.get(RedisContants.INVOKE_ASLI_SWITCH);
         if("false".equals(invokeAsliSwitch)){
             log.info("the invoke asli switch is false, userUuid: {}",userId);

@@ -1,0 +1,64 @@
+
+package com.doit.reborrow;
+
+import com.yqg.drools.model.SpecialModel;
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import java.util.List
+import com.yqg.drools.utils.RuleUtils;
+
+global java.util.List ruleSetResultList;
+
+rule "MULTI_PROVINCE_IN_EARTHQUAKE_001_A"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PROVINCE_IN_EARTHQUAKE_AREA.getMessage()))
+       when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PROVINCE_IN_EARTHQUAKE_AREA.getMessage()));
+          $thresholdValues:RuleThresholdValues();
+          $model:SpecialModel(provinceInEarthquakeArea!=null&&provinceInEarthquakeArea==true)
+       then
+          RuleUtils.buildHitRuleResult(BlackListTypeEnum.PROVINCE_IN_EARTHQUAKE_AREA.getMessage(),
+                                            RuleUtils.valueOfStr($model.getProvinceInEarthquakeArea()),
+                                            "省份属于震区").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "MULTI_PROVINCE_IN_EARTHQUAKE_001_B"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.PROVINCE_IN_EARTHQUAKE_AREA.getMessage()))
+       when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.PROVINCE_IN_EARTHQUAKE_AREA.getMessage()));
+          $thresholdValues:RuleThresholdValues();
+          $model:SpecialModel(provinceInEarthquakeArea==null||provinceInEarthquakeArea==false)
+       then
+          RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.PROVINCE_IN_EARTHQUAKE_AREA.getMessage(),
+                                            RuleUtils.valueOfStr($model.getProvinceInEarthquakeArea()),
+                                            "省份不属于震区").addToResultList(ruleSetResultList);
+end
+
+rule "MULTI_CITY_IN_EARTHQUAKE_002_A"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CITY_IN_EARTHQUAKE_AREA.getMessage()))
+       when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CITY_IN_EARTHQUAKE_AREA.getMessage()));
+          $thresholdValues:RuleThresholdValues();
+          $model:SpecialModel(cityInEarthquakeArea!=null&&cityInEarthquakeArea==true)
+       then
+          RuleUtils.buildHitRuleResult(BlackListTypeEnum.CITY_IN_EARTHQUAKE_AREA.getMessage(),
+                                            RuleUtils.valueOfStr($model.getProvinceInEarthquakeArea()),
+                                            "居住城市属于震区").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "MULTI_CITY_IN_EARTHQUAKE_002_B"
+   salience($thresholdValues.getRuleOrder(BlackListTypeEnum.CITY_IN_EARTHQUAKE_AREA.getMessage()))
+       when
+          RuleConditionModel(isSuitableForRule(BlackListTypeEnum.CITY_IN_EARTHQUAKE_AREA.getMessage()));
+          $thresholdValues:RuleThresholdValues();
+          $model:SpecialModel(cityInEarthquakeArea==null||cityInEarthquakeArea==false)
+       then
+          RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.CITY_IN_EARTHQUAKE_AREA.getMessage(),
+                                            RuleUtils.valueOfStr($model.getProvinceInEarthquakeArea()),
+                                            "居住城市不属于震区").addToResultList(ruleSetResultList);
+end

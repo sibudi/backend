@@ -1,0 +1,296 @@
+package com.doit.reborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.BlackListUserCheckModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+
+global java.util.List ruleSetResultList;
+
+rule "CONTACT_BLACK_LIST_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_MOBILE_IN_OVERDUE15_BLACK_LIST.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_MOBILE_IN_OVERDUE15_BLACK_LIST.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        BlackListUserCheckModel($mobileInOverdue15BlackList: mobileInOverdue15BlackList);
+        eval($mobileInOverdue15BlackList!=null && $mobileInOverdue15BlackList==true)
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_MOBILE_IN_OVERDUE15_BLACK_LIST.getMessage(),
+                                     RuleUtils.valueOfStr($mobileInOverdue15BlackList),
+                                     "借款人手机号命中逾期15天以上黑名单用户").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "CONTACT_BLACK_LIST_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_MOBILE_IN_OVERDUE15_BLACK_LIST.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_MOBILE_IN_OVERDUE15_BLACK_LIST.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        BlackListUserCheckModel($mobileInOverdue15BlackList: mobileInOverdue15BlackList);
+        eval(!($mobileInOverdue15BlackList!=null && $mobileInOverdue15BlackList==true))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_MOBILE_IN_OVERDUE15_BLACK_LIST.getMessage(),
+                                     RuleUtils.valueOfStr($mobileInOverdue15BlackList),
+                                     "借款人手机号未命中逾期15天以上黑名单用户").addToResultList(ruleSetResultList);
+end
+
+
+
+//通讯录逾期15天次数
+rule "CONTACT_BLACK_LIST_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $contact: BlackListUserCheckModel($contactInOverdue15Count: contactInOverdue15Count);
+        eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($contactInOverdue15Count),
+                                         $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+            )
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($contactInOverdue15Count),
+                                     "通讯录中逾期15天以上黑名单次数的人数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+//通讯录逾期30天次数
+rule "CONTACT_BLACK_LIST_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        $contact: BlackListUserCheckModel($contactInOverdue15Count: contactInOverdue15Count);
+        eval(!(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($contactInOverdue15Count),
+                                        $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+             ))
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_PHONE_IN_OVERDUE15_COUNT.getMessage(),
+                                     RuleUtils.valueOfStr($contactInOverdue15Count),
+                                     "通讯录中逾期30天以上黑名单次数的人数小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+
+//通话记录逾期超过30天
+rule "CALL_INFO_BLACKLIST_003_A"
+    salience($thresholdvalues.getRuleOrder(BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage()));
+        $thresholdvalues:RuleThresholdValues();
+        BlackListUserCheckModel($callRecoredInOverdue15Count: callRecordInOverdue15Count);
+        eval(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($callRecoredInOverdue15Count),
+                                         $thresholdvalues.getThresholdValue(BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+                                         );
+    then
+        RuleUtils.buildHitRuleResult(
+                             BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage(),
+                             RuleUtils.valueOfStr($callRecoredInOverdue15Count),
+                             "通话记录命中逾期15天以上次数大于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+rule "CALL_INFO_BLACKLIST_003_B"
+    salience($thresholdvalues.getRuleOrder(BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage()));
+        $thresholdvalues:RuleThresholdValues();
+        BlackListUserCheckModel($callRecoredInOverdue15Count: callRecordInOverdue15Count);
+        eval(!(RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($callRecoredInOverdue15Count),
+                                        $thresholdvalues.getThresholdValue(BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage()))
+                                        ));
+    then
+        RuleUtils.buildUnHitRuleResult(
+                             BlackListTypeEnum.MULTI_CALL_RECORD_PHONE_IN_OVERDUE15_COUNT.getMessage(),
+                             RuleUtils.valueOfStr($callRecoredInOverdue15Count),
+                             "通话记录命中逾期15天以上次数小于阈值").addToResultList(ruleSetResultList);
+end
+
+
+
+//手机短信通话对象逾期15天次数
+rule "SHORT_MESSAGE_BLACKLIST_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        BlackListUserCheckModel($smsContactOverdue15DaysCount: smsContactOverdue15DaysCount);
+        eval(RuleUtils.greatThan(RuleUtils.valueOfStr($smsContactOverdue15DaysCount),
+                                 $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage(),
+                            RuleUtils.valueOfStr($smsContactOverdue15DaysCount),
+                            "短信联系对象逾期15天的数量大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "SHORT_MESSAGE_BLACKLIST_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        BlackListUserCheckModel($smsContactOverdue15DaysCount: smsContactOverdue15DaysCount);
+        eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($smsContactOverdue15DaysCount),
+                                         $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage())))
+                                         );
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_SMS15BLACKLISTCOUNT.getMessage(),
+                            RuleUtils.valueOfStr($smsContactOverdue15DaysCount),
+                            "短信联系对象逾期15天的数量小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "BLACKLIST_FRAUD_USER_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_FRAUD_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_FRAUD_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:hitFraudUserInfo);
+      eval($checkItem!=null && $checkItem==true)
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_HIT_FRAUD_USER_INFO.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "命中欺诈用户AB属性组"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "BLACKLIST_FRAUD_USER_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_FRAUD_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_FRAUD_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($checkItem:hitFraudUserInfo);
+      eval(!($checkItem!=null && $checkItem==true))
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_HIT_FRAUD_USER_INFO.getMessage(),
+                                   RuleUtils.valueOfStr($checkItem),
+                                   "未命中欺诈用户AB属性组"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_BLACK_LIST_REMARK"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_IMEI_IS_FRAUD_USER.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_IMEI_IS_FRAUD_USER.getMessage()));
+        $thresholdValues:RuleThresholdValues();
+        BlackListUserCheckModel($imeiInFraudUser:imeiInFraudUser);
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_IMEI_IS_FRAUD_USER .getMessage(),
+                                     RuleUtils.valueOfStr($imeiInFraudUser),
+                                     "申请人imei命中欺诈用户黑名单-复借").addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_BLACKLIST_SENSITIVE_USER_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_SENSITIVE_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_SENSITIVE_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitSensitiveUserInfo:hitSensitiveUserInfo)
+      eval($hitSensitiveUserInfo!=null && $hitSensitiveUserInfo==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_HIT_SENSITIVE_USER_INFO.getMessage(),
+                                   "true",
+                                   "命中敏感人员身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_BLACKLIST_SENSITIVE_USER_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_SENSITIVE_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_SENSITIVE_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitSensitiveUserInfo:hitSensitiveUserInfo)
+      eval(!($hitSensitiveUserInfo!=null && $hitSensitiveUserInfo==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_HIT_SENSITIVE_USER_INFO.getMessage(),
+                                   "false",
+                                   "未命中敏感人员身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_BLACKLIST_COLLECTOR_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_COLLECTOR_BLACK_LIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_COLLECTOR_BLACK_LIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitCollectorBlackUserInfo:hitCollectorBlackUserInfo)
+      eval($hitCollectorBlackUserInfo!=null && $hitCollectorBlackUserInfo==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_HIT_COLLECTOR_BLACK_LIST.getMessage(),
+                                   "true",
+                                   "命中催收黑名单用户身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_BLACKLIST_COLLECTOR_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_COLLECTOR_BLACK_LIST.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_COLLECTOR_BLACK_LIST.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitCollectorBlackUserInfo:hitCollectorBlackUserInfo)
+      eval(!($hitCollectorBlackUserInfo!=null && $hitCollectorBlackUserInfo==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_HIT_COLLECTOR_BLACK_LIST.getMessage(),
+                                   "false",
+                                   "未命中催收黑名单用户身份证号或手机号"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_BLACKLIST_COMPLAINT_SUER_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_COMPLAINT_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_COMPLAINT_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitComplaintUserInfo: hitComplaintUserInfo)
+      eval($hitComplaintUserInfo!=null && $hitComplaintUserInfo==true);
+    then
+      RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_HIT_COMPLAINT_USER_INFO.getMessage(),
+                                   "true",
+                                   "命中投诉人员身份证号或手机号-复借"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_BLACKLIST_COMPLAINT_SUER_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_HIT_COMPLAINT_USER_INFO.getMessage()))
+    when
+      RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_HIT_COMPLAINT_USER_INFO.getMessage()));
+      $thresholdValues:RuleThresholdValues();
+      BlackListUserCheckModel($hitComplaintUserInfo: hitComplaintUserInfo)
+      eval(!($hitComplaintUserInfo!=null && $hitComplaintUserInfo==true));
+    then
+      RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_HIT_COMPLAINT_USER_INFO.getMessage(),
+                                   "false",
+                                   "未命中投诉人员身份证号或手机号-复借"
+                                  ).addToResultList(ruleSetResultList);
+end
+
+
+
+
+
+
+
+
+
+

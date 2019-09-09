@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,5 +72,17 @@ public class LoanLimitExecutor {
             }
         }
         return resultList;
+    }
+
+    public LoanLimitRuleResult getApprovalLoanLimit(OrdOrder order, List<Object> facts) {
+        List<LoanLimitRuleResult> resultList = ruleService.executeLoanLimit(ApplicationFlowEnum.LOAN_LIMIT_FIRST_RE_BORROWING_AFTER_SUBMIT, facts);
+        if (CollectionUtils.isEmpty(resultList)) {
+            return null;
+        }
+        Optional<LoanLimitRuleResult> loanLimitResult = resultList.stream().filter(elem -> "true".equals(elem.getPass())).findFirst();
+        if (loanLimitResult.isPresent()) {
+            return loanLimitResult.get();
+        }
+        return null;
     }
 }

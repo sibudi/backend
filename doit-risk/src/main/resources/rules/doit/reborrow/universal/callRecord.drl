@@ -1,0 +1,79 @@
+package com.doit.reborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+
+
+global java.util.List ruleSetResultList;
+
+
+//通话记录最后通话时间距订单提交时间
+rule "CALL_INFO_002_A"
+    salience($thresholdvalues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage()));
+        $thresholdvalues:RuleThresholdValues();
+        $callInfo: UserCallRecordsModel(lastContactDiffDay!=null && RuleUtils.greatThan(RuleUtils.valueOfStr(lastContactDiffDay),
+                                                                 $thresholdvalues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage())));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage(),
+                                     RuleUtils.valueOfStr($callInfo.getLastContactDiffDay()),
+                                     "通话记录最后通话时间距订单提交时间天数大于阈值").addToResultList(ruleSetResultList);
+end
+
+//通话记录最后通话时间距订单提交时间
+rule "CALL_INFO_002_B"
+    salience($thresholdvalues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage()))
+    when
+            RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage()));
+            $thresholdvalues:RuleThresholdValues();
+            $callInfo: UserCallRecordsModel(lastContactDiffDay!=null && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(lastContactDiffDay),
+                                                                     $thresholdvalues.getThresholdValue(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage())));
+    then
+            RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage(),
+                                         RuleUtils.valueOfStr($callInfo.getLastContactDiffDay()),
+                                         "通话记录最后通话时间距订单提交时间天数小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "CALL_INFO_002_C"
+    salience($thresholdvalues.getRuleOrder(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage()))
+    when
+            RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage()));
+            $thresholdvalues:RuleThresholdValues();
+            $callInfo: UserCallRecordsModel(lastContactDiffDay==null);
+    then
+            RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_CONTACT_LAST_TIME.getMessage(),
+                                         "无有效通话记录",
+                                         "无有效通话记录").addToResultList(ruleSetResultList);
+end
+
+
+//通话记录夜间活跃占比
+rule "CALL_INFO_003_A"
+    salience($thresholdvalues.getRuleOrder(BlackListTypeEnum.MULTI_NIGHT_RATE.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_NIGHT_RATE.getMessage()));
+        $thresholdvalues:RuleThresholdValues();
+        UserCallRecordsModel($activeInEveningRatio:recent15EveningActiveRatio);
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_NIGHT_RATE.getMessage(),
+                    RuleUtils.valueOfStr($activeInEveningRatio),
+                    "通话记录近15天内夜间活跃占比").addToResultList(ruleSetResultList);
+end
+
+rule "CALL_INFO_EMPTY"
+    salience($thresholdvalues.getRuleOrder(BlackListTypeEnum.MULTI_CAll_DATA_EMPTY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_CAll_DATA_EMPTY.getMessage()));
+        $thresholdvalues:RuleThresholdValues();
+        not UserCallRecordsModel();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_CAll_DATA_EMPTY.getMessage(),
+                    $thresholdvalues.getRuleDesc(BlackListTypeEnum.MULTI_CAll_DATA_EMPTY.getMessage()),
+                    "手机通话记录为空-复借").addToResultList(ruleSetResultList);
+end
+

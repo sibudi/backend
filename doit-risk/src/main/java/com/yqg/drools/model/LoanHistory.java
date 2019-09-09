@@ -30,6 +30,8 @@ public class LoanHistory {
     private BigDecimal overdue6Ratio;
     private BigDecimal overdueMoreThan6Ratio; //逾期6天以上占比
 
+
+
     public LoanHistory() {
         overdue1Count = 0L;
         overdue2Count = 0L;

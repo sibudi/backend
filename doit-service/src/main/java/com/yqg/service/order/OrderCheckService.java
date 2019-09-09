@@ -1,9 +1,11 @@
 package com.yqg.service.order;
 
+import com.yqg.common.enums.order.BlackListTypeEnum;
 import com.yqg.common.enums.order.OrdStateEnum;
+import com.yqg.order.dao.OrdBlackDao;
 import com.yqg.order.dao.OrdDao;
 import com.yqg.order.dao.OrdHistoryDao;
-import com.yqg.order.entity.OrdHistory;
+import com.yqg.order.entity.OrdBlack;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.util.RuleConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -12,11 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +24,12 @@ public class OrderCheckService {
     private OrdDao ordDao;
     @Autowired
     private OrdHistoryDao ordHistoryDao;
+    @Autowired
+    private OrdBlackDao ordBlackDao;
+
+    private List<String> reBorrowingDecreaseLimitRules = Arrays.asList(BlackListTypeEnum.NO_REBORROWING_PRODUCT_600_EXTEND_RULE_HIT.getMessage(),
+            BlackListTypeEnum.NO_REBORROWING_PRODUCT_400_EXTEND_RULE_HIT.getMessage());
+
     /***
      * 订单是降额产品
      * @param orderNo
@@ -41,23 +45,34 @@ public class OrderCheckService {
             return false;
         }
         OrdOrder currentOrder = orders.get(0);
-        if (currentOrder.getAmountApply().compareTo(RuleConstants.PRODUCT100) == 0
-                || currentOrder.getAmountApply().compareTo(RuleConstants.PRODUCT50) == 0) {
-            return true;
+        if (currentOrder.getBorrowingCount() == 1) {
+            //首借
+            if (currentOrder.getAmountApply().compareTo(RuleConstants.PRODUCT100) == 0
+                    || currentOrder.getAmountApply().compareTo(RuleConstants.PRODUCT50) == 0) {
+                return true;
+            }
+        } else {
+            //复借命中降额拒绝规则
+            OrdBlack ordBlackSearch = new OrdBlack();
+            ordBlackSearch.setOrderNo(orderNo);
+            ordBlackSearch.setDisabled(1);
+            List<OrdBlack> ordBlackList = ordBlackDao.scan(ordBlackSearch);
+            if (CollectionUtils.isEmpty(ordBlackList)) {
+                return false;
+            }
+            boolean existsDecreaseLimitRule =
+                    ordBlackList.stream().filter(elem -> reBorrowingDecreaseLimitRules.stream().filter(e1 -> elem.getRuleHitNo().contains(e1)).findFirst().isPresent()).findFirst().isPresent();
+
+            return existsDecreaseLimitRule;
         }
         return false;
     }
 
-    public static void main(String[] args) {
-        OrdOrder currentOrder = new OrdOrder();
-        currentOrder.setAmountApply(new BigDecimal("300000.00"));
-        System.err.println( (currentOrder.getAmountApply().compareTo(RuleConstants.PRODUCT100) == 0
-                || currentOrder.getAmountApply().compareTo(RuleConstants.PRODUCT50) == 0));
-    }
 
-    public Long successLoanCount(String userUuid){
+
+    public Long successLoanCount(String userUuid) {
         List<OrdOrder> orders = ordDao.getOrder(userUuid);
-        if(CollectionUtils.isEmpty(orders)){
+        if (CollectionUtils.isEmpty(orders)) {
             return 0L;
         }
         return orders.stream().filter(elem -> (elem.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode())
@@ -75,8 +90,8 @@ public class OrderCheckService {
 
     }
 
-    public Boolean isFirstBorrowingNotOverdue(String userUuid){
-        if(StringUtils.isEmpty(userUuid)){
+    public Boolean isFirstBorrowingNotOverdue(String userUuid) {
+        if (StringUtils.isEmpty(userUuid)) {
             return false;
         }
         OrdOrder searchParam = new OrdOrder();
@@ -84,26 +99,26 @@ public class OrderCheckService {
         searchParam.setDisabled(0);
         searchParam.setBorrowingCount(1);
         searchParam.setStatus(OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode());
-        List<OrdOrder> resultList =  ordDao.scan(searchParam);
+        List<OrdOrder> resultList = ordDao.scan(searchParam);
         return !CollectionUtils.isEmpty(resultList);
     }
 
-    public List<OrdOrder> getSettledOrders(String userUuid){
+    public List<OrdOrder> getSettledOrders(String userUuid) {
         List<OrdOrder> orders = ordDao.getOrder(userUuid);
         if (CollectionUtils.isEmpty(orders)) {
             return new ArrayList<>();
         }
-        return orders.stream().filter(elem ->elem.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()
+        return orders.stream().filter(elem -> elem.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()
                 || elem.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()
         ).collect(Collectors.toList());
     }
 
-    public Date getFirstSettledOrderApplyTime(String userUuid){
-       Optional<OrdOrder> firstOrder =  getFirstSettledOrder(userUuid);
-       if(firstOrder.isPresent()){
-           return ordHistoryDao.getSubmitDate(firstOrder.get().getUuid());
-       }
-       return null;
+    public Date getFirstSettledOrderApplyTime(String userUuid) {
+        Optional<OrdOrder> firstOrder = getFirstSettledOrder(userUuid);
+        if (firstOrder.isPresent()) {
+            return ordHistoryDao.getSubmitDate(firstOrder.get().getUuid());
+        }
+        return null;
     }
 
 }

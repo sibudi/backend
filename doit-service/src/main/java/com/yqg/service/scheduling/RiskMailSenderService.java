@@ -3285,12 +3285,12 @@ public class RiskMailSenderService {
 
         StringBuffer sb = new StringBuffer();
 
-        // 表1.1标题：整点首逾监控
+        // 表1.1标题：整点首逾监控(overall first pass monitoring)
         sb.append("<h3>1.1 整点首逾监控(overall first pass monitoring) </h3>");
         // 表1.1表格体
         sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
         sb.append("<tr>")
-                .append("<th>").append("产品(produk)")
+                .append("<th>").append("到期日(due date)")
                 .append("<th>").append("订单(pesanan)")
                 .append("<th>").append(" H09 ")
                 .append("<th>").append(" H10 ")
@@ -3310,7 +3310,7 @@ public class RiskMailSenderService {
                 .getMonitoringData();
         for (MonitoringData info : monitoringDataList) {
             sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getProduct())
+                    .append("<td align=\"center\">").append(info.getDueDay())
                     .append("<td align=\"center\">").append(info.getOrders())
                     .append("<td align=\"center\">").append(info.getH09())
                     .append("<td align=\"center\">").append(info.getH10())
@@ -3346,11 +3346,11 @@ public class RiskMailSenderService {
         for (D0CollectionData info : D0CollectionDataList) {
             sb.append("<tr>")
                     .append("<td align=\"center\">").append(info.getDate())
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getParentName())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
+                    .append("<td align=\"center\">").append(info.getStaff())
+                    .append("<td align=\"center\">").append(info.getGroups())
+                    .append("<td align=\"center\">").append(info.getTaskOrders())
+                    .append("<td align=\"center\">").append(info.getRepayOrders())
+                    .append("<td align=\"center\">").append(info.getRate())
             ;
         }
         sb.append("</table>");
@@ -3373,12 +3373,12 @@ public class RiskMailSenderService {
         for (D1AndD2CollectionData info : D1AndD2CollectionDataList) {
             sb.append("<tr>")
                     .append("<td align=\"center\">").append(info.getDate())
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getParentName())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
+                    .append("<td align=\"center\">").append(info.getStaff())
+                    .append("<td align=\"center\">").append(info.getGroups())
+                    .append("<td align=\"center\">").append(info.getTaskOrders())
+                    .append("<td align=\"center\">").append(info.getRepayOrders())
+                    .append("<td align=\"center\">").append(info.getRate())
+                    .append("<td align=\"center\">").append(info.getTodayRepay())
             ;
         }
         sb.append("</table>");
@@ -3401,197 +3401,284 @@ public class RiskMailSenderService {
         for (D1AndD2CollectionData info : D3ToD7CollectionDataList) {
             sb.append("<tr>")
                     .append("<td align=\"center\">").append(info.getDate())
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getParentName())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
+                    .append("<td align=\"center\">").append(info.getStaff())
+                    .append("<td align=\"center\">").append(info.getGroups())
+                    .append("<td align=\"center\">").append(info.getTaskOrders())
+                    .append("<td align=\"center\">").append(info.getRepayOrders())
+                    .append("<td align=\"center\">").append(info.getRate())
+                    .append("<td align=\"center\">").append(info.getTodayRepay())
             ;
         }
         sb.append("</table>");
 
-        // 表2.4标题：内催D31-D60分组催收情况
-        sb.append("<h3>2.4 内催D31-D60分组催收情况(internal reminder kondisi collection team D31-D60) </h3>");
-        // 表2.4表格体
-        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
-        sb.append("<tr>")
-                .append("<th>").append("催收员(collector)")
-                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
-                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
-                .append("<th>").append("回收数(jumlah pengembalian)")
-                .append("<th>").append("回收率(persentase pengembalian)")
-                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
-        ;
-        List<D31ToD60CollectionData> D31ToD60CollectionDataList = ordDao
-                .getD31ToD60CollectionData();
-        for (D31ToD60CollectionData info : D31ToD60CollectionDataList) {
-            sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getTaskToday())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
-            ;
-        }
-        sb.append("</table>");
 
-        // 表3.1标题：勤为D1-2分组催收情况
-        sb.append("<h3>3.1 勤为D1-2分组催收情况(kondisi collection QinWei D1-2) </h3>");
+        // 表3.1标题：本月D8-30分组催收情况(kondisi collection D8-30 bulan ini)
+        sb.append("<h3>3.1 本月D8-30分组催收情况（kondisi collection D8-30 bulan ini）</h3>");
         // 表3.1表格体
         sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
         sb.append("<tr>")
                 .append("<th>").append("日期(tanggal)")
-                .append("<th>").append("催收员(collector)")
+                .append("<th>").append("组长(TL)")
+                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
                 .append("<th>").append("分案数(jumlah kasus yg dibagi)")
                 .append("<th>").append("回收数(jumlah pengembalian)")
                 .append("<th>").append("回收率(persentase pengembalian)")
                 .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
         ;
-        List<QWD1AndD2CollectionData> QWD1AndD2CollectionDataList = ordDao
-                .getQWD1AndD2CollectionData();
-        for (QWD1AndD2CollectionData info : QWD1AndD2CollectionDataList) {
+        List<D8ToD30CollectionDataThisMouth> D8ToD30CollectionDataThisMouthList = ordDao
+                .getD8ToD30CollectionDataThisMouth();
+        for (D8ToD30CollectionDataThisMouth info : D8ToD30CollectionDataThisMouthList) {
             sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getDate())
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
+                    .append("<td align=\"center\">").append(info.getStaff())
+                    .append("<td align=\"center\">").append(info.getGroups())
+                    .append("<td align=\"center\">").append(info.getTaskToday())
+                    .append("<td align=\"center\">").append(info.getTaskOrders())
+                    .append("<td align=\"center\">").append(info.getRepayOrders())
+                    .append("<td align=\"center\">").append(info.getRate())
+                    .append("<td align=\"center\">").append(info.getTodayRepay())
             ;
         }
         sb.append("</table>");
 
-        // 表3.2标题：勤为D3-7分组催收情况
-        sb.append("<h3>3.2 勤为D3-7分组催收情况(kondisi collection QinWei D3-7) </h3>");
+
+        // 表3.2标题：上月D8-30分组催收情况(kondisi collection tim D8-30 bulan lalu)
+        sb.append("<h3>3.2 上月D8-30分组催收情况(kondisi collection tim D8-30 bulan lalu)</h3>");
         // 表3.2表格体
         sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
         sb.append("<tr>")
-                .append("<th>").append("日期(tanggal)")
                 .append("<th>").append("催收员(collector)")
+                .append("<th>").append("组长(TL)")
+                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
                 .append("<th>").append("分案数(jumlah kasus yg dibagi)")
                 .append("<th>").append("回收数(jumlah pengembalian)")
                 .append("<th>").append("回收率(persentase pengembalian)")
                 .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
         ;
-        List<QWD1AndD2CollectionData> QWD3ToD7CollectionDataList = ordDao
-                .getQWD3ToD7CollectionData();
-        for (QWD1AndD2CollectionData info : QWD3ToD7CollectionDataList) {
+        List<D8ToD30CollectionDataLastMouth> D8ToD30CollectionDataLastMouthList = ordDao
+                .getD8ToD30CollectionDataLastMouth();
+        for (D8ToD30CollectionDataLastMouth info : D8ToD30CollectionDataLastMouthList) {
             sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getDate())
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
+                    .append("<td align=\"center\">").append(info.getStaff())
+                    .append("<td align=\"center\">").append(info.getGroups())
+                    .append("<td align=\"center\">").append(info.getTaskToday())
+                    .append("<td align=\"center\">").append(info.getTaskOrders())
+                    .append("<td align=\"center\">").append(info.getRepayOrders())
+                    .append("<td align=\"center\">").append(info.getRate())
+                    .append("<td align=\"center\">").append(info.getTodayRepay())
             ;
         }
         sb.append("</table>");
 
-        // 表3.3、 本月勤为D8-30分组催收情况
-        sb.append("<h3>3.3 本月勤为D8-30分组催收情况(kondisi collection QinWei D8-30 bulan ini) </h3>");
+
+        // 表3.3标题：本月D31-D60分组催收情况(reminder kondisi collection team D31-D60)
+        sb.append("<h3>3.3 本月D31-D60分组催收情况(reminder kondisi collection team D31-D60)</h3>");
         // 表3.3表格体
         sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
         sb.append("<tr>")
                 .append("<th>").append("催收员(collector)")
+                .append("<th>").append("组长(TL)")
                 .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
                 .append("<th>").append("分案数(jumlah kasus yg dibagi)")
                 .append("<th>").append("回收数(jumlah pengembalian)")
                 .append("<th>").append("回收率(persentase pengembalian)")
                 .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
         ;
-        List<QWD8ToD30ThisMonthCollectionData> QWD8ToD30ThisMonthCollectionDataList = ordDao
-                .getQWD8ToD30ThisMonthCollectionData();
-        for (QWD8ToD30ThisMonthCollectionData info : QWD8ToD30ThisMonthCollectionDataList) {
+        List<D8ToD30CollectionDataLastMouth> D31ToD60CollectionDataThisMouthList = ordDao
+                .getD31ToD60CollectionDataThisMouth();
+        for (D8ToD30CollectionDataLastMouth info : D31ToD60CollectionDataThisMouthList) {
             sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getRealName())
+                    .append("<td align=\"center\">").append(info.getStaff())
+                    .append("<td align=\"center\">").append(info.getGroups())
                     .append("<td align=\"center\">").append(info.getTaskToday())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
+                    .append("<td align=\"center\">").append(info.getTaskOrders())
+                    .append("<td align=\"center\">").append(info.getRepayOrders())
+                    .append("<td align=\"center\">").append(info.getRate())
+                    .append("<td align=\"center\">").append(info.getTodayRepay())
             ;
         }
         sb.append("</table>");
 
-        // 表3.4、 上月勤为D8-30分组催收情况
-        sb.append("<h3>3.4 上月勤为D8-30分组催收情况(kondisi collection QinWei tim D8-30 bulan lalu) </h3>");
-        // 表3.4表格体
-        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
-        sb.append("<tr>")
-                .append("<th>").append("催收员(collector)")
-                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
-                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
-                .append("<th>").append("回收数(jumlah pengembalian)")
-                .append("<th>").append("回收率(persentase pengembalian)")
-                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
-        ;
-        List<QWD8ToD30ThisMonthCollectionData> QWD8ToD30LastMonthCollectionDataList = ordDao
-                .getQWD8ToD30LastMonthCollectionData();
-        for (QWD8ToD30ThisMonthCollectionData info : QWD8ToD30LastMonthCollectionDataList) {
-            sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getTaskToday())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
-            ;
-        }
-        sb.append("</table>");
+//        // 表2.4标题：内催D31-D60分组催收情况
+//        sb.append("<h3>2.4 内催D31-D60分组催收情况(internal reminder kondisi collection team D31-D60) </h3>");
+//        // 表2.4表格体
+//        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
+//        sb.append("<tr>")
+//                .append("<th>").append("催收员(collector)")
+//                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
+//                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
+//                .append("<th>").append("回收数(jumlah pengembalian)")
+//                .append("<th>").append("回收率(persentase pengembalian)")
+//                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
+//        ;
+//        List<D31ToD60CollectionData> D31ToD60CollectionDataList = ordDao
+//                .getD31ToD60CollectionData();
+//        for (D31ToD60CollectionData info : D31ToD60CollectionDataList) {
+//            sb.append("<tr>")
+//                    .append("<td align=\"center\">").append(info.getRealName())
+//                    .append("<td align=\"center\">").append(info.getTaskToday())
+//                    .append("<td align=\"center\">").append(info.getTaskNum())
+//                    .append("<td align=\"center\">").append(info.getRecoveryNum())
+//                    .append("<td align=\"center\">").append(info.getRatio())
+//                    .append("<td align=\"center\">").append(info.getTodayNum())
+//            ;
+//        }
+//        sb.append("</table>");
 
-        // 表4.1、 本月 QUIROS D8-30分组催收情况
-        sb.append("<h3>4.1 本月 QUIROS D8-30分组催收情况(kondisi collection QUIROS D8-30 bulan ini) </h3>");
-        // 表4.1表格体
-        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
-        sb.append("<tr>")
-                .append("<th>").append("催收员(collector)")
-                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
-                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
-                .append("<th>").append("回收数(jumlah pengembalian)")
-                .append("<th>").append("回收率(persentase pengembalian)")
-                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
-        ;
-        List<QWD8ToD30ThisMonthCollectionData> QUIROSD8ToD30ThisMonthCollectionDataList = ordDao
-                .getQUIROSD8ToD30ThisMonthCollectionData();
-        for (QWD8ToD30ThisMonthCollectionData info : QUIROSD8ToD30ThisMonthCollectionDataList) {
-            sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getTaskToday())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
-            ;
-        }
-        sb.append("</table>");
-
-        // 表4.2、 上月 QUIROS D8-30分组催收情况
-        sb.append("<h3>4.2 上月 QUIROS D8-30分组催收情况(kondisi collection QUIROS tim D8-30 bulan lalu) </h3>");
-        // 表4.2表格体
-        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
-        sb.append("<tr>")
-                .append("<th>").append("催收员(collector)")
-                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
-                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
-                .append("<th>").append("回收数(jumlah pengembalian)")
-                .append("<th>").append("回收率(persentase pengembalian)")
-                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
-        ;
-        List<QWD8ToD30ThisMonthCollectionData> QUIROSD8ToD30LastMonthCollectionDataList = ordDao
-                .getQUIROSD8ToD30LastMonthCollectionData();
-        for (QWD8ToD30ThisMonthCollectionData info : QUIROSD8ToD30LastMonthCollectionDataList) {
-            sb.append("<tr>")
-                    .append("<td align=\"center\">").append(info.getRealName())
-                    .append("<td align=\"center\">").append(info.getTaskToday())
-                    .append("<td align=\"center\">").append(info.getTaskNum())
-                    .append("<td align=\"center\">").append(info.getRecoveryNum())
-                    .append("<td align=\"center\">").append(info.getRatio())
-                    .append("<td align=\"center\">").append(info.getTodayNum())
-            ;
-        }
-        sb.append("</table>");
+//        // 表3.1标题：勤为D1-2分组催收情况
+//        sb.append("<h3>3.1 勤为D1-2分组催收情况(kondisi collection QinWei D1-2) </h3>");
+//        // 表3.1表格体
+//        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
+//        sb.append("<tr>")
+//                .append("<th>").append("日期(tanggal)")
+//                .append("<th>").append("催收员(collector)")
+//                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
+//                .append("<th>").append("回收数(jumlah pengembalian)")
+//                .append("<th>").append("回收率(persentase pengembalian)")
+//                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
+//        ;
+//        List<QWD1AndD2CollectionData> QWD1AndD2CollectionDataList = ordDao
+//                .getQWD1AndD2CollectionData();
+//        for (QWD1AndD2CollectionData info : QWD1AndD2CollectionDataList) {
+//            sb.append("<tr>")
+//                    .append("<td align=\"center\">").append(info.getDate())
+//                    .append("<td align=\"center\">").append(info.getRealName())
+//                    .append("<td align=\"center\">").append(info.getTaskNum())
+//                    .append("<td align=\"center\">").append(info.getRecoveryNum())
+//                    .append("<td align=\"center\">").append(info.getRatio())
+//                    .append("<td align=\"center\">").append(info.getTodayNum())
+//            ;
+//        }
+//        sb.append("</table>");
+//
+//        // 表3.2标题：勤为D3-7分组催收情况
+//        sb.append("<h3>3.2 勤为D3-7分组催收情况(kondisi collection QinWei D3-7) </h3>");
+//        // 表3.2表格体
+//        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
+//        sb.append("<tr>")
+//                .append("<th>").append("日期(tanggal)")
+//                .append("<th>").append("催收员(collector)")
+//                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
+//                .append("<th>").append("回收数(jumlah pengembalian)")
+//                .append("<th>").append("回收率(persentase pengembalian)")
+//                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
+//        ;
+//        List<QWD1AndD2CollectionData> QWD3ToD7CollectionDataList = ordDao
+//                .getQWD3ToD7CollectionData();
+//        for (QWD1AndD2CollectionData info : QWD3ToD7CollectionDataList) {
+//            sb.append("<tr>")
+//                    .append("<td align=\"center\">").append(info.getDate())
+//                    .append("<td align=\"center\">").append(info.getRealName())
+//                    .append("<td align=\"center\">").append(info.getTaskNum())
+//                    .append("<td align=\"center\">").append(info.getRecoveryNum())
+//                    .append("<td align=\"center\">").append(info.getRatio())
+//                    .append("<td align=\"center\">").append(info.getTodayNum())
+//            ;
+//        }
+//        sb.append("</table>");
+//
+//        // 表3.3、 本月勤为D8-30分组催收情况
+//        sb.append("<h3>3.3 本月勤为D8-30分组催收情况(kondisi collection QinWei D8-30 bulan ini) </h3>");
+//        // 表3.3表格体
+//        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
+//        sb.append("<tr>")
+//                .append("<th>").append("催收员(collector)")
+//                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
+//                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
+//                .append("<th>").append("回收数(jumlah pengembalian)")
+//                .append("<th>").append("回收率(persentase pengembalian)")
+//                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
+//        ;
+//        List<QWD8ToD30ThisMonthCollectionData> QWD8ToD30ThisMonthCollectionDataList = ordDao
+//                .getQWD8ToD30ThisMonthCollectionData();
+//        for (QWD8ToD30ThisMonthCollectionData info : QWD8ToD30ThisMonthCollectionDataList) {
+//            sb.append("<tr>")
+//                    .append("<td align=\"center\">").append(info.getRealName())
+//                    .append("<td align=\"center\">").append(info.getTaskToday())
+//                    .append("<td align=\"center\">").append(info.getTaskNum())
+//                    .append("<td align=\"center\">").append(info.getRecoveryNum())
+//                    .append("<td align=\"center\">").append(info.getRatio())
+//                    .append("<td align=\"center\">").append(info.getTodayNum())
+//            ;
+//        }
+//        sb.append("</table>");
+//
+//        // 表3.4、 上月勤为D8-30分组催收情况
+//        sb.append("<h3>3.4 上月勤为D8-30分组催收情况(kondisi collection QinWei tim D8-30 bulan lalu) </h3>");
+//        // 表3.4表格体
+//        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
+//        sb.append("<tr>")
+//                .append("<th>").append("催收员(collector)")
+//                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
+//                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
+//                .append("<th>").append("回收数(jumlah pengembalian)")
+//                .append("<th>").append("回收率(persentase pengembalian)")
+//                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
+//        ;
+//        List<QWD8ToD30ThisMonthCollectionData> QWD8ToD30LastMonthCollectionDataList = ordDao
+//                .getQWD8ToD30LastMonthCollectionData();
+//        for (QWD8ToD30ThisMonthCollectionData info : QWD8ToD30LastMonthCollectionDataList) {
+//            sb.append("<tr>")
+//                    .append("<td align=\"center\">").append(info.getRealName())
+//                    .append("<td align=\"center\">").append(info.getTaskToday())
+//                    .append("<td align=\"center\">").append(info.getTaskNum())
+//                    .append("<td align=\"center\">").append(info.getRecoveryNum())
+//                    .append("<td align=\"center\">").append(info.getRatio())
+//                    .append("<td align=\"center\">").append(info.getTodayNum())
+//            ;
+//        }
+//        sb.append("</table>");
+//
+//        // 表4.1、 本月 QUIROS D8-30分组催收情况
+//        sb.append("<h3>4.1 本月 QUIROS D8-30分组催收情况(kondisi collection QUIROS D8-30 bulan ini) </h3>");
+//        // 表4.1表格体
+//        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
+//        sb.append("<tr>")
+//                .append("<th>").append("催收员(collector)")
+//                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
+//                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
+//                .append("<th>").append("回收数(jumlah pengembalian)")
+//                .append("<th>").append("回收率(persentase pengembalian)")
+//                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
+//        ;
+//        List<QWD8ToD30ThisMonthCollectionData> QUIROSD8ToD30ThisMonthCollectionDataList = ordDao
+//                .getQUIROSD8ToD30ThisMonthCollectionData();
+//        for (QWD8ToD30ThisMonthCollectionData info : QUIROSD8ToD30ThisMonthCollectionDataList) {
+//            sb.append("<tr>")
+//                    .append("<td align=\"center\">").append(info.getRealName())
+//                    .append("<td align=\"center\">").append(info.getTaskToday())
+//                    .append("<td align=\"center\">").append(info.getTaskNum())
+//                    .append("<td align=\"center\">").append(info.getRecoveryNum())
+//                    .append("<td align=\"center\">").append(info.getRatio())
+//                    .append("<td align=\"center\">").append(info.getTodayNum())
+//            ;
+//        }
+//        sb.append("</table>");
+//
+//        // 表4.2、 上月 QUIROS D8-30分组催收情况
+//        sb.append("<h3>4.2 上月 QUIROS D8-30分组催收情况(kondisi collection QUIROS tim D8-30 bulan lalu) </h3>");
+//        // 表4.2表格体
+//        sb.append("<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\">");
+//        sb.append("<tr>")
+//                .append("<th>").append("催收员(collector)")
+//                .append("<th>").append("今日分案(jumlah kasus yg dibagi hari ini)")
+//                .append("<th>").append("分案数(jumlah kasus yg dibagi)")
+//                .append("<th>").append("回收数(jumlah pengembalian)")
+//                .append("<th>").append("回收率(persentase pengembalian)")
+//                .append("<th>").append("今日回收数(jumlah pengembalian hari ini)")
+//        ;
+//        List<QWD8ToD30ThisMonthCollectionData> QUIROSD8ToD30LastMonthCollectionDataList = ordDao
+//                .getQUIROSD8ToD30LastMonthCollectionData();
+//        for (QWD8ToD30ThisMonthCollectionData info : QUIROSD8ToD30LastMonthCollectionDataList) {
+//            sb.append("<tr>")
+//                    .append("<td align=\"center\">").append(info.getRealName())
+//                    .append("<td align=\"center\">").append(info.getTaskToday())
+//                    .append("<td align=\"center\">").append(info.getTaskNum())
+//                    .append("<td align=\"center\">").append(info.getRecoveryNum())
+//                    .append("<td align=\"center\">").append(info.getRatio())
+//                    .append("<td align=\"center\">").append(info.getTodayNum())
+//            ;
+//        }
+//        sb.append("</table>");
 
         return sb.toString();
     }

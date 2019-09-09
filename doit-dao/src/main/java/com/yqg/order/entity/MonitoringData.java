@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class MonitoringData {
 
-    private String product;
+    private String dueDay;
     private String orders;
     private String H09;
     private String H10;

@@ -1,0 +1,78 @@
+package com.doit.reborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.LoanHistory;
+import java.util.List
+import com.yqg.drools.utils.RuleUtils;
+
+global java.util.List ruleSetResultList;
+
+rule "LOAN_HISTORY_REMARK"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_APPLY_COUNT.getMessage()))
+when
+   $thresholdValues:RuleThresholdValues();
+   $loanHistory: LoanHistory();
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_APPLY_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getApplyCount()),
+   		                        "申请次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_SUCCESS_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getSuccessRatio()),
+   		                        "成功借款次数和申请次数占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdueCount()),
+   		                        "逾期次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE_SUCCESS_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdueSuccessLoanRatio()),
+   		                        "逾期次数与成功借款次数占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_AVERAGE_OVERDUE_DAYS.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getAverageOverdueDays()),
+   		                        "平均逾期天数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_LOAN_INTERVAL_DAYS.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getAverageIntervalDays()),
+   		                        "平均借款间隔天数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE1_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue1Count()),
+   		                        "逾期1天的次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE2_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue2Count()),
+   		                        "逾期2天的次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE3_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue3Count()),
+   		                        "逾期3天的次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE4_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue5Count()),
+   		                        "逾期4天的次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE5_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue5Count()),
+   		                        "逾期5天的次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE6_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue6Count()),
+   		                        "逾期6天的次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE_MORE_THAN6_COUNT.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdueMoreThan6Count()),
+   		                        "逾期6天以上次数").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE1_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue1Ratio()),
+   		                        "逾期1天的占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE2_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue2Ratio()),
+   		                        "逾期2天的占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE3_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue3Ratio()),
+   		                        "逾期3天的占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE4_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue4Ratio()),
+   		                        "逾期4天的占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE5_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue5Ratio()),
+   		                        "逾期5天的占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE6_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdue6Ratio()),
+   		                        "逾期6天的占比").addToResultList(ruleSetResultList);
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_OVERDUE_MORE_THAN6_RATIO.getMessage(),
+   		                        RuleUtils.valueOfStr($loanHistory.getOverdueMoreThan6Ratio()),
+   		                        "逾期超过6天的占比").addToResultList(ruleSetResultList);
+end

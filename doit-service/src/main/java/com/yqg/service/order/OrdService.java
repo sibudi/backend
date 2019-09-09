@@ -1017,6 +1017,28 @@ public class OrdService {
 
     }
 
+    public void decreaseOrderToFixAmount(OrdOrder order, BigDecimal toAmount) throws Exception {
+        log.info("decrease order amount from {} to {}", order.getAmountApply(), toAmount);
+        //记录历史表
+        orderChangeHistoryDao.copyFromOrder(order.getUuid());
+        //更新金额费用
+        OrdOrder updateEntity = new OrdOrder();
+        SysProduct sysProduct = sysProductDao.getProductByForDecreamentCreditLimit(toAmount, "0.192", order.getBorrowingTerm());
+        if (sysProduct == null) {
+            log.error("can not get system product config. orderNo: " + order.getUuid());
+        }
+        updateEntity.setUuid(order.getUuid());
+        updateEntity.setUpdateTime(new Date());
+        updateEntity.setInterest(sysProduct.getInterest());
+        updateEntity.setProductUuid(sysProduct.getProductCode());
+        updateEntity.setAmountApply(sysProduct.getBorrowingAmount());
+        updateEntity.setBorrowingTerm(sysProduct.getBorrowingTerm());
+        updateEntity.setServiceFee(sysProduct.getDueFee());
+        orderDao.update(updateEntity);
+    }
+
+
+
     @Transactional(rollbackFor = Exception.class)
     public void changeOrderStatus(OrdOrder order ,OrdStateEnum toStatus){
         log.info("start to change order status, order: {} ,toStatus: {}", order.getUuid(), toStatus.name());

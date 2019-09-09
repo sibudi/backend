@@ -361,11 +361,11 @@ public class TwilioService {
         initTwilio();
 
         //每次固定发送两个电话号码
-        TwilioCallResult result1 = new TwilioCallResult();
-        result1.setUserUuid("testUserUuid1");
-        result1.setOrderNo("testOrderNo1");
-        result1.setPhoneNumber("+6287787117873");
-        lists.add(result1);
+//        TwilioCallResult result1 = new TwilioCallResult();
+//        result1.setUserUuid("testUserUuid1");
+//        result1.setOrderNo("testOrderNo1");
+//        result1.setPhoneNumber("+6287787117873");
+//        lists.add(result1);
         for (TwilioCallResult elem : lists) {
             //对象转换
             TwilioUserInfoResponse response = new TwilioUserInfoResponse(elem.getOrderNo(),elem.getUserUuid(),

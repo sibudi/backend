@@ -35,15 +35,15 @@ public class FirstBorrowingAutoCallProduct600ExecutionChain extends BaseExecutio
     @Autowired
     private OrdService ordService;
 
-    @Override
-    protected void afterRejectResult(Map<String, SysAutoReviewRule> allRules, OrdOrder order) throws Exception {
-        //600产品拒绝记录金额转到100，调用100的规则
-        if (userRiskService.isSuitableFor100RMBProduct(order) && order.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
-            //拒绝原因disabled掉
-            ruleResultService.disabledOrdBlackWithRemark(order.getUuid(), RuleConstants.PRODUCT600TO150);
-            ordService.changeOrderTo100RMBProduct(order);
-        }
-    }
+//    @Override
+//    protected void afterRejectResult(Map<String, SysAutoReviewRule> allRules, OrdOrder order) throws Exception {
+//        //600产品拒绝记录金额转到100，调用100的规则
+//        if (userRiskService.isSuitableFor100RMBProduct(order) && order.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
+//            //拒绝原因disabled掉
+//            ruleResultService.disabledOrdBlackWithRemark(order.getUuid(), RuleConstants.PRODUCT600TO150);
+//            ordService.changeOrderTo100RMBProduct(order);
+//        }
+//    }
     public boolean preFilter(OrdOrder order) {
         //600 产品才跑
         return executorUtil.normalFlowFilter(order);
@@ -56,6 +56,6 @@ public class FirstBorrowingAutoCallProduct600ExecutionChain extends BaseExecutio
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        super.initChains(firstBorrowingAutoCallNonManualExecutionChain, firstBorrowingAutoCallProduct100ExecutionChain);
+        super.initChains(null, null);
     }
 }

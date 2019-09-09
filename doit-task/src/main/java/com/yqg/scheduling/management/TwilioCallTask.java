@@ -164,7 +164,7 @@ public class TwilioCallTask {
      */
     @Scheduled(cron = "0 0 12 * * ?")
     public void infobipSilient() {
-        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH)) {
+        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":silientVoiceCall")) {
             String managerUrl = url;
             managerUrl += "infobipSilient/managerTask";
             JSONObject jsonObject = new JSONObject();
@@ -177,7 +177,7 @@ public class TwilioCallTask {
      */
     @Scheduled(cron = "0 0 12 * * ?")
     public void infobipNotSumbit() {
-        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH)) {
+        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":notSubmitVoiceCall")) {
             String managerUrl = url;
             managerUrl += "infobipNotSumbit/managerTask";
             JSONObject jsonObject = new JSONObject();
@@ -190,7 +190,7 @@ public class TwilioCallTask {
      */
     @Scheduled(cron = "0 0 12 * * ?")
     public void infobipReduce() {
-        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH)) {
+        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":reduceVoiceCall")) {
             String managerUrl = url;
             managerUrl += "infobipReduce/managerTask";
             JSONObject jsonObject = new JSONObject();

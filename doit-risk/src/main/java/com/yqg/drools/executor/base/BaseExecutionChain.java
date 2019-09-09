@@ -1,9 +1,11 @@
 package com.yqg.drools.executor.base;
 
 
+import com.yqg.common.enums.order.BlackListTypeEnum;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.drools.model.ModelScoreResult;
 import com.yqg.drools.utils.JsonUtil;
+import com.yqg.drools.utils.RuleUtils;
 import com.yqg.ojk.entity.OjkDataTotal;
 import com.yqg.risk.dao.FlowRuleSetDao;
 import com.yqg.risk.entity.RuleParam;
@@ -127,11 +129,13 @@ public class BaseExecutionChain {
         if (preFilter(order)) {
             RuleSetExecutedResult executedResult = executeInternal(order, allRules, facts);
             if (executedResult.isRuleSetResult()) {
-                RuleSetExecutedResult passCheck = afterPassResult(allRules,order);
-                if(passCheck!=null&&!passCheck.isRuleSetResult()){
+                RuleSetExecutedResult passCheck = afterPassResult(allRules, order, facts);
+                if (passCheck != null && !passCheck.isRuleSetResult()) {
                     //拒绝则直接拒掉
                     return passCheck;
                 }
+                //the amountApply maybe modified in afterPassResult method, need to get the new order info.
+                order = ordService.getOrderByOrderNo(order.getUuid());
                 if (passExecutionChain != null) {
                     RuleSetExecutedResult tmp = passExecutionChain.execute(order, allRules, facts);
                     executedResult = tmp != null ? tmp : executedResult;
@@ -234,10 +238,7 @@ public class BaseExecutionChain {
         factList = factList.stream().filter(elem -> !(elem instanceof RuleConditionModel)).collect(Collectors.toList());
 
         Optional<RuleConditionModel> ruleCondition = executorUtil.buildRuleCondition(allRules, order);
-        if (getFLowType() != null && getFLowType() == FlowEnum.AUTO_CALL_RE_BORROWING) {
-            //复借特殊处理
-            ruleCondition = executorUtil.filterConditionForReBorrowing(ruleCondition, order);
-        }
+
         if (ruleCondition.isPresent()) {
 
             factList.add(ruleCondition.get());
@@ -245,7 +246,7 @@ public class BaseExecutionChain {
         return factList;
     }
 
-    protected RuleSetExecutedResult afterPassResult(Map<String, SysAutoReviewRule> allRules, OrdOrder order) throws Exception{
+    protected RuleSetExecutedResult afterPassResult(Map<String, SysAutoReviewRule> allRules, OrdOrder order, List<Object> facts) throws Exception{
         //TODO add ABTest info for some flow
         return new RuleSetExecutedResult(true,null);
     }
@@ -274,4 +275,36 @@ public class BaseExecutionChain {
     protected RuleSetExecutedResult postProcessExecuteResult(RuleSetExecutedResult result, Map<String, SysAutoReviewRule> allRules, OrdOrder order) {
         return result;
     }
+
+
+    protected RuleSetExecutedResult doPostProcessForExecutedResult(RuleSetExecutedResult result, Map<String, SysAutoReviewRule> allRules,
+                                                                   OrdOrder order, BlackListTypeEnum typeEnum) {
+        List<RuleResult> flowRuleResultList = this.getRuleResultDetailList();
+        if (!CollectionUtils.isEmpty(flowRuleResultList)) {
+            Optional<RuleResult> firstPassRule = flowRuleResultList.stream().filter(elem -> elem.isPass()).findFirst();
+            if (firstPassRule.isPresent()) {
+                //pass
+                log.info("not hit rule: {}", typeEnum);
+                return BaseExecutionChain.DEFAULT_PASS_RESULT;
+            }
+        }
+        SysAutoReviewRule rule = allRules.get(typeEnum.getMessage());
+        if (rule != null && rule.getRuleResult() == 2) {
+            log.info("hit reject rule: {}",typeEnum);
+            //reject, insert reject rule
+            List<RuleResult> limitResultList = new ArrayList<>();
+            RuleResult ruleResult = RuleUtils.buildHitRuleResult(typeEnum.getMessage(),
+                    "true", rule.getRuleDesc()
+
+            );
+            limitResultList.add(ruleResult);
+            ruleResultService.batchRecordRuleResult(order, allRules, limitResultList, getFLowType());
+            return new RuleSetExecutedResult(false, rule);
+        } else {
+            log.info("not config reject rule: {}", typeEnum);
+        }
+        return result;
+
+    }
+
 }

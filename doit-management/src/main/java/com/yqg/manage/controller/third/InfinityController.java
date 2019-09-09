@@ -106,25 +106,6 @@ public class InfinityController {
         if (StringUtils.isBlank(req.getUuid())) {
             throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
         }
-        if (StringUtils.isBlank(req.getOrderNo())) {
-            throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
-        }
-        if (StringUtils.isBlank(req.getUserName())) {
-            throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
-        }
-        if (StringUtils.isBlank(req.getRealName())) {
-            throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
-        }
-        if (StringUtils.isBlank(StringUtils.replaceNull(req.getCallNode()))) {
-            throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
-        }
-        if (StringUtils.isBlank(StringUtils.replaceNull(req.getCallType()))) {
-            throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
-        }
-//        Map<String, String> map = new HashMap<>();
-//        map.put("token", this.infinityService.getToken());
-//        map.put("extnumber", req.getExtnumber());
-//        map.put("destnumber", req.getDestnumber());
         return ResponseEntitySpecBuilder.success(this.infinityService.makeCall(req));
     }
 
@@ -134,12 +115,6 @@ public class InfinityController {
     @ResponseBody
     public ResponseEntitySpec<List<InfinityBillEntity>> getBill(HttpServletRequest request, @RequestBody InfinityRequest req) throws Exception {
         log.info("获取话单接口");
-        /*if (StringUtils.isBlank(DateUtils.DateToString2(req.getStarttime()))) {
-            throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
-        }
-        if (StringUtils.isBlank(DateUtils.DateToString2(req.getEndtime()))) {
-            throw new ServiceExceptionSpec(ThirdExceptionEnum.NO_PARAMETERS);
-        }*/
         Map<String, String> map = new HashMap<>();
         map.put("token", this.infinityService.getToken());
         map.put("starttime", DateUtils.getTodayStart().toString());

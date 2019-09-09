@@ -151,7 +151,7 @@ public class ContractSignService {
     private void sendLoanPassSms(OrdOrder order) {
         UsrUser user = usrService.getUserByUuid(order.getUserUuid());
         String mobileNumber = "62" + DESUtils.decrypt(user.getMobileNumberDES());
-        String contentTemplate = "<Do-It>Nasabah yang terhormat, akun ada mendapat Rp %s , silahkan masuk ke aplikasi Do-it dan ambil uang anda. Semoga" +
+        String contentTemplate = "<Do-It>Nasabah yang terhormat, akun ada mendapat Rp %s , silahkan masuk ke aplikasi Do-It dan ambil uang anda. Semoga" +
                 " hari " +
                 "anda menyenangkan!";
         final String content = String.format(contentTemplate, order.getAmountApply().toPlainString());
@@ -423,7 +423,11 @@ public class ContractSignService {
                 log.info("cannot get the first order apply time, orderNo: {}", order.getUuid());
                 return false;
             } else {
-                return firstOrderApplyTime.compareTo(DateUtils.stringToDate("2019-07-09", DateUtils.FMT_YYYY_MM_DD)) >= 0;
+                String startTime = redisClient.get(RedisContants.RE_BORROWING_DIGI_SIGN_START_TIME);
+                if(StringUtils.isEmpty(startTime)){
+                    startTime = "2019-07-12";
+                }
+                return firstOrderApplyTime.compareTo(DateUtils.stringToDate(startTime, DateUtils.FMT_YYYY_MM_DD)) >= 0;
             }
         }
         return true;

@@ -149,8 +149,8 @@ third:
     inforbip:
       userName: do-it
       password: do-it2018
-      #host: https://api.infobip.com
-      host: https://api-id1.infobip.com
+      host: https://api.infobip.com
+      #host: https://api-id1.infobip.com
       mobileLookUpUrl: /tts/3/single
       mobileLookUpUrlMulti: /tts/3/multi
       reportUrl: /tts/3/reports
