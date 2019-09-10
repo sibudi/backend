@@ -111,7 +111,7 @@ mongo:
 upload:
   path: http://www.do-it.id
   #path:  http://10.24.30.72:8082
-  imagePath: http://api-intl.uat.doitglotech.co.id/manage/showStreamOnBrowser?path=#:8082/manage/showStreamOnBrowser?path=
+  imagePath: http://api-intl.uat.doitglotech.co.id/manage/showStreamOnBrowser?path= #:8082/manage/showStreamOnBrowser?path=
 third:
   upload:
     uploadHost: http://api-intl.uat.doitglotech.co.id
@@ -177,7 +177,7 @@ third:
     activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
     sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
     signUrl: https://apiuat.tandatanganku.com/SignWebView.html
-    contractDir: /home/doit-api/contract
+    contractDir: /MyUpload/DOIT_CONTRACT
     automaticSignKUser: e8r5QbytnJ5g2HOo
     apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
     apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
