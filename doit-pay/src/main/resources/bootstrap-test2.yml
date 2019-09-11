@@ -84,18 +84,18 @@ mongo:
   connectionsPerHost: 20
   threadsAllowedToBlockForConnectionMultiplier: 10
 pay:
-  loanUrl: http://api-intl.uat.doitglotech.cloud/payment/v2/disburse #:8888/payment/v2/disburse
-  loanExpenseUrl: http://api-intl.uat.doitglotech.cloud/payment/disburse #:8888/payment/disburse
-  cheakLoanUrl: http://api-intl.uat.doitglotech.cloud/payment/ #:8888/payment/
-  cheakRepayUrl: http://api-intl.uat.doitglotech.cloud/repayment/ #:8888/repayment/
-  inactiveOrderUrl: http://api-intl.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
-  transferOrderUrl: http://api-intl.uat.doitglotech.cloud/fund/fee/transfer/ #:8888/fund/fee/transfer/
+  loanUrl: http://api.uat.doitglotech.cloud/payment/v2/disburse #:8888/payment/v2/disburse
+  loanExpenseUrl: http://api.uat.doitglotech.cloud/payment/disburse #:8888/payment/disburse
+  cheakLoanUrl: http://api.uat.doitglotech.cloud/payment/ #:8888/payment/
+  cheakRepayUrl: http://api.uat.doitglotech.cloud/repayment/ #:8888/repayment/
+  inactiveOrderUrl: http://api.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
+  transferOrderUrl: http://api.uat.doitglotech.cloud/fund/fee/transfer/ #:8888/fund/fee/transfer/
   token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
 HttpUrl:
-  #smsUrl: http://api-intl.uat.doitglotech.cloud/sms/send #:8899/sms/send
+  #smsUrl: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
   smsUrl: http://invalid_url.doitglotech.co.id/sms/send #:8899/sms/send
-  #smsUrlTwilio: http://api-intl.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
-  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
+  #smsUrlTwilio: http://api.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 p2p:
   repaySuccessUrl: http://10.24.30.70:9090/doit/investment/getNormalRefundTask
   host: http://10.24.30.70:9020

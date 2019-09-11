@@ -111,14 +111,14 @@ mongo:
 upload:
   path: http://www.do-it.id
   #path:  http://10.24.30.72:8082
-  imagePath: http://api-intl.uat.doitglotech.cloud/manage/showStreamOnBrowser?path= #:8082/manage/showStreamOnBrowser?path=
+  imagePath: http://api.uat.doitglotech.cloud/manage/showStreamOnBrowser?path= #:8082/manage/showStreamOnBrowser?path=
 third:
   upload:
-    uploadHost: http://api-intl.uat.doitglotech.cloud
+    uploadHost: http://api.uat.doitglotech.cloud
     uploadFilePath: /uploadFile/uploadManageFile
     uploadManageFileUnverified: /uploadFile/uploadManageFileUnverified
   pay:
-    cardBinUrl: http://api-intl.uat.doitglotech.cloud/bankcard/verify #:8888/bankcard/verify
+    cardBinUrl: http://api.uat.doitglotech.cloud/bankcard/verify #:8888/bankcard/verify
     cardBinToken: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
   cashcash:
     #订单状态回调地址
@@ -185,7 +185,7 @@ third:
 
 manager:
   #        path: http://cn.control.do-it.id/manage/
-  path: http://api-intl.uat.doitglotech.cloud/manage/ #:8082/manage/
+  path: http://api.uat.doitglotech.cloud/manage/ #:8082/manage/
 des:
   file:
     path: /SECRET/des-test.cer
@@ -215,10 +215,10 @@ excel:
     targetPath: /Users/NeverMore/Desktop/excel
     templatesPath: /Users/NeverMore/Desktop/templates
 HttpUrl:
-  #smsUrl: http://api-intl.uat.doitglotech.cloud #:8899/sms/send
+  #smsUrl: http://api.uat.doitglotech.cloud #:8899/sms/send
   smsUrl: http://invalid_url.uat.doitglotech.cloud #:8899/sms/send
-  #smsUrlTwilio: http://api-intl.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
-  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
+  #smsUrlTwilio: http://api.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 SmsChannelType:
   type: ZENZIVA
 spring:

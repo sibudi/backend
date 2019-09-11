@@ -114,7 +114,7 @@ mongo:
 
 third:
   upload:
-    uploadHost: http://api-intl.uat.doitglotech.cloud
+    uploadHost: http://api.uat.doitglotech.cloud
     uploadFilePath: /uploadFile/uploadManageFile
     uploadManageFileUnverified: /uploadFile/uploadManageFileUnverified
   #    advance:
@@ -218,7 +218,7 @@ p2p:
   sendOrderInfoUrl: http://10.24.30.70:9090/doit/investment/getCreditRightTask
 
 jxl:
-  taxNumberVerify: http://api-intl.uat.doitglotech.cloud/spider/jxl/getXenditName #:8086/spider/jxl/getXenditName
+  taxNumberVerify: http://api.uat.doitglotech.cloud/spider/jxl/getXenditName #:8086/spider/jxl/getXenditName
 xendit:
   ktpValidationUrl: https://api.iluma.ai/v1/identity/ktp/validations
   #apiKey: iluma_production_C46PsY13trThjZV9soEVTzBEMgQ1bANhzK21+Eku/zUH8oJwPjEmuN==
@@ -226,10 +226,10 @@ xendit:
 count:
   smsCount: 10
 HttpUrl:
-  #smsUrl: http://api-intl.uat.doitglotech.cloud/sms/send #:8899/sms/send
+  #smsUrl: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
   smsUrl: http://invalid_url.doitglotech.co.id/sms/send #:8899/sms/send
-  #smsUrlTwilio: http://api-intl.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
-  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
+  #smsUrlTwilio: http://api.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 SmsChannelType:
   type: RAJA
 

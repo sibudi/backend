@@ -91,10 +91,10 @@ mongo:
   threadsAllowedToBlockForConnectionMultiplier: 10
 
 HttpUrl:
-  #smsUrl: http://api-intl.uat.doitglotech.cloud/sms/send #:8899/sms/send
+  #smsUrl: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
   smsUrl: http://invalid_url.uat.doitglotech.cloud/sms/send #:8899/sms/send
-  #smsUrlTwilio: http://api-intl.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
-  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
+  #smsUrlTwilio: http://api.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 SmsChannelType:
   type: ZENZIVA
   collection: ZENZIVA
@@ -106,7 +106,7 @@ des:
 upload:
   path: http://www.do-it.id
   #imagePath: http://control2.uanguang.co.id/manage/showStreamOnBrowser?path=
-  imagePath: http://api-intl.uat.doitglotech.cloud/manage/showStreamOnBrowser?path=
+  imagePath: http://api.uat.doitglotech.cloud/manage/showStreamOnBrowser?path=
 
 downlaod:
   writerPath: /home/management/savePhoneNums/templates.csv
@@ -119,7 +119,7 @@ collection:
 
 third:
   upload:
-    uploadHost: http://api-intl.uat.doitglotech.cloud
+    uploadHost: http://api.uat.doitglotech.cloud
     uploadFilePath: /uploadManageFile
     uploadManageFileUnverified: /uploadManageFileUnverified
   cashcash:
@@ -196,11 +196,11 @@ third:
     apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
     apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
 pay:
-  inactiveOrderUrl: http://api-intl.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
+  inactiveOrderUrl: http://api.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
   token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
-  cheakBcaBalanceUrl: http://api-intl.uat.doitglotech.cloud/balance/bca #:8888/balance/bca
-  cheakXenditBalanceUrl: http://api-intl.uat.doitglotech.cloud/balance/xendit #:8888/balance/xendit
-  cheakLoanUrl: http://api-intl.uat.doitglotech.cloud/payment/ #:8888/payment/
+  cheakBcaBalanceUrl: http://api.uat.doitglotech.cloud/balance/bca #:8888/balance/bca
+  cheakXenditBalanceUrl: http://api.uat.doitglotech.cloud/balance/xendit #:8888/balance/xendit
+  cheakLoanUrl: http://api.uat.doitglotech.cloud/payment/ #:8888/payment/
 
 spring:
   mail:
@@ -221,4 +221,4 @@ spring:
   freemarker:
     checkTemplateLocation: false
 manager:
-  ourPayPath: http://api-intl.uat.doitglotech.cloud/
+  ourPayPath: http://api.uat.doitglotech.cloud/
