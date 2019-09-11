@@ -7,7 +7,7 @@ mysql:
     type: com.alibaba.druid.pool.DruidDataSource
     write:
       name: yishu_write
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       # ??druid???
@@ -28,7 +28,7 @@ mysql:
       maxOpenPreparedStatements: 20
     read01:
       name: yishu_read01
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       # ??druid???
@@ -49,7 +49,7 @@ mysql:
       maxOpenPreparedStatements: 20
     read02:
       name: yishu_read02
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       # ??druid???
@@ -80,10 +80,10 @@ jedis:
       maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
     sentinel:
       master: mymaster
-      nodes: redis-A-01.uat.doitglotech.co.id:26379, redis-B-01.uat.doitglotech.co.id:26379, redis-B-02.uat.doitglotech.co.id:26379
+      nodes: redis-A-01.uat.doitglotech.cloud:26379, redis-B-01.uat.doitglotech.cloud:26379, redis-B-02.uat.doitglotech.cloud:26379
 
 mongo:
-  repleSet: mongo-A-01.uat.doitglotech.co.id:37837
+  repleSet: mongo-A-01.uat.doitglotech.cloud:37837
   username: do-it-use
   password: do-it-pwd
   dbName: do-it
@@ -92,12 +92,12 @@ mongo:
 count:
   smsCount: 10
 HttpUrl:
-  #smsUrl: http://api-intl.uat.doitglotech.co.id/sms/send #:8899/sms/send
+  #smsUrl: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
   smsUrl: http://invalid_url.doitglotech.co.id/sms/send #:8899/sms/send
-  #smsUrlTwilio: http://api-intl.uat.doitglotech.co.idsms/login/code #:8899/sms/login/code
-  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.co.id/sms/login/verify #:8899/sms/login/verify
-  #smsUrlInforbip: http://api-intl.uat.doitglotech.co.id/infobip/send/pin #:8899/infobip/send/pin
-  #smsUrlInforbipVerify: http://api-intl.uat.doitglotech.co.id/infobip/verify/pin #:8899/infobip/verify/pin
+  #smsUrlTwilio: http://api.uat.doitglotech.cloudsms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
+  #smsUrlInforbip: http://api.uat.doitglotech.cloud/infobip/send/pin #:8899/infobip/send/pin
+  #smsUrlInforbipVerify: http://api.uat.doitglotech.cloud/infobip/verify/pin #:8899/infobip/verify/pin
   smsUrlInforbip: http://invalid_url.doitglotech.co.id/infobip/send/pin #:8899/infobip/send/pin
   smsUrlInforbipVerify: http://invalid_url.doitglotech.co.id/infobip/verify/pin #:8899/infobip/verify/pin
 SmsChannelType:
@@ -117,11 +117,11 @@ third:
       #token: a71ea753a88544a8b5fd9931f32af58b
       token: invalidToken
   pay:
-    cardBinUrl: http://api-intl.uat.doitglotech.co.id/bankcard/verify #:8888/bankcard/verify
+    cardBinUrl: http://api.uat.doitglotech.cloud/bankcard/verify #:8888/bankcard/verify
     cardBinToken: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
     
   upload:
-    uploadHost: http://api-intl.uat.doitglotech.co.id
+    uploadHost: http://api.uat.doitglotech.cloud
     uploadFilePath: /uploadFile
     uploadBase64Path: /uploadBase64
   cashcash:
@@ -198,7 +198,7 @@ third:
     activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
     sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
     signUrl: https://apiuat.tandatanganku.com/SignWebView.html
-    contractDir: /MyUpload/DOIT_CONTRACT
+    contractDir: /mnt/MyUpload/DOIT_CONTRACT
     automaticSignKUser: e8r5QbytnJ5g2HOo
     automaticSignEmail: it@do-it.id
     automaticSignRealName: it@do-it.id
@@ -255,8 +255,8 @@ jxl:
   sendReportTokenUrl: http://10.24.30.69:8866/spider/jxl/finishProcess/
   jxlIdentityUrl: http://10.24.30.69:8866/spider/jxl/ktp
 pay:
-  commitRepayUrl: http://api-intl.uat.doitglotech.co.id/repayment/deposit #:8888/repayment/deposit
-  inactiveOrderUrl: http://api-intl.uat.doitglotech.co.id/payment/inactive/ #:8888/payment/inactive/
+  commitRepayUrl: http://api.uat.doitglotech.cloud/repayment/deposit #:8888/repayment/deposit
+  inactiveOrderUrl: http://api.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
   token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
 mobox:
   partnerCode: DoIt_id_test

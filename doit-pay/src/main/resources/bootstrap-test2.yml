@@ -7,7 +7,7 @@ mysql:
     type: com.alibaba.druid.pool.DruidDataSource
     write:
       name: yishu
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       type: com.alibaba.druid.pool.DruidDataSource
@@ -26,7 +26,7 @@ mysql:
       maxOpenPreparedStatements: 20
     read01:
       name: yishu
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       type: com.alibaba.druid.pool.DruidDataSource
@@ -45,7 +45,7 @@ mysql:
       maxOpenPreparedStatements: 20
     read02:
       name: yishu
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       type: com.alibaba.druid.pool.DruidDataSource
@@ -74,28 +74,28 @@ jedis:
       maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
     sentinel:
       master: mymaster
-      nodes: redis-A-01.uat.doitglotech.co.id:26379, redis-B-01.uat.doitglotech.co.id:26379, redis-B-02.uat.doitglotech.co.id:26379
+      nodes: redis-A-01.uat.doitglotech.cloud:26379, redis-B-01.uat.doitglotech.cloud:26379, redis-B-02.uat.doitglotech.cloud:26379
 
 mongo:
-  repleSet: mongo-A-01.uat.doitglotech.co.id:37837,
+  repleSet: mongo-A-01.uat.doitglotech.cloud:37837,
   username: do-it-use
   password: do-it-pwd
   dbName: do-it
   connectionsPerHost: 20
   threadsAllowedToBlockForConnectionMultiplier: 10
 pay:
-  loanUrl: http://api-intl.uat.doitglotech.co.id/payment/v2/disburse #:8888/payment/v2/disburse
-  loanExpenseUrl: http://api-intl.uat.doitglotech.co.id/payment/disburse #:8888/payment/disburse
-  cheakLoanUrl: http://api-intl.uat.doitglotech.co.id/payment/ #:8888/payment/
-  cheakRepayUrl: http://api-intl.uat.doitglotech.co.id/repayment/ #:8888/repayment/
-  inactiveOrderUrl: http://api-intl.uat.doitglotech.co.id/payment/inactive/ #:8888/payment/inactive/
-  transferOrderUrl: http://api-intl.uat.doitglotech.co.id/fund/fee/transfer/ #:8888/fund/fee/transfer/
+  loanUrl: http://api-intl.uat.doitglotech.cloud/payment/v2/disburse #:8888/payment/v2/disburse
+  loanExpenseUrl: http://api-intl.uat.doitglotech.cloud/payment/disburse #:8888/payment/disburse
+  cheakLoanUrl: http://api-intl.uat.doitglotech.cloud/payment/ #:8888/payment/
+  cheakRepayUrl: http://api-intl.uat.doitglotech.cloud/repayment/ #:8888/repayment/
+  inactiveOrderUrl: http://api-intl.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
+  transferOrderUrl: http://api-intl.uat.doitglotech.cloud/fund/fee/transfer/ #:8888/fund/fee/transfer/
   token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
 HttpUrl:
-  #smsUrl: http://api-intl.uat.doitglotech.co.id/sms/send #:8899/sms/send
+  #smsUrl: http://api-intl.uat.doitglotech.cloud/sms/send #:8899/sms/send
   smsUrl: http://invalid_url.doitglotech.co.id/sms/send #:8899/sms/send
-  #smsUrlTwilio: http://api-intl.uat.doitglotech.co.id/sms/login/code #:8899/sms/login/code
-  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.co.id/sms/login/verify #:8899/sms/login/verify
+  #smsUrlTwilio: http://api-intl.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 p2p:
   repaySuccessUrl: http://10.24.30.70:9090/doit/investment/getNormalRefundTask
   host: http://10.24.30.70:9020

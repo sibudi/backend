@@ -160,14 +160,15 @@ public class RiskService {
                 UsrUser user = this.usrService.getUserByUuid(order.getUserUuid());
                 if (order.getBorrowingCount() >= 2) {// 复借用户
 
+                    this.multiReviewPass(order, user);
                     //新规则使用：
-                    RuleSetExecutedResult ruleSetResult = applicationService
-                        .applyForReBorrowing(order, codeEntityMap);
-                    if (ruleSetResult.isRuleSetResult()) {
-                        this.multiReviewPass(order, user);
-                    } else {
-                        this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
-                    }
+                    // RuleSetExecutedResult ruleSetResult = applicationService
+                    //     .applyForReBorrowing(order, codeEntityMap);
+                    // if (ruleSetResult.isRuleSetResult()) {
+                    //     this.multiReviewPass(order, user);
+                    // } else {
+                    //     this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
+                    // }
 
                 } else {// 初借用户
 

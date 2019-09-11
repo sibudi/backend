@@ -6,7 +6,7 @@ mysql:
     type: com.alibaba.druid.pool.DruidDataSource
     write:
       name: yishu
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
 
@@ -27,7 +27,7 @@ mysql:
       maxOpenPreparedStatements: 20
     read01:
       name: yishu
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       type: com.alibaba.druid.pool.DruidDataSource
@@ -47,7 +47,7 @@ mysql:
       maxOpenPreparedStatements: 20
     read02:
       name: yishu
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
       type: com.alibaba.druid.pool.DruidDataSource
@@ -67,7 +67,7 @@ mysql:
       maxOpenPreparedStatements: 20
     riskBackup:
       name: riskBackup
-      url: jdbc:mysql://maxscale.uat.doitglotech.co.id:3388/doit?useUnicode=true&characterEncoding=utf-8
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
       username: userdoit
       password: PJf4jqQZ0igtKQ
 
@@ -98,10 +98,10 @@ jedis:
       maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
     sentinel:
       master: mymaster
-      nodes: redis-A-01.uat.doitglotech.co.id:26379, redis-B-01.uat.doitglotech.co.id:26379, redis-B-02.uat.doitglotech.co.id:26379
+      nodes: redis-A-01.uat.doitglotech.cloud:26379, redis-B-01.uat.doitglotech.cloud:26379, redis-B-02.uat.doitglotech.cloud:26379
 
 mongo:
-  repleSet: mongo-A-01.uat.doitglotech.co.id:37837,
+  repleSet: mongo-A-01.uat.doitglotech.cloud:37837,
   username: do-it-use
   password: do-it-pwd
   dbName: do-it
@@ -111,14 +111,14 @@ mongo:
 upload:
   path: http://www.do-it.id
   #path:  http://10.24.30.72:8082
-  imagePath: http://api-intl.uat.doitglotech.co.id/manage/showStreamOnBrowser?path= #:8082/manage/showStreamOnBrowser?path=
+  imagePath: http://api-intl.uat.doitglotech.cloud/manage/showStreamOnBrowser?path= #:8082/manage/showStreamOnBrowser?path=
 third:
   upload:
-    uploadHost: http://api-intl.uat.doitglotech.co.id
+    uploadHost: http://api-intl.uat.doitglotech.cloud
     uploadFilePath: /uploadFile/uploadManageFile
     uploadManageFileUnverified: /uploadFile/uploadManageFileUnverified
   pay:
-    cardBinUrl: http://api-intl.uat.doitglotech.co.id/bankcard/verify #:8888/bankcard/verify
+    cardBinUrl: http://api-intl.uat.doitglotech.cloud/bankcard/verify #:8888/bankcard/verify
     cardBinToken: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
   cashcash:
     #订单状态回调地址
@@ -177,7 +177,7 @@ third:
     activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
     sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
     signUrl: https://apiuat.tandatanganku.com/SignWebView.html
-    contractDir: /MyUpload/DOIT_CONTRACT
+    contractDir: /mnt/MyUpload/DOIT_CONTRACT
     automaticSignKUser: e8r5QbytnJ5g2HOo
     apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
     apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
@@ -185,7 +185,7 @@ third:
 
 manager:
   #        path: http://cn.control.do-it.id/manage/
-  path: http://api-intl.uat.doitglotech.co.id/manage/ #:8082/manage/
+  path: http://api-intl.uat.doitglotech.cloud/manage/ #:8082/manage/
 des:
   file:
     path: /SECRET/des-test.cer
@@ -215,10 +215,10 @@ excel:
     targetPath: /Users/NeverMore/Desktop/excel
     templatesPath: /Users/NeverMore/Desktop/templates
 HttpUrl:
-  #smsUrl: http://api-intl.uat.doitglotech.co.id #:8899/sms/send
-  smsUrl: http://invalid_url.uat.doitglotech.co.id #:8899/sms/send
-  #smsUrlTwilio: http://api-intl.uat.doitglotech.co.id/sms/login/code #:8899/sms/login/code
-  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.co.id/sms/login/verify #:8899/sms/login/verify
+  #smsUrl: http://api-intl.uat.doitglotech.cloud #:8899/sms/send
+  smsUrl: http://invalid_url.uat.doitglotech.cloud #:8899/sms/send
+  #smsUrlTwilio: http://api-intl.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api-intl.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 SmsChannelType:
   type: ZENZIVA
 spring:
