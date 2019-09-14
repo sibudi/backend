@@ -12,7 +12,7 @@ upload:
 
 jedis:
   pool:
-       database: 1
+    database: 1
     password: doit2019
     timeout: 3000
     config:
