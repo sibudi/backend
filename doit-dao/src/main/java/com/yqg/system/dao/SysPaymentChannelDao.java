@@ -15,7 +15,8 @@ import java.util.List;
 public interface SysPaymentChannelDao extends BaseMapper<SysPaymentChannel> {
 
     //  安卓还款(全部通过DOKU)  包括 Alfamart  BCA  PERMATA 和 OtherBanks（走PERMATA）
-    @Select("SELECT * FROM doit.sysPaymentChannel where disabled = 0  and type in(9,12,14,15) order by remark")
+    // show all syspayment channel for show CIMB
+    @Select("SELECT * FROM doit.sysPaymentChannel where disabled = 0 order by remark") //and type in(9,12,14,15)
     List<SysPaymentChannel> getRepaymentChanelListForDOKUNew();
 
     // 新版p2p还款 不同的放款渠道获取不同的还款渠道 包括BCA->BCA,BNI->BNI,CIMB,BRI和其他银行->CIMB  ,其中BNI使用自己的渠道，其他都使用DOKU

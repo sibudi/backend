@@ -96,6 +96,77 @@ public class SmsService {
 
     }
 
+    //Janhsen: temporary to make sure sms only send for OTP
+    public  void checkSmsCodeV2(String mobileNumber, String smsCode) throws Exception {
+
+        //判断手机号第一位是否是0，是0就去掉
+        if(mobileNumber.substring(0,1).equals("0")){
+            mobileNumber = mobileNumber.substring(1,mobileNumber.length());
+        }
+        String newMobileNumber = "62"+mobileNumber;
+
+        StringBuilder stringBuilder=new StringBuilder(RedisContants.SESSION_SMS_KEY+"count");
+        stringBuilder.append(newMobileNumber);
+        stringBuilder.append(DateUtils.DateToString(new Date()));
+        String smsNum = redisClient.get(stringBuilder.toString());
+        int smsCount = 0;
+        if (!StringUtils.isEmpty(smsNum)){
+            smsCount  = Integer.valueOf(smsNum) - 1;
+        }
+        log.info("checkSmsCodeV2 sms count:{}",smsCount);
+
+//        zenziva -》 inforbip -》 twilio -》zenziva
+
+        if (smsCount == 1){
+            UsrUser usrUser =new UsrUser();
+            String mobileNumberDES = DESUtils.encrypt(mobileNumber);
+            usrUser.setMobileNumberDES(mobileNumberDES);
+            usrUser.setStatus(1);
+            usrUser.setDisabled(0);
+            List<UsrUser> userList = this.usrDao.scan(usrUser);
+            String content="";
+            if (CollectionUtils.isEmpty(userList)) {
+                content = "<Do-It> Kode Anda adalah "+smsCode+", gunakan kode untuk pendaftaran di Do-It. Terima kasih atas kepercayaan Anda.";
+            }else {
+                content="<Do-It> Kode masuk Anda adalah "+smsCode+".ini adalah rahasia, DILARANG MEMBERIKAN KODE KE SIAPAPUN.";
+            }
+
+            smsServiceUtil.sendTypeSmsCodeWithTypeV2("LOGIN",mobileNumber,content,"ZENZIVA");
+
+            log.info("checkSmsCodeV2 sms using ZENZIVA {0} {1}" + mobileNumber, content);
+        }else if (smsCount == 2){
+
+            if(!testNumbers.contains(mobileNumber)){
+                SmsCheckInforbipResponse response = smsServiceUtil.sendSmsByInforbipVerify2(smsCode,newMobileNumber);
+                if (!response.getVerified().equals("true")){
+                    throw new ServiceException(ExceptionEnum.USER_CHECK_SMS_CODE_ERROR);
+                }
+            }
+
+            log.info("checkSmsCodeV2 sms using Inforbip {0} {1}", smsCode,newMobileNumber);
+
+//             if(!testNumbers.contains(mobileNumber)){
+//                 SmsVeriResponse response = smsServiceUtil.sendSmsByTwilioVerify(smsCode,newMobileNumber);
+//                 if (!response.getCode().equals("0")){
+// //           log.info("验证码错误----------->",smsCode);
+//                     throw new ServiceException(ExceptionEnum.USER_CHECK_SMS_CODE_ERROR);
+//                 }
+//             }
+        }else {
+
+            StringBuilder stringBuilder2=new StringBuilder(RedisContants.SESSION_SMS_KEY);
+            stringBuilder2.append(newMobileNumber);
+            String code = redisClient.get(stringBuilder2.toString());
+            log.info("smscode{}---------------------------------------code{}",smsCode,code);
+            if(!smsCode.equals(code)) {
+//                log.info("????????----------->",code);
+                throw new ServiceException(ExceptionEnum.USER_CHECK_SMS_CODE_ERROR);
+            }
+
+            log.info("sms using other {0} {1}", smsCode,code);
+        }
+
+    }
     public void sendSmsCode(SmsRequest smsRequest) throws Exception {
 
         //判断手机号第一位是否是0，是0就去掉
@@ -158,7 +229,70 @@ public class SmsService {
         }
     }
 
+    public void sendSmsCodeV2(SmsRequest smsRequest) throws Exception {
 
+        //判断手机号第一位是否是0，是0就去掉
+        String mobileNumber = smsRequest.getMobileNumber();
+
+        if (!StringUtils.isEmpty(mobileNumber)){
+
+            if(testNumbers.contains(mobileNumber)){
+                //3.???redis
+                this.setSmsCode("62"+mobileNumber,"8888");
+            }else {
+                if(mobileNumber.substring(0,1).equals("0")){
+                    mobileNumber = mobileNumber.substring(1,mobileNumber.length());
+                }
+                //???????SysThirdLogs ????????62
+                mobileNumber="62"+mobileNumber;
+                UsrUser usrUser =new UsrUser();
+                String mobileNumberDES = DESUtils.encrypt(mobileNumber);
+                usrUser.setMobileNumberDES(mobileNumberDES);
+                usrUser.setStatus(1);
+                usrUser.setDisabled(0);
+                List<UsrUser> userList = this.usrDao.scan(usrUser);
+                String content="";
+                String smsCode= SmsCodeUtils.sendSmsCode();
+                if (CollectionUtils.isEmpty(userList)) {
+                    content = "<Do-It> Kode Anda adalah "+smsCode+", gunakan kode untuk pendaftaran di Do-It. Terima kasih atas kepercayaan Anda.";
+                }else {
+                    content="<Do-It> Kode masuk Anda adalah "+smsCode+".ini adalah rahasia, DILARANG MEMBERIKAN KODE KE SIAPAPUN.";
+                }
+                int smsCount=Integer.valueOf(this.smsCount);//??? ????????
+                //1.校验短信验证码次数
+                this.getSmsCodeCount(mobileNumber,smsCount);
+                if (!mobileNumber.startsWith("62")){
+                    mobileNumber= "62" + mobileNumber ;
+                }
+
+                StringBuilder stringBuilder=new StringBuilder(RedisContants.SESSION_SMS_KEY+"count");
+                stringBuilder.append(mobileNumber);
+                stringBuilder.append(DateUtils.DateToString(new Date()));
+                String smsNum = redisClient.get(stringBuilder.toString());
+                int nowSmsCount = Integer.valueOf(smsNum) - 1;
+
+                if (nowSmsCount == 1){
+                    smsServiceUtil.sendSmsByInforbipV2(mobileNumber);
+
+                    log.info("sendSmsCodeV2 sms using Inforbip {0}", mobileNumber);
+                }
+                else {
+
+                    smsServiceUtil.sendTypeSmsCodeWithTypeV2("LOGIN",mobileNumber,content,"ZENZIVA");
+                    //3.保存到redis
+                    this.setSmsCode(mobileNumber,smsCode);
+                    //            4.存到数据库
+                    smsServiceUtil.insertSysSmsCode(smsRequest.getMobileNumber(),smsCode,2);
+
+                    log.info("sendSmsCodeV2 sms using ZENZIVA {0} {1}", mobileNumber, smsCode);
+                }
+            }
+        }else {
+            throw new ServiceException(ExceptionEnum.USER_BASE_PARAMS_ILLEGAL);
+        }
+    }
+
+    
     /**
      * ?????????
      * @param mobileNumber

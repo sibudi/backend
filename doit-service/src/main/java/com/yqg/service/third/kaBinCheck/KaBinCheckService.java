@@ -84,7 +84,7 @@ public class KaBinCheckService {
         Map<String,String> contents = new HashMap<String, String>();
         contents.put(BANKCODE,userBankRequest.getBankCode());
         contents.put(BANKCARDNUMBER,userBankRequest.getBankNumberNo());
-        contents.put("paymentChannel","XENDIT");
+        contents.put("paymentChannel","CIMB");
         int connectTimeout=30000;
         int readTimeout=10000;
         // ??????

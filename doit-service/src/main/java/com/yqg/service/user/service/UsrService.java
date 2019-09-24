@@ -199,6 +199,33 @@ public class UsrService {
         return loginSession;
     }
 
+    //Janhsen: temporary to make sure sms only works for OTP
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public LoginSession signupV2(UsrRequst usrRequst) throws Exception {
+
+        LoginSession loginSession = new LoginSession();
+        String mobileNumber = usrRequst.getMobileNumber();
+        //???????????0??0???
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+        //ahalim: Disable SMS
+        smsService.checkSmsCodeV2(mobileNumber, usrRequst.getSmsCode());
+
+        List<UsrUser> userList = this.scanUser(usrRequst);
+        if (CollectionUtils.isEmpty(userList)) {
+            // 限制iOS新用户注册
+            if (usrRequst.getClient_type().equals("iOS")) {
+                throw new ServiceException(ExceptionEnum.SYSTEM_UPGRADE);
+            }
+            loginSession = logup(usrRequst);
+        } else {
+            loginSession = login(usrRequst);
+        }
+        return loginSession;
+    }
+
     @WriteDataSource
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
     public JSONObject inviteSignup(UsrRequst usrRequst) throws Exception {
