@@ -1301,10 +1301,10 @@ public class ManOrderOrderService {
         if (status.equals(OrdStateEnum.LOANING_DEALING.getCode()) ||
                 status.equals(OrdStateEnum.RESOLVING_NOT_OVERDUE.getCode()) ||
                 status.equals(OrdStateEnum.RESOLVING_OVERDUE.getCode())) {
-            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_EDIT_ITEM_ERROR);
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_CANCEL_ORDER_ERROR);
         }
         if (status.equals(OrdStateEnum.LOAN_FAILD.getCode()) && !ordOrders.get(0).getRemark().equals("BANK_CARD_ERROR")) {
-            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_EDIT_ITEM_ERROR);
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_CANCEL_ORDER_ERROR);
         }
         //取消订单
         ordOrder.setDisabled(1);

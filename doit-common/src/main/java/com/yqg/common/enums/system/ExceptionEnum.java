@@ -74,9 +74,9 @@ public enum ExceptionEnum {
 
 
     ORDER_PRODUCT_CONFIG_IS_NULL(3014,"konfigurasi produk tidak terdaftar"),//产品配置不存在
-    ORDER_NOT_FOUND(3018,"permohonan tidak terdaftara"),//订单不存在
+    ORDER_NOT_FOUND(3018,"permohonan tidak terdaftar"),//订单不存在
     ORDER_UN_FINISH(3019,"terdapat permohonan yang belum selesai di proses"),//有未处理完的订单
-    ORDER_IS_NOT_APPLYING(3020,"permohonan tidak sedang diasukan"),//不是申请中的订单
+    ORDER_IS_NOT_APPLYING(3020,"permohonan tidak sedang dalam proses"),//不是申请中的订单
     ORDER_COMMIT_REPEAT(3031,"tolong jangan mengulang permintaan yang sama"),//请勿重复提交！
     ORDER_STATES_ERROR(3032,"Permohonan bermasalah!"),//订单状态异常!
     NOT_ARRVIE_DAY(3033,"Belum melebihi jumlah batas hari penolakan!"),//未到达拒绝天数
@@ -96,16 +96,17 @@ public enum ExceptionEnum {
     MANAGE_FREE_ORDER_ERROR(10010,"pelunasan offline gagal"),//线下还款失败
     MANAGR_DISTRIBUTE_ORDER_ERROR(10011,"gagal membagikan permohonan"),//订单分配失败
     MANAGE_ADD_ITEM_ERROR(10012,"gagal menambahkan"),//添加失败
-    CALL_RECORD_IS_NONE(10014,"Call record is none"),
+    CALL_RECORD_IS_NONE(10014,"Rekam panggilan tidak ditemukan"),
     MANAGE_EDIT_ITEM_ERROR(10013,"gagal merubah dikarenakan percobaan berkali-kali melebihi batas, silahkan hubungi bagian development"),//修改失败,若多次失败请联系开发人员
     SMS_COUNT_LIMIT(10015,"The number of SMS messages has reached the upper limit!"),
     LOCKED(10016,"LOCKED!"),
-    NO_USER_NAME(10017,"没有查询到该用户！"),
-    HAS_TEAM(10018,"该组长下还有组员！"),
+    NO_USER_NAME(10017,"Pengguna tidak ditemukan！"),
+    HAS_TEAM(10018,"Masih terdapat anggota tim"),
     MANAGE_HAS_LOGIN(10019,"Nasabah telah login di tempat lain!"),//用户在别处已登录;
     FILE_CONTAIN_MOBILE(10020,"文件第一行第一列必须包含mobile！"),
-    FREQUENT_OPERATION(10021,"请勿频繁操作！"),
+    FREQUENT_OPERATION(10021,"Anda terlalu cepat, tunggu sebentar！"),
     VALITYDATE_FORMAT_IS_ERROR(10022, "validity startTime or endTime format is error!"),
+    MANAGE_CANCEL_ORDER_ERROR(10023,"Tidak dapat membatalkan permohonan yang telah diproses"),
     ;
     private int code;
     private String message;
