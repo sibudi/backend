@@ -320,8 +320,9 @@ public class OrdService {
             addUserMobileDeviceInfo(orderRequest,order.getUuid());
 
         }
-
-        List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
+        //Invite
+        //List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
+        List<Integer> scanList = this.orderDao.isInvited(orderRequest.getUserUuid());
         if (CollectionUtils.isEmpty(scanList)){
             orderResponse.setIsAgain("0");
         }else {

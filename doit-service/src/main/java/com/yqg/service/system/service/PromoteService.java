@@ -151,7 +151,6 @@ public class PromoteService {
         if (!CollectionUtils.isEmpty(userList)) {
             for (UsrProductTemp productTemp : userList) {
                 try {
-
                     UsrUser user = new UsrUser();
                     user.setUuid(productTemp.getUserUuid());
                     user.setDisabled(0);
@@ -163,7 +162,6 @@ public class PromoteService {
                         log.error("提额用户不存在，用户uuid为"+productTemp.getUserUuid());
                         continue;
                     }
-
                     // 1.添加用户提额记录
                     UsrProductRecord record = new UsrProductRecord();
                     record.setUserUuid(productTemp.getUserUuid());

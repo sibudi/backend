@@ -416,4 +416,9 @@ public interface UsrDao extends BaseMapper<UsrUser> {
 
     @Select("select * from usrUser limit 1;")
     List<UsrUser> getAllUser();
+
+    //invite
+    @Select("select 1 from usrUser a left join ordOrder b on a.uuid = b.userUuid where a.mobileNumberDES =#{mobileDES} and (a.isInvited = 1 or b.status in (7, 8)) and b.disabled = 0 and a.disabled=0 group by a.mobileNumberDES, a.isInvited;")
+    List<Integer> isInvitedAndNeedRepay(@Param("mobileDES") String mobileDES) ;
 }
+

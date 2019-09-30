@@ -72,6 +72,8 @@ public class OrdOrder extends BaseEntity implements Serializable {
         SEND_2_P2P_FAILED("21"),//推送到p2p失败
         ;
 
+
+
         P2PLoanStatusEnum(String statusCode) {
             this.statusCode = statusCode;
         }

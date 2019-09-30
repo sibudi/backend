@@ -171,7 +171,11 @@ public class SmsService {
 
         //判断手机号第一位是否是0，是0就去掉
         String mobileNumber = smsRequest.getMobileNumber();
+        
 
+        //invite
+        String mobileNumber2 = smsRequest.getMobileNumber();
+        
         if (!StringUtils.isEmpty(mobileNumber)){
 
             if(testNumbers.contains(mobileNumber)){
@@ -185,9 +189,23 @@ public class SmsService {
                 mobileNumber="62"+mobileNumber;
                 UsrUser usrUser =new UsrUser();
                 String mobileNumberDES = DESUtils.encrypt(mobileNumber);
+
+                //invite
+                String mobileNumberDES2 = DESUtils.encrypt(mobileNumber2);
+                log.info("mobileNumberDES:"+mobileNumberDES2);
+
+
+                //invite
+                List<Integer> scanListCheck = this.usrDao.isInvitedAndNeedRepay(mobileNumberDES2);
+                if (CollectionUtils.isEmpty(scanListCheck)){
+                    throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
+                }
+
                 usrUser.setMobileNumberDES(mobileNumberDES);
                 usrUser.setStatus(1);
                 usrUser.setDisabled(0);
+                
+
                 List<UsrUser> userList = this.usrDao.scan(usrUser);
                 String content="";
                 String smsCode= SmsCodeUtils.sendSmsCode();
@@ -234,6 +252,9 @@ public class SmsService {
         //判断手机号第一位是否是0，是0就去掉
         String mobileNumber = smsRequest.getMobileNumber();
 
+        //invite
+        String mobileNumber2 = smsRequest.getMobileNumber();
+
         if (!StringUtils.isEmpty(mobileNumber)){
 
             if(testNumbers.contains(mobileNumber)){
@@ -246,7 +267,19 @@ public class SmsService {
                 //???????SysThirdLogs ????????62
                 mobileNumber="62"+mobileNumber;
                 UsrUser usrUser =new UsrUser();
+
                 String mobileNumberDES = DESUtils.encrypt(mobileNumber);
+
+                //invite
+                String mobileNumberDES2 = DESUtils.encrypt(mobileNumber2);
+
+
+                //invite
+                List<Integer> scanListCheck = this.usrDao.isInvitedAndNeedRepay(mobileNumberDES2);
+                if (CollectionUtils.isEmpty(scanListCheck)){
+                    throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
+                }
+
                 usrUser.setMobileNumberDES(mobileNumberDES);
                 usrUser.setStatus(1);
                 usrUser.setDisabled(0);

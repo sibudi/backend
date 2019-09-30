@@ -3797,4 +3797,10 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     @Select("select * from ordOrder where disabled = 0 and status in (7,8) " +
             "and dateDiff(now(), refundTime) = #{days} order by createTime desc;")
     List<OrdOrder> listOrderByOverDueDays(@Param("days") Integer days);
+
+
+    //invited
+    @Select("select 1 from usrUser where uuid=#{userId} and isInvited=1")
+    List<Integer> isInvited(@Param("userId") String userId);
+
 }

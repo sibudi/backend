@@ -53,6 +53,7 @@ public enum ExceptionEnum {
     CASE_OUT_MIN(1052, "Jumlah penarikan uang tunai anda berada di bawah batas minimum"), // 您的提现金额低于最低限额
     CAN_NOT_REBIND_CARD(1053, "Ada pengajuan penarikan belum selesai, nomor bank tidak dapat diganti"), // 有未完成的提现操作，不能换绑卡
     USER_CHECK_SMS_CODE_TIMEOUT(1054, "Kode verifikasi SMS telah kedaluwarsa"),//短信验证码已失效
+    USER_NOT_INVITED(1055, "Anda tidak masuk dalam list undangan"),
 
 
     SYSTEM_TONGDUN_APPLY_ERROR(2003,"permintaan sertifikasi pengguna mencapai batas maksimum"),//请求同盾失败

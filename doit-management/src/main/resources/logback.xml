@@ -17,7 +17,7 @@
 		<rollingPolicy
 			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			rollover daily
-			<fileNamePattern>/LOG/${log.path}/mylog-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+			<fileNamePattern>/LOG/${log.path}/mylog-%d{yyyy-MM-dd}.%i.txt.gz</fileNamePattern>
 			each file should be at most 100MB, keep 60 days worth of history,
 			but at most 20GB
 			<maxFileSize>512MB</maxFileSize>
