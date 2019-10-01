@@ -25,6 +25,7 @@ public class RedisContants {
     public static final String SESSION_BT_BANK_CARD_COUNT_KEY = "btBankCardCountKey:";
 
     public static final String SYSTEM_YIMEI_ACCESS_TOKEN = "sys:yimei:token";
+    public static final String NUMBERS_OTP_OFF = "numbers:otp:off";
 
     /**
      * ??????

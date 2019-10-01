@@ -70,7 +70,7 @@ public enum ExceptionEnum {
     SYSTEM_INVAILD_IP_ADDRESS(2037,"tidak menemukan aplikasi untuk membagikan."),//非法的IP地址
     SYSTEM_BANK_CARD_NOT_FIND_ERROR(2038,"Pendaftaran kartu bank gagal, tidak dapat menemukan kartu bank pengguna."),//解绑卡失败，未找到用户银行卡！
     SYSTEM_YITU_UPLOAD_IMAGE_FAILD(2039,"pencocokan gambar gagal, silahkan lakukan verifikasi ulang."),//活体匹配图片失败，请重新认证
-    SYSTEM_APP_NEED_UPDATE(2040,"Versi yang digunakan oleh nasabah tidak kompatibel, silahkan perbaharui terlebih dahulu"),//客户端版本过低，请更新应用
+    SYSTEM_APP_NEED_UPDATE(2040,"Mohon perbaharui app Do-it Anda di Google Play."),//客户端版本过低，请更新应用
     SYSTEM_UPGRADE(2041,"Maaf dengan adanya peningkatan versi. Terima kasih"),//抱歉，我们的系统正在升级，请至googleplay下载我们的APP。 谢谢
 
 

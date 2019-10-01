@@ -187,11 +187,11 @@ public class UsrService {
         smsService.checkSmsCode(mobileNumber, usrRequst.getSmsCode());
 
         List<UsrUser> userList = this.scanUser(usrRequst);
-        if (CollectionUtils.isEmpty(userList)) {n
+        if (CollectionUtils.isEmpty(userList)) {
             // 限制iOS新用户注册
             if (usrRequst.getClient_type().equals("iOS")) {
                 throw new ServiceException(ExceptionEnum.SYSTEM_UPGRADE);
-            }n
+            }
             loginSession = logup(usrRequst);
         } else {
             loginSession = login(usrRequst);
