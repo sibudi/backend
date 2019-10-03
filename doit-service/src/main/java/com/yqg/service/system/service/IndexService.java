@@ -124,6 +124,9 @@ public class IndexService {
     @Autowired
     private SysProductChannelDao sysProductChannelDao;
 
+    private BigDecimal defaultOverDueRate1 = BigDecimal.valueOf(0.01);
+    private BigDecimal defaultOverDueRate2 = BigDecimal.valueOf(0.02);
+
     /**
      *   首先判断用户是否在分期白名单表中
      *   如果在，走分期产品逻辑
@@ -512,7 +515,7 @@ public class IndexService {
         backOverResponse.setShouldPayTime(DateUtils.DateToString5(orderObj.getRefundTime()));// ?????
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
-
+        
         if (orderObj.getOrderType().equals("0")||orderObj.getOrderType().equals("2")){
             SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(orderObj.getProductUuid());
             // ??<=3??overdueRate1?>3??overdueRate2
@@ -540,17 +543,18 @@ public class IndexService {
             //  展期订单还款
             if(dayNum <= 3L){
                 // ????? = ????+  ????? + ?? + ????????*??????*??????
-                shouldPayAmount =orderObj.getAmountApply().add(delayFee).add(orderObj.getAmountApply().multiply(new BigDecimal(0.01)).multiply(BigDecimal.valueOf(dayNum)));
+                shouldPayAmount =orderObj.getAmountApply().add(delayFee).add(orderObj.getAmountApply().multiply(defaultOverDueRate1).multiply(BigDecimal.valueOf(dayNum)));
             }else{
 
                 shouldPayAmount =orderObj.getAmountApply()
                         .add(delayFee)
-                        .add(orderObj.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(3)))
-                        .add(orderObj.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(dayNum - 3)));
+                        .add(orderObj.getAmountApply().multiply(defaultOverDueRate1).multiply(BigDecimal.valueOf(3)))
+                        .add(orderObj.getAmountApply().multiply(defaultOverDueRate2).multiply(BigDecimal.valueOf(dayNum - 3)));
             }
         }
 
-        BigDecimal limit = orderObj.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+        //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+        BigDecimal limit = orderObj.getAmountApply().subtract(orderObj.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
         if (shouldPayAmount.compareTo(limit) > 0 ){
             shouldPayAmount = limit;
         }
