@@ -218,17 +218,17 @@ public class ManOrderUserDataService {
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCheck())) {
                 result.setFatherMobile("******");
                 result.setMotherMobile("******");
-                result.setEmail("******");
+                // result.setEmail("******");
             }
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCollect())) {
-                result.setEmail("******");
+                // result.setEmail("******");
                 result.setAcademic("******");
                 result.setFamilyMemberAmount(0);
-                result.setDetailed("******");
-                result.setBigDirect("**");
-                result.setSmallDirect("**");
-                result.setCity("**");
-                result.setProvince("**");
+                // result.setDetailed("******");
+                // result.setBigDirect("**");
+                // result.setSmallDirect("**");
+                // result.setCity("**");
+                // result.setProvince("**");
             }
         } else if (object instanceof UsrWorkBaseInfoModel) {
             UsrWorkBaseInfoModel result = (UsrWorkBaseInfoModel)object;
@@ -238,18 +238,18 @@ public class ManOrderUserDataService {
                 result.setMaritalStatus(-1);
 
             }
-            if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCheck())) {
-                result.setEmail("******");
-            }
+            // if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCheck())) {
+            //     result.setEmail("******");
+            // }
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCollect())) {
-                result.setEmail("******");
+                //result.setEmail("******");
                 result.setAcademic("******");
                 result.setChildrenAmount(0);
-                result.setDetailed("******");
-                result.setBigDirect("**");
-                result.setSmallDirect("**");
-                result.setCity("**");
-                result.setProvince("**");
+                // result.setDetailed("******");
+                // result.setBigDirect("**");
+                // result.setSmallDirect("**");
+                // result.setCity("**");
+                // result.setProvince("**");
             }
         } else if (object instanceof HouseWifeInfoResponse) {
             HouseWifeInfoResponse result = (HouseWifeInfoResponse)object;
@@ -258,18 +258,18 @@ public class ManOrderUserDataService {
                 result.setMotherName("******");
                 result.setMaritalStatus(-1);
             }
-            if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCheck())) {
-                result.setEmail("******");
-            }
+            // if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCheck())) {
+            //     result.setEmail("******");
+            // }
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCollect())) {
-                result.setEmail("******");
+                //result.setEmail("******");
                 result.setAcademic("******");
                 result.setChildrenAmount(0);
-                result.setDetailed("******");
-                result.setBigDirect("**");
-                result.setSmallDirect("**");
-                result.setCity("**");
-                result.setProvince("**");
+                // result.setDetailed("******");
+                // result.setBigDirect("**");
+                // result.setSmallDirect("**");
+                // result.setCity("**");
+                // result.setProvince("**");
             }
         }
     }
@@ -308,10 +308,10 @@ public class ManOrderUserDataService {
                 result.setMonthlyIncome("******");
 
             }
-            if (!manAuthManagerService.hasAuthorityByRoleName(ManCheckOperatorEnum.listCheckOperatorEnumAddSC())) {
-                result.setExtensionNumber("******");
-                result.setCompanyPhone("******");
-            }
+            // if (!manAuthManagerService.hasAuthorityByRoleName(ManCheckOperatorEnum.listCheckOperatorEnumAddSC())) {
+            //     result.setExtensionNumber("******");
+            //     result.setCompanyPhone("******");
+            // }
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCollect())) {
                 result.setCity("*******");
                 result.setDetailed("*******");
@@ -319,16 +319,16 @@ public class ManOrderUserDataService {
                 result.setBigDirect("*******");
                 result.setProvince("*******");
                 result.setPositionName("******");
-                result.setCompanyPhone("******");
+                // result.setCompanyPhone("******");
             }
         } else if (object instanceof HouseWifeInfoResponse) {
             HouseWifeInfoResponse result = (HouseWifeInfoResponse)object;
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnum())) {
-                result.setCompanyName("******");
+                //result.setCompanyName("******");
                 result.setSourceTel("******");
             }
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCollect())) {
-                result.setEmail("******");
+                //result.setEmail("******");
                 result.setAcademic("******");
                 result.setChildrenAmount(0);
                 result.setCity("*******");
@@ -336,7 +336,7 @@ public class ManOrderUserDataService {
                 result.setSmallDirect("*******");
                 result.setBigDirect("*******");
                 result.setProvince("*******");
-                result.setCompanyPhone("******");
+                //result.setCompanyPhone("******");
             }
         }
     }

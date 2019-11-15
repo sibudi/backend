@@ -4,6 +4,7 @@ import com.yqg.base.data.mapper.BaseMapper;
 import com.yqg.manage.dal.provider.QualityCheckSqlProvider;
 import com.yqg.manage.entity.collection.ManQualityCheckConfig;
 import com.yqg.manage.service.collection.request.ManQualityRecordRequest;
+import com.yqg.manage.service.collection.response.CollectionOrderResponse;
 import com.yqg.manage.service.collection.response.ManQualityCountResponse;
 import com.yqg.manage.service.collection.response.OutCollectionResponse;
 import com.yqg.manage.service.order.request.OverdueOrderRequest;
@@ -70,4 +71,8 @@ public interface ManQualityCheckConfigDao extends BaseMapper<ManQualityCheckConf
     @Select("<script>select * from ordOrder where uuid in " +
             "<foreach collection='ids' item='item' separator=',' open='(' close=')'> #{item} </foreach> and disabled = 0;</script>")
     List<OrdOrder> batchGetOrders(@Param("ids") List<String> ids);
+
+    @Select("select record.remark as checkResultRemark, record.id, config.title as checkResult, config.titleInn as checkResultInn, record.type as orderTag from manQualityCheckRecord record join manQualityCheckConfig" +
+            " config on config.id = record.checkTag and config.disabled = 0 and record.disabled=0 where record.orderNo = #{orderNo};")
+    List<CollectionOrderResponse> listCheckReordByOrderNo(@Param("orderNo") String orderNo);
 }

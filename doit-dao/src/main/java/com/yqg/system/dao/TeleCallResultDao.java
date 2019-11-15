@@ -73,6 +73,7 @@ public interface TeleCallResultDao extends BaseMapper<TeleCallResult> {
     //有过重试的外呼号码，最早已经外呼的填天数
     @Select("select max(datediff(now(),createTime)) from teleCallResult t where t.orderNo = #{orderNo} and callType=#{callType} and " +
             "tellNumber=#{tellNumber}\n" +
+            "  and t.createTime>=(select max(createTime) from ordHistory ss where ss.orderId = t.orderNo and ss.status = 2) " +
             " and exists(\n" +
             "    select 1 from teleCallResult tt where tt.orderNo = t.orderNo and tt.callType = t.callType and tt.tellNumber = t.tellNumber and tt.remark='auto resend perday'\n" +
             ");")

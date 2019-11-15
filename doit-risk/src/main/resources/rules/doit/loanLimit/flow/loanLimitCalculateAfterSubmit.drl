@@ -1,0 +1,60 @@
+package rules.doit.loanLimit.flow
+
+
+
+import com.yqg.drools.model.LoanLimitModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult;
+import com.yqg.drools.model.RUserInfo.IziPhoneVerifyResult.PhoneVerifyStatusEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.LastLoan;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.service.util.RuleConstants;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.model.base.LoanLimitRuleResult;
+
+global List limitRuleResultList;
+
+rule "loanLimitCalculateAfterSubmit_RC4_001_A"
+    when
+        LastLoan($lastBorrowingAmount: borrowingAmount, $overdueDays: overdueDays, $hitIncreaseLoanLimit200RMB: hitIncreaseLoanLimit200RMB,
+                 $intervalDays: intervalDays);
+        RUserInfo($monthlyIncome: monthlyIncome);
+        LoanInfo($currentBorrowingAmount: borrowingAmount);
+        eval(RuleUtils.equalTo(RuleUtils.valueOfStr($lastBorrowingAmount),RuleUtils.valueOfStr(RuleConstants.PRODUCT50))
+            && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount),RuleUtils.valueOfStr(RuleConstants.PRODUCT50))
+            && $hitIncreaseLoanLimit200RMB!=null && $hitIncreaseLoanLimit200RMB
+            && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),"0")
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays),"0")
+            && RuleUtils.greatThan(RuleUtils.valueOfStr($monthlyIncome),"4000000")
+        )
+    then
+         limitRuleResultList.add(LoanLimitRuleResult.buildResult("loanLimitCalculate_RC4_001_A",
+                                                                  true,
+                                                                  "首借80rmb,命中复借提额至200rmb规则,且首借80rmb的逾期天数=0&平均借款间隔天数-复借>0&月收入>2000",
+                                                                  RuleConstants.PRODUCT200));
+end
+
+rule "loanLimitCalculateAfterSubmit_RC4_002_A"
+    when
+        LastLoan($lastBorrowingAmount: borrowingAmount, $overdueDays: overdueDays, $hitIncreaseLoanLimit200RMB: hitIncreaseLoanLimit200RMB,
+                 $intervalDays: intervalDays);
+        RUserInfo($academic: academic, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+        LoanInfo($currentBorrowingAmount: borrowingAmount);
+        eval(RuleUtils.equalTo(RuleUtils.valueOfStr($lastBorrowingAmount),RuleUtils.valueOfStr(RuleConstants.PRODUCT50))
+            && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount),RuleUtils.valueOfStr(RuleConstants.PRODUCT200))
+            && $hitIncreaseLoanLimit200RMB!=null && $hitIncreaseLoanLimit200RMB
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($overdueDays),"0")
+            && RuleUtils.containsString(Arrays.asList(EducationEnum.HighSchool.getCode(),EducationEnum.JuniorMiddleSchool.getCode(),EducationEnum
+            .PrimarySchool.getCode()),RuleUtils.valueOfStr($academic))
+            && $iziPhoneVerifyResult!=null && $iziPhoneVerifyResult.getStatus() == IziPhoneVerifyResult.PhoneVerifyStatusEnum.NOT_FOUND
+        )
+    then
+         limitRuleResultList.add(LoanLimitRuleResult.buildResult("loanLimitCalculate_RC4_002_A",
+                                                                  true,
+                                                                  "首借80rmb,命中复借提额至200rmb规则,且首借80rmb的逾期天数<0&学历高中及以下&izi验证not found",
+                                                                  RuleConstants.PRODUCT50));
+end

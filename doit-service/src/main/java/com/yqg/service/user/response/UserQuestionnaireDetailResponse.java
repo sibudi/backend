@@ -39,4 +39,6 @@ public class UserQuestionnaireDetailResponse extends UsrQuestionnaireBaseRespons
 
     private List<Questionnaire> attachs;
 
+    private String mobile;
+
 }

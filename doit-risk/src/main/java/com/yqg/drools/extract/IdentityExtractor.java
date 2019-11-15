@@ -400,17 +400,9 @@ public class IdentityExtractor implements BaseExtractor<RUserInfo> {
             userInfo.setBankCode(usrBank.getBankCode());
         }
 
-        //set whatsApp result
+        //set whatsApp result for linkman
         List<UserIziVerifyResultMongo> lastRecordList = iziService.getLatestWhatsAppCheckResultList(order.getUuid());
         if (!CollectionUtils.isEmpty(lastRecordList)) {
-            Optional<UserIziVerifyResultMongo> optional = lastRecordList.stream().filter(elem ->
-                "0".equals(elem.getWhatsAppNumberType())
-            ).findFirst();
-            if (optional.isPresent()) {
-                UserIziVerifyResultMongo mongo = optional.get();
-                userInfo.setWhatsAppCheckResult(mongo.getWhatsapp());
-            }
-
             //联系人未开通量
             Long noOpenCount =
                     lastRecordList.stream().filter(elem->!"0".equals(elem.getWhatsAppNumberType()) && "no".equals(elem.getWhatsapp())).count();
@@ -448,7 +440,10 @@ public class IdentityExtractor implements BaseExtractor<RUserInfo> {
 
         userInfo.setMobileInOverdueLessThan5UserEmergencyTel(userService.isEmergencyTelForOverdueLessThanNUsers(user.getMobileNumberDES(),5));
 
-        userInfo.setOwnerWhatsAppDetail(getOwnerWhatsAppDetail(user.getUuid(),phone));
+        RUserInfo.IziWhatsAppDetail ownerWhatsAppDetail = getOwnerWhatsAppDetail(user.getUuid(), phone);
+        userInfo.setOwnerWhatsAppDetail(ownerWhatsAppDetail);
+        //owner whatsApp detail
+        userInfo.setWhatsAppCheckResult(ownerWhatsAppDetail == null ? null : ownerWhatsAppDetail.getWhatsAppOpenStatus());
 
         return Optional.of(userInfo);
     }

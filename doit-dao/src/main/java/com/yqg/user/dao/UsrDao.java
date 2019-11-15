@@ -107,10 +107,10 @@ public interface UsrDao extends BaseMapper<UsrUser> {
             "select \n" +
             "uuid,\n" +
             "realName,\n" +
-            "mobileNumberDES\n" +
+            "mobileNumberDES, remark \n" +
             "from usrUser\n" +
             "where disabled = 0\n" +
-            "and mobileNumberDES is not null\n" +
+            "and mobileNumberDES is not null and remark != 'operate sms and voice call not send!'\n" +
             ") usr on usr.uuid = orda.userUuid \n" +
             "where ordb.userUuid is null and black.userUuid is null and ordc.useruuid is null\n" +
             "and timestampdiff(hour,repayDay,now()) between 24 and 3*24 #调整时间\n" +
@@ -282,12 +282,12 @@ public interface UsrDao extends BaseMapper<UsrUser> {
             "select \n" +
             "uuid,\n" +
             "realName,\n" +
-            "mobileNumberDES\n" +
+            "mobileNumberDES,remark \n" +
             "from usrUser\n" +
             "where disabled = 0\n" +
             "and mobileNumberDES is not null\n" +
             ") usr on usr.uuid = orda.userUuid \n" +
-            "where ordb.userUuid is null;")
+            "where ordb.userUuid is null and usr.remark != 'operate sms and voice call not send!';")
     List<UserResponse> sendSmsToUseWithNotVerifyOrder();
 
     @Select("#降额未确认放款\n" +
@@ -310,11 +310,11 @@ public interface UsrDao extends BaseMapper<UsrUser> {
             "select \n" +
             "uuid,\n" +
             "realName,\n" +
-            "mobileNumberDES\n" +
+            "mobileNumberDES, remark \n" +
             "from usrUser\n" +
             "where disabled = 0\n" +
             "and mobileNumberDES is not null\n" +
-            ") usr on usr.uuid = ord.useruuid;")
+            ") usr on usr.uuid = ord.useruuid and usr.remark != 'operate sms and voice call not send!';")
     List<UserResponse> sendReduceSms();
 
     // 30w已还款用户 没有再复借
@@ -414,4 +414,11 @@ public interface UsrDao extends BaseMapper<UsrUser> {
     @Select("select count(*) from usrUser where idCardNo != ''and realName != '' and disabled = 0;")
     List<UsrUser> getAllRegistUser();
 
+    @Select("select * from usrUser limit 1;")
+    List<UsrUser> getAllUser();
+
+    //invite
+    @Select("select 1 from usrUser a left join ordOrder b on a.uuid = b.userUuid where a.mobileNumberDES =#{mobileDES} and (a.isInvited = 1 or b.status in (7, 8)) and b.disabled = 0 and a.disabled=0 group by a.mobileNumberDES, a.isInvited;")
+    List<Integer> isInvitedAndNeedRepay(@Param("mobileDES") String mobileDES) ;
 }
+

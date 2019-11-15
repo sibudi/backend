@@ -129,7 +129,12 @@ third:
         blacklistCheck: /openapi/anti-fraud/v5/blacklist-check
         #multiPlatform: /openapi/default-detection/v5/multi-platform
         multiPlatform: /openapi/verification/v6/multi-platform
-    jxl: /spider/jxl/ktp
+    #jxl: /spider/jxl/ktp
+    jxl:
+      apiKey: 43f4df6b145a47dcbd7e5d894104fec3
+      secret: f68deeb0493e4f79be9b1e24d8db4b8f
+      createReportTaskUrl: https://id.dotconnect.io/authorize_api/createReportTask
+      ktpVerifyUrl: https://id.dotconnect.io/authorize_api/fast_pass/ktp
     cashcash:
                    #订单状态回调地址
                    orderStatusFeedback: http://testloanapi.cashcash.id/call-back/order-status
@@ -202,8 +207,8 @@ third:
         apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
 des:
   file:
-    #path: /SECRET/des-test.cer
-    path: C:/Users/zxc20/Desktop/SECRET/des-test.cer
+    path: /SECRET/des-test.cer
+    #path: C:/Users/zxc20/Desktop/SECRET/des-test.cer
 p2p:
     sendOrderInfoUrl: http://47.94.1.62:9090/doit/investment/getCreditRightTask
 

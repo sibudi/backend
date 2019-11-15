@@ -1,0 +1,436 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug (Launch) - Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-ApiApplication<doit-api>",
+            "request": "launch",
+            "mainClass": "com.yqg.ApiApplication",
+            "projectName": "doit-api"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-CustomerMappingJackson2HttpMessageConverter<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.converter.CustomerMappingJackson2HttpMessageConverter",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-ExcelUtil<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.excel.ExcelUtil",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-NumberToCN<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.excel.NumberToCN",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-LoginSessionBuilder<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.models.builders.LoginSessionBuilder",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-RedisClient<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.redis.RedisClient",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-CheakTeleUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.CheakTeleUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-ChinaIDCardUtil<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.ChinaIDCardUtil",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-DESUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.DESUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-GenerateBuilderUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.GenerateBuilderUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-GenerateFuncUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.GenerateFuncUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-JPushUtil<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.JPushUtil",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-OrderNoCreator<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.OrderNoCreator",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-PhoneLocationUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.PhoneLocationUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-RSATester<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.RSATester",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-SmsCodeMandaoUtil<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.SmsCodeMandaoUtil",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-SmsCodeNewUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.SmsCodeNewUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-SmsCodeUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.SmsCodeUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-TextToFieldUtils<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.TextToFieldUtils",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-TransferEncoding<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.TransferEncoding",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-UUIDGenerateUtil<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.UUIDGenerateUtil",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-WeekUtil<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.WeekUtil",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-ZXingCode<doit-common>",
+            "request": "launch",
+            "mainClass": "com.yqg.common.utils.ZXingCode",
+            "projectName": "doit-common"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-FraudUserInfo<doit-dao>",
+            "request": "launch",
+            "mainClass": "com.yqg.risk.entity.FraudUserInfo",
+            "projectName": "doit-dao"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-ManageApplication<doit-management>",
+            "request": "launch",
+            "mainClass": "com.yqg.ManageApplication",
+            "projectName": "doit-management"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-LoanDataStatisticsService<doit-management>",
+            "request": "launch",
+            "mainClass": "com.yqg.manage.service.loan.LoanDataStatisticsService",
+            "projectName": "doit-management"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-OrderAssignmentService<doit-management>",
+            "request": "launch",
+            "mainClass": "com.yqg.manage.service.order.OrderAssignmentService",
+            "projectName": "doit-management"
+        },
+        {
+            "type": "java",
+            "name": "Remote Debug (Launch)-PayApplication<doit-pay>",
+            "request": "attach",
+            "projectName": "doit-pay",
+            "hostName": "10.24.30.72",
+            "port": 8083
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-PayApplication<doit-pay>",
+            "request": "launch",
+            "mainClass": "com.yqg.PayApplication",
+            "projectName": "doit-pay"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-PayService<doit-pay>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.PayService",
+            "projectName": "doit-pay"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-RiskApplication<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.RiskApplication",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-InstallAppDataCleanService<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.datafix.InstallAppDataCleanService",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-IziDataCleanService<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.datafix.IziDataCleanService",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-UsrBlackListDataService<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.datafix.UsrBlackListDataService",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-BaseExecutionChain<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.drools.executor.base.BaseExecutionChain",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-AutoCallExtractor<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.drools.extract.AutoCallExtractor",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-LoanLimitDecreaseExtractor<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.drools.extract.LoanLimitDecreaseExtractor",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-RiskScoreExtractor<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.drools.extract.RiskScoreExtractor",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-DateUtil<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.drools.utils.DateUtil",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-ABTestRuleService<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.ABTestRuleService",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-CaculateScoreHandler<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.CaculateScoreHandler",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-CodeProductMain<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.CodeProductMain",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-LogUtils<doit-risk>",
+            "request": "launch",
+            "mainClass": "com.yqg.utils.LogUtils",
+            "projectName": "doit-risk"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-InviteService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.activity.InviteService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Cash2ProductService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.externalChannel.service.Cash2ProductService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-HttpUtil<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.externalChannel.utils.HttpUtil",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-SecurityUtil<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.externalChannel.utils.SecurityUtil",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-LoanInfoService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.loan.service.LoanInfoService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-Overdue15UserService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.risk.service.Overdue15UserService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-ContractSignService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.signcontract.ContractSignService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-AsliService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.third.asli.AsliService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-TwilioService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.third.twilio.TwilioService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-UserAttachmentInfoService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.user.service.UserAttachmentInfoService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-UsrBankService<doit-service>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.user.service.UsrBankService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "Remote Debug (Launch)-TaskApplication<doit-task>",
+            "request": "attach",
+            "projectName": "doit-task",
+            "hostName": "10.24.30.72",
+            "port": 8081
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-TaskApplication<doit-task>",
+            "request": "launch",
+            "mainClass": "com.yqg.TaskApplication",
+            "projectName": "doit-task"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-InfinityTask<doit-task>",
+            "request": "launch",
+            "mainClass": "com.yqg.infinity.InfinityTask",
+            "projectName": "doit-task"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-BlackListUsersTask<doit-task>",
+            "request": "launch",
+            "mainClass": "com.yqg.scheduling.BlackListUsersTask",
+            "projectName": "doit-task"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-SendSmsService<doit-task>",
+            "request": "launch",
+            "mainClass": "com.yqg.service.SendSmsService",
+            "projectName": "doit-task"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-UploadApplication<doit-upload>",
+            "request": "launch",
+            "mainClass": "com.yqg.UploadApplication",
+            "projectName": "doit-upload"
+        }
+    ]
+}

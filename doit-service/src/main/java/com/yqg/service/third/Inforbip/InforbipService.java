@@ -371,9 +371,7 @@ public class InforbipService {
                 .add("audioFileUrl","http://h5.do-it.id/Test.mp3")
                 .build();
 
-//        log.info("外呼的电话号码为"+"6285956049736");
-                log.info("外呼的电话号码为"+JsonUtils.serialize(mobieNumber));
-
+        log.info("request number: {}",mobieNumber);
         Request request = new Request.Builder()
                 .url(getInforbipHost()+this.inforbipConfig.getMobileLookUpUrl())
                 .post(requestBody)
@@ -381,6 +379,7 @@ public class InforbipService {
                 .addHeader("Content-Type","application/json")
                 .addHeader("Accept","application/json")
                 .build();
+
         // 请求数据落库，SysThirdLogs
 //        this.sysThirdLogsService.addSysThirdLogs(order.getUuid(),usrUser.getUuid(), SysThirdLogsEnum.CHEAK_LOAN.getCode(),0, order.getUuid(),null);
 
@@ -516,6 +515,7 @@ public class InforbipService {
             return;
         }
     }
+
     public void sendTwilioCall(TeleCallResult result){
         log.info("sent with twilio, orderNo: {}, phone: {}", result.getOrderNo(), result.getTellNumber());
         TwilioUserInfoResponse requestParam = new TwilioUserInfoResponse();

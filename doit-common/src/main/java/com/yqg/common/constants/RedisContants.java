@@ -25,6 +25,7 @@ public class RedisContants {
     public static final String SESSION_BT_BANK_CARD_COUNT_KEY = "btBankCardCountKey:";
 
     public static final String SYSTEM_YIMEI_ACCESS_TOKEN = "sys:yimei:token";
+    public static final String NUMBERS_OTP_OFF = "numbers:otp:off";
 
     /**
      * ??????
@@ -264,6 +265,7 @@ public class RedisContants {
 
     public  static final String INVOKE_ASLI_SWITCH ="invoke:ali:swtich";//invoke asli switch
     public  static final String INVOKE_DIGI_SIGN_SWITCH ="invoke:digiSign:switch";//invoke digiSign switch
+    public  static final String RE_BORROWING_DIGI_SIGN_START_TIME ="reBorrowing:digi:sign:startTime";//reBorrowing:digi:sign:startTime
 
     public static final String DIGITAL_SIGN_STATUS_CHECK_INTERVAL ="digital:sign:status:checkInterval";//等待状态前端查询频率
 
@@ -294,6 +296,8 @@ public class RedisContants {
 
 
     public static final String INFORBIP_OLD_ENDPOINT = "INFORBIP_OLD_ENDPOINT"; //https://api.infobip.com
+
+    public static final String ORDER_COLLECTION_CHECK_QUALITY = "order:collection:check:lock:";
 
 
 

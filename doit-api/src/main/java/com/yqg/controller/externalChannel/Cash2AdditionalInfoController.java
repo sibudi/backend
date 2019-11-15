@@ -39,6 +39,8 @@ public class Cash2AdditionalInfoController {
      * @param request
      * @return
      */
+
+
     @RequestMapping(value = "/additional-info", method = RequestMethod.POST)
     public Cash2Response addAdditionalInfo(@RequestBody Cash2ApiParam request) {
 

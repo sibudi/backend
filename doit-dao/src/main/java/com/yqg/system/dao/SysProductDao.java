@@ -45,4 +45,7 @@ public interface SysProductDao extends BaseMapper<SysProduct> {
 
     @Select("select distinct(borrowingAmount) from sysProduct where disabled = 0 order by borrowingAmount; ")
     List<BigDecimal> allSysProduct();
+
+    @Select("select * from sysProduct where  productCode = '' and borrowingAmount<= #{borrowingAmount} order by borrowingAmount DESC limit 1;")
+    SysProduct getBlankProductInfoIgnoreDisabled(@Param("borrowingAmount") BigDecimal borrowingAmount);
 }

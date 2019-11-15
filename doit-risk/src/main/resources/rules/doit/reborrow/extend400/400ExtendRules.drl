@@ -1,0 +1,1302 @@
+package com.doit.reborrow
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.RUserInfo.ReligionEnum;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.RUserInfo.PositionEnum;
+import com.yqg.drools.model.LastLoanForExtend;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "PRD400_EXTEND_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($noCollectionRecord: noCollectionRecord,$overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && $hasDriverLicense
+             && $noCollectionRecord!=null && $noCollectionRecord
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&有驾驶证&首借未被催收")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($noCollectionRecord: noCollectionRecord,$overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && $hasDriverLicense
+             && $noCollectionRecord!=null && $noCollectionRecord
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_LASTLOAN_NOCOLLECTION.getMessage(),
+                                                            "false",
+                                                            "未命中男&当天还款&有驾驶证&首借未被催收")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($intervalDays: intervalDays,$overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && $hasDriverLicense
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,1))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&有驾驶证&借款间隔天数")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($intervalDays: intervalDays, $overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && $hasDriverLicense
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,1))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage(),
+                                                            "false",
+                                                            "未命中男&当天还款&有驾驶证&借款间隔天数")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($intervalDays: intervalDays,$overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && !$hasDriverLicense
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&没有驾驶证&借款间隔天数")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($intervalDays: intervalDays, $overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && !$hasDriverLicense
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,2))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_NO_DRIVERLICENSE_APPLY_INTERVALDAYS.getMessage(),
+                                                            "false",
+                                                            "未命中男&当天还款&没有驾驶证&借款间隔天数")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME.getMessage(),
+                                                            "false",
+                                                            "未命中男&当天还款&月收入")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_005_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $monthlyIncome: monthlyIncome,$age:age);
+         LastLoanForExtend($overdueDays: overdueDays,$diffHoursBetweenFirstCollectionAndRefundTime: diffHoursBetweenFirstCollectionAndRefundTime);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($diffHoursBetweenFirstCollectionAndRefundTime),RuleUtils.getRuleParam($threshData,3))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&月收入[2000,5000)&上一笔第一次催收到还款<1h&年龄[25,35)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_005_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE
+         .getMessage()]);
+          RUserInfo($sex: sex, $monthlyIncome: monthlyIncome,$age:age);
+          LastLoanForExtend($overdueDays: overdueDays,$diffHoursBetweenFirstCollectionAndRefundTime: diffHoursBetweenFirstCollectionAndRefundTime);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($diffHoursBetweenFirstCollectionAndRefundTime),RuleUtils.getRuleParam($threshData,3))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE.getMessage(),
+                                                            "false",
+                                                            "未命中男&当天还款&月收入[2000,5000)&上一笔第一次催收到还款<1h&年龄[25,35)")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_006_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE
+         .getMessage()]);
+         RUserInfo($sex: sex, $monthlyIncome: monthlyIncome,$age:age, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($overdueDays: overdueDays,$diffHoursBetweenFirstCollectionAndRefundTime: diffHoursBetweenFirstCollectionAndRefundTime);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($diffHoursBetweenFirstCollectionAndRefundTime),RuleUtils.getRuleParam($threshData,3))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             && $hasDriverLicense
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&月收入[2000,5000)&有驾驶证&上一笔第一次催收到还款<1h&年龄[40,45)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_006_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE
+         .getMessage()]);
+          RUserInfo($sex: sex, $monthlyIncome: monthlyIncome,$age:age, $hasDriverLicense: hasDriverLicense);
+          LastLoanForExtend($overdueDays: overdueDays,$diffHoursBetweenFirstCollectionAndRefundTime: diffHoursBetweenFirstCollectionAndRefundTime);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($diffHoursBetweenFirstCollectionAndRefundTime),RuleUtils.getRuleParam($threshData,3))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             && $hasDriverLicense
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_MONTHLY_INCOME_DIFFHOURSOFCOLLECTION_AND_REFUND_AGE_HAS_DRIVERLICENSE.getMessage(),
+                                                            "false",
+                                                            "未命中男&当天还款&月收入[2000,5000)&有驾驶证&上一笔第一次催收到还款<1h&年龄[40,45)")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_007_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $religionName: religionName);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.containsString(Arrays.asList(ReligionEnum.Catholicism.getCode(),ReligionEnum.Hinduism.getCode()),RuleUtils.valueOfStr
+             ($religionName))
+             && $hasDriverLicense
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&有驾驶证&宗教in(天主教,印度教)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_007_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $religionName: religionName);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.containsString(Arrays.asList(ReligionEnum.Catholicism.getCode(),ReligionEnum.Hinduism.getCode()),RuleUtils.valueOfStr
+             ($religionName))
+             && $hasDriverLicense
+             ));
+
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_RELIGION.getMessage(),
+                                                            "false",
+                                                            "未命中男&当天还款&有驾驶证&宗教in(天主教,印度教)")
+                                                            .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_008_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $positionName: positionName);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.containsString(Arrays.asList(PositionEnum.Individual_Business.getCode(),PositionEnum.Doctor.getCode(),PositionEnum
+             .Engineer.getCode(),PositionEnum.Teacher.getCode()), RuleUtils.valueOfStr($positionName))
+             && $hasDriverLicense
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&有驾驶证&职业in(个体供应商,医务人员,工程师,老师)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_008_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $positionName: positionName);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.containsString(Arrays.asList(PositionEnum.Individual_Business.getCode(),PositionEnum.Doctor.getCode(),PositionEnum
+             .Engineer.getCode(),PositionEnum.Teacher.getCode()), RuleUtils.valueOfStr($positionName))
+             && $hasDriverLicense
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage(),
+                                                    "false",
+                                                    "未命中男&当天还款&有驾驶证&职业in(个体供应商,医务人员,工程师,老师)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_009_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE
+         .getMessage()]);
+         RUserInfo($sex: sex, $gojekVerified: gojekVerified, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber);
+         LastLoanForExtend($overdueDays: overdueDays,$loanPassType: loanPassType);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+              && $gojekVerified!=null && $gojekVerified
+              && !RuleUtils.equalString(RuleUtils.valueOfStr($mobileNumber),$whatsappAccount)
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&免审核&验证gojek&WA与手机号不一致")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_009_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE
+         .getMessage()]);
+         RUserInfo($sex: sex, $gojekVerified: gojekVerified, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber);
+         LastLoanForExtend($overdueDays: overdueDays,$loanPassType: loanPassType);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+              && $gojekVerified!=null && $gojekVerified
+              && !RuleUtils.equalString(RuleUtils.valueOfStr($mobileNumber),$whatsappAccount)
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_GOJEVERIFIED_SAMEOF_WHATSAPPANDMOBILE.getMessage(),
+                                                    "false",
+                                                    "未命中男&当天还款&免审核&验证gojek&WA与手机号不一致")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_010_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays,$loanPassType: loanPassType);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+              && $hasPassport!=null && $hasPassport
+              && RuleUtils.equalString(RuleUtils.valueOfStr($mobileNumber),$whatsappAccount)
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,3))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&免审核&WA与手机号一致&有护照&年龄[30,45)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_010_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays,$loanPassType: loanPassType);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+              && $hasPassport!=null && $hasPassport
+              && RuleUtils.equalString(RuleUtils.valueOfStr($mobileNumber),$whatsappAccount)
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,3))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_LOANPASSTYPE_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage(),
+                                                    "false",
+                                                    "未命中男&当天还款&免审核&WA与手机号一致&有护照&年龄[30,45)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasPassport!=null && $hasPassport
+              && RuleUtils.equalString(RuleUtils.valueOfStr($mobileNumber),$whatsappAccount)
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&WA与手机号一致&有护照&年龄[30,35)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasPassport!=null && $hasPassport
+              && RuleUtils.equalString(RuleUtils.valueOfStr($mobileNumber),$whatsappAccount)
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_SAMEOF_WHATSAPPANDMOBILE_HASPASSPORT_AGE.getMessage(),
+                                                    "false",
+                                                    "未命中男&当天还款&WA与手机号一致&有护照&年龄[30,35)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_012_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport);
+         LastLoanForExtend($overdueDays: overdueDays);
+         DeviceModel($totalSpace: totalSpace);
+         eval($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasPassport!=null && !$hasPassport
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),RuleUtils.getRuleParam($threshData,1))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&没有护照&总容量>=60GB")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_012_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport);
+         LastLoanForExtend($overdueDays: overdueDays);
+         DeviceModel($totalSpace: totalSpace);
+         eval(!($sex==RUserInfo.SexEnum.MALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasPassport!=null && !$hasPassport
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace),RuleUtils.getRuleParam($threshData,1))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MALE_OVERDUEDAYS_HASPASSPORT_TOTAL_SPACE.getMessage(),
+                                                    "false",
+                                                    "未命中男&当天还款&没有护照&总容量>=60GB")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "PRD400_EXTEND_013_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $gojekVerified: gojekVerified);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && $gojekVerified!=null && $gojekVerified
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&有驾驶证&验证gojek")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_013_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $gojekVerified: gojekVerified);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && $gojekVerified!=null && $gojekVerified
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_GOJEKVERIFIED.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&有驾驶证&验证gojek")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_014_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($overdueDays: overdueDays,$intervalDays: intervalDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData,1))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&有驾驶证&借款间隔天数")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_014_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($overdueDays: overdueDays,$intervalDays: intervalDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData,1))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_APPLY_INTERVALDAYS.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&有驾驶证&借款间隔天数")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_015_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense,$academic:academic);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+              .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()), RuleUtils.valueOfStr($academic))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&有驾驶证&大专及以上")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_015_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $academic: academic);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                            .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()), RuleUtils.valueOfStr($academic))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_EDUCATION.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&有驾驶证&大专及以上")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_016_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && !$hasDriverLicense
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&没有驾驶证&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_016_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && !$hasDriverLicense
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,1))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MONTHLY_INCOME.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&没有驾驶证&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_017_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($overdueDays: overdueDays);
+         DeviceModel($mobileLanguage: mobileLanguage);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && RuleUtils.equalString(RuleUtils.valueOfStr($mobileLanguage),RuleUtils.getRuleParam($threshData,1))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&有驾驶证&手机语言")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_017_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($overdueDays: overdueDays);
+         DeviceModel($mobileLanguage: mobileLanguage);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && RuleUtils.equalString(RuleUtils.valueOfStr($mobileLanguage),RuleUtils.getRuleParam($threshData,1))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_MOBILE_LANGUAGE.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&有驾驶证&手机语言")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_018_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense,$age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && (
+                  (RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+                  && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+                  )
+                  || RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,3))
+                  )
+
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&有驾驶证&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_018_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && $hasDriverLicense
+              && (
+                  (RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+                  && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+                  )
+                  || RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,3))
+                  )
+
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&有驾驶证&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "PRD400_EXTEND_019_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $monthlyIncome: monthlyIncome, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && !$hasDriverLicense
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,3))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&年龄&没有驾驶证&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_019_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $monthlyIncome: monthlyIncome, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && !$hasDriverLicense
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,3))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HASDRIVERLICENSE_AGE_MONTHLY_INCOME.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&年龄&没有驾驶证&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "PRD400_EXTEND_020_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $monthlyIncome: monthlyIncome, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,3))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&年龄&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_020_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $monthlyIncome: monthlyIncome, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,3))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&年龄&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "PRD400_EXTEND_021_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND
+         .getMessage()]);
+         RUserInfo($sex: sex, $monthlyIncome: monthlyIncome, $age: age, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($overdueDays: overdueDays,$diffHoursBetweenFirstCollectionAndRefundTime: diffHoursBetweenFirstCollectionAndRefundTime);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,3))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,4))
+              && !$hasDriverLicense
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($diffHoursBetweenFirstCollectionAndRefundTime), RuleUtils.getRuleParam($threshData,5))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&月收入&没有驾驶证&上一笔第一次催收到还款&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_021_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND
+         .getMessage()]);
+         RUserInfo($sex: sex, $monthlyIncome: monthlyIncome, $age: age, $hasDriverLicense: hasDriverLicense);
+         LastLoanForExtend($overdueDays: overdueDays,$diffHoursBetweenFirstCollectionAndRefundTime: diffHoursBetweenFirstCollectionAndRefundTime);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+              && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+              && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,3))
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,4))
+              && !$hasDriverLicense
+              && RuleUtils.lessThan(RuleUtils.valueOfStr($diffHoursBetweenFirstCollectionAndRefundTime), RuleUtils.getRuleParam($threshData,5))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME_HAS_DRIVERLICENSE_DIFFHOURSOFCOLLECTION_AND_REFUND
+        .getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&月收入&没有驾驶证&上一笔第一次催收到还款&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "PRD400_EXTEND_022_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $positionName: positionName);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.containsString(Arrays.asList(PositionEnum.Individual_Business.getCode(),PositionEnum.CIVIL_SERVANT.getCode()), RuleUtils.valueOfStr($positionName))
+             && !$hasDriverLicense
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&没有驾驶证&职业in(个体供应商,公务员)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_022_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $positionName: positionName);
+         LastLoanForExtend($overdueDays: overdueDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.containsString(Arrays.asList(PositionEnum.Individual_Business.getCode(),PositionEnum.CIVIL_SERVANT.getCode()), RuleUtils
+             .valueOfStr($positionName))
+             && !$hasDriverLicense
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_DRIVERLICENSE_POSITION.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&没有驾驶证&职业in(个体供应商,公务员)")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_023_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays, $noCollectionRecord: noCollectionRecord, $loanPassType: loanPassType);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $noCollectionRecord!=null && $noCollectionRecord
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&免审核&首借未被催收&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_023_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasDriverLicense: hasDriverLicense, $age: age);
+         LastLoanForExtend($overdueDays: overdueDays, $noCollectionRecord: noCollectionRecord, $loanPassType: loanPassType);
+
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $noCollectionRecord!=null && $noCollectionRecord
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_LASTLOAN_NO_COLLECTION_AGE.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&免审核&首借未被催收&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_024_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPayroll: hasPayroll,$gojekVerified: gojekVerified, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPayroll!=null && !$hasPayroll
+             && $gojekVerified!=null && $gojekVerified
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&免审核&没有工资单&验证gojek&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_024_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPayroll: hasPayroll,$gojekVerified: gojekVerified, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPayroll!=null && !$hasPayroll
+             && $gojekVerified!=null && $gojekVerified
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_GOJEVERIFIED_MONTHLY_INCOME.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&免审核&没有工资单&验证gojek&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_025_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPayroll: hasPayroll,$gojekVerified: gojekVerified, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPayroll!=null && !$hasPayroll
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&免审核&没有工资单&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_025_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPayroll: hasPayroll,$gojekVerified: gojekVerified, $monthlyIncome: monthlyIncome);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPayroll!=null && !$hasPayroll
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,2))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_MONTHLY_INCOME.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&免审核&没有工资单&月收入")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_026_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPayroll: hasPayroll,$hasDriverLicense: hasDriverLicense, $whatsappAccount: whatsappAccount,
+         $mobileNumber: mobileNumber);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPayroll!=null && !$hasPayroll
+             && $hasDriverLicense
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsappAccount),$mobileNumber)
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&免审核&WA与手机号一致&没有工资单&有驾驶证")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_026_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPayroll: hasPayroll,$hasDriverLicense: hasDriverLicense, $whatsappAccount: whatsappAccount,
+         $mobileNumber: mobileNumber);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPayroll!=null && !$hasPayroll
+             && $hasDriverLicense
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsappAccount),$mobileNumber)
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_SALARY_PIC_HAS_DRIVERLICENSE_SAMEOF_WHATSAPP_AND_MOBILE
+        .getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&免审核&WA与手机号一致&没有工资单&有驾驶证")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_027_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age:age);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPassport!=null && !$hasPassport
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsappAccount),$mobileNumber)
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&免审核&WA与手机号一致&没有护照&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_027_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age:age);
+         LastLoanForExtend($overdueDays: overdueDays, $loanPassType: loanPassType);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($loanPassType),RuleUtils.getRuleParam($threshData,1))
+             && $hasPassport!=null && !$hasPassport
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsappAccount),$mobileNumber)
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_LOANPASSTYPE_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE
+        .getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&免审核&WA与手机号一致&没有护照&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_028_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age:age);
+         LastLoanForExtend($overdueDays: overdueDays);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && $hasPassport!=null && $hasPassport
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsappAccount),$mobileNumber)
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&WA与手机号一致&有护照&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_028_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $whatsappAccount: whatsappAccount,$mobileNumber: mobileNumber, $age:age);
+         LastLoanForExtend($overdueDays: overdueDays);
+
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && $hasPassport!=null && $hasPassport
+             && RuleUtils.equalString(RuleUtils.valueOfStr($whatsappAccount),$mobileNumber)
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,2))
+             );
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_HAS_PASSPORT_SAMEOF_WHATSAPP_AND_MOBILE_AGE
+        .getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&WA与手机号一致&有护照&年龄")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "PRD400_EXTEND_029_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND
+         .getMessage()]);
+         RUserInfo($sex: sex);
+         LastLoanForExtend($overdueDays: overdueDays,$intervalDays: intervalDays);
+         eval($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,1))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&借款间隔天数")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "PRD400_EXTEND_029_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND
+         .getMessage()]);
+         RUserInfo($sex: sex);
+         LastLoanForExtend($overdueDays: overdueDays,$intervalDays: intervalDays);
+         eval(!($sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && $overdueDays!=null && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($intervalDays),RuleUtils.getRuleParam($threshData,1))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.FEMALE_OVERDUEDAYS_DIFFHOURSOFCOLLECTION_AND_REFUND.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&借款间隔天数")
+                                                    .addToResultList(ruleSetResultList);
+end

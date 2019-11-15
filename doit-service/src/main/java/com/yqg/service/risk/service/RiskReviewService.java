@@ -79,7 +79,7 @@ public class RiskReviewService {
                 return false;
             }
             MultiPlatformResponse multiPlatformResponse = advanceService.checkMultiPlatform(order, user.getIdCardNo());
-            if (multiPlatformResponse != null && multiPlatformResponse.isHitReject()) {
+            if (multiPlatformResponse != null && multiPlatformResponse.isHitReject(user)) {
                 //reject
                 saveRejectRules(order, BlackListTypeEnum.ADVANCE_MULTI_PLATFORM);
                 return true;

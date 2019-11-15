@@ -659,9 +659,9 @@ public class ManOrderCheckRemarkService {
     public void secondCheck(CheckRequest request) throws Exception {
 
         String orderNo = request.getOrderNo();
-        String signLock = redisClient.get(RedisContants.REVIEW_SIGN_LOCK + ":" + orderNo);
+        boolean orderWaitDigiSign =  asyncTaskService.existsDigiSignRecord(orderNo);
         //签约异步锁
-        if (com.yqg.common.utils.StringUtils.isNotEmpty(signLock)) {
+        if (orderWaitDigiSign) {
             logger.info("order {} secondCheck is lock.", orderNo);
             throw new ServiceExceptionSpec(ExceptionEnum.ORDER_COMMIT_REPEAT);
         }

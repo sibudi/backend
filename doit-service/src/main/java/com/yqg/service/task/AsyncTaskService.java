@@ -8,6 +8,7 @@ import com.yqg.task.entity.AsyncTaskInfoEntity.TaskTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -40,6 +41,15 @@ public class AsyncTaskService {
 
     public List<AsyncTaskInfoEntity> getNeedDigitalSignOrders(TaskTypeEnum taskType, Integer limitCount) {
         return asyncTaskInfoDao.getNeedDigitalSignOrders(taskType.getCode(), limitCount);
+    }
+
+    public boolean existsDigiSignRecord(String orderNo) {
+        AsyncTaskInfoEntity searchParam = new AsyncTaskInfoEntity();
+        searchParam.setDisabled(0);
+        searchParam.setTaskStatus(TaskTypeEnum.CONTRACT_SIGN_TASK.getCode());
+        searchParam.setOrderNo(orderNo);
+        List<AsyncTaskInfoEntity> dbList = asyncTaskInfoDao.scan(searchParam);
+        return !CollectionUtils.isEmpty(dbList);
     }
 
 

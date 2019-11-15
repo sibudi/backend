@@ -1,7 +1,12 @@
 package com.yqg.utils;
 
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.FormBody;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.slf4j.MDC;
 
+@Slf4j
 public class LogUtils {
     public static void addMDCRequestId(String requestId) {
         MDC.put("X-Request-Id", requestId);
@@ -12,15 +17,24 @@ public class LogUtils {
     }
 
     public static void main(String[] args) {
-        String str =  "select count(*) from teleCallResult t where t.callType = 3\n" +
-                "and t.disabled=0 \n" +
-                "and t.userUuid in (\n" +
-                "select userUuid from usrProductRecord where disabled = 0\n" +
-                ")\n" +
-                "and exists(\n" +
-                "select 1 from ordOrder o where o.userUuid = t.userUuid and o.borrowingCount = 1 and o.amountApply=1200000 and o.status = 10\n" +
-                ")\n" +
-                "and t.tellNumber = #{mobile}";
-        System.err.println(str);
+
+        RequestBody requestBody = new FormBody.Builder()
+                .add("from","abc")   //
+                .add("to","123")
+//                .add("text","this is a test")
+                .add("language","id-ID")
+                .add("audioFileUrl","http://h5.do-it.id/Test.mp3")
+                .build();
+        log.info("request body: {}",requestBody.toString());
+
+        Request request = new Request.Builder()
+                .url("https://api.infobip.com")
+                .post(requestBody)
+                .header("Authorization", "Basic "+ "afs")
+                .addHeader("Content-Type","application/json")
+                .addHeader("Accept","application/json")
+                .build();
+
+        System.err.println(request);
     }
 }

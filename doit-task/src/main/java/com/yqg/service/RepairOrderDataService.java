@@ -3,37 +3,31 @@ package com.yqg.service;
 import com.yqg.common.constants.RedisContants;
 import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.OrdStateEnum;
-import com.yqg.common.enums.system.ExceptionEnum;
-import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.redis.RedisClient;
-import com.yqg.common.utils.JsonUtils;
+import com.yqg.common.utils.DESUtils;
+import com.yqg.common.utils.StringUtils;
 import com.yqg.order.dao.OrdDao;
 import com.yqg.order.entity.OrdOrder;
+import com.yqg.common.utils.AesUtil;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.order.request.SaveOrderUserUuidRequest;
 import com.yqg.service.system.service.SysParamService;
-import com.yqg.service.user.model.UserCertificationInfoInRedis;
 import com.yqg.system.dao.SysParamDao;
 import com.yqg.system.dao.SysProductDao;
+import com.yqg.system.dao.SysSmsCodeDao;
 import com.yqg.system.entity.SysParam;
-import com.yqg.system.entity.SysProduct;
+import com.yqg.system.entity.SysSmsCode;
+import com.yqg.user.dao.UsrBlackListDao;
+import com.yqg.user.dao.UsrDao;
+import com.yqg.user.entity.UsrBlackList;
+import com.yqg.user.entity.UsrUser;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Didit Dwianto on 2018/1/4.
@@ -61,6 +55,12 @@ public class RepairOrderDataService {
     private SysParamService sysParamService;
     @Autowired
     private SysParamDao sysParamDao;
+    @Autowired
+    private UsrDao usrDao;
+    @Autowired
+    private UsrBlackListDao usrBlackListDao;
+    @Autowired
+    private SysSmsCodeDao sysSmsCodeDao;
 
     public void repairData(){
 
@@ -274,24 +274,119 @@ public class RepairOrderDataService {
 
     }
 
-    //  修复redis迁移后  部分key没有过期时间的问题
-    public  void  repairData6(){
-        Set<String> keys = redisClient.keys("repeatLock");
-        log.info("对应的keys共有："+keys.size());
-        for(String key : keys){
+//    //  修复redis迁移后  部分key没有过期时间的问题
+//    public  void  repairData6(){
+//        Set<String> keys = redisClient.keys("repeatLock");
+//        log.info("对应的keys共有："+keys.size());
+//        for(String key : keys){
+//
+//             long expireTime = redisClient.getExpireTime(key);
+//             if (expireTime == -1){
+//                 log.info("没有超时时间的key为"+key);
+//                 // 未超时的下单锁
+//                 String s =  redisClient.get(key);
+//                 log.info(s);
+//
+//                 redisClient.del(key);
+//                 String s2 =  redisClient.get(key);
+//                 log.info(s2);
+//             }
+//        }
+//    }
 
-             long expireTime = redisClient.getExpireTime(key);
-             if (expireTime == -1){
-                 log.info("没有超时时间的key为"+key);
-                 // 未超时的下单锁
-                 String s =  redisClient.get(key);
-                 log.info(s);
+    //  清洗数据库中的手机号码加密   DES-》AES
+    public  void  repairData7(){
 
-                 redisClient.del(key);
-                 String s2 =  redisClient.get(key);
-                 log.info(s2);
-             }
-        }
+            List<UsrUser> userList = this.usrDao.getAllUser();
+            if (!CollectionUtils.isEmpty(userList)) {
+                log.info("需要处理的用户数量有" + userList.size());
+                for (UsrUser user : userList) {
+                    try {
+                        log.info("用户的id为：" + user.getUuid());
+                        String mobileDes = user.getMobileNumberDES();
+                        log.info("用户手机号DES加密：" + mobileDes);
+                        String mobile = DESUtils.decrypt(mobileDes);
+                        if (!StringUtils.isEmpty(mobile)) {
+                            log.info("用户手机号为：" + mobile);
+                            String mobileAes = AesUtil.encryptMobile(mobile);
+                            log.info("用户手机号AES加密为：" + mobileAes);
+                            if (!StringUtils.isEmpty(mobileAes)) {
+                                UsrUser update = new UsrUser();
+                                update.setUuid(user.getUuid());
+                                update.setMobileNumberDES(mobileAes);
+                                this.usrDao.update(update);
+                            }
+
+                        }
+                    } catch (Exception e) {
+                        log.error("清洗数据库中的手机号码加密 异常", e);
+                        log.error("异常的用户uuid为：" + user.getUuid());
+                    }
+                }
+            }
     }
 
+    //  清洗数据库中的手机号码加密  usrUser  mobileNumberDES  DES-》AES
+    public  void  repairData8(){
+
+        List<UsrBlackList> usrBlackLists = this.usrBlackListDao.getAllBlackList();
+        if (!CollectionUtils.isEmpty(usrBlackLists)) {
+            log.info("需要处理的用户黑名单数量有" + usrBlackLists.size());
+            for (UsrBlackList usrBlackList : usrBlackLists) {
+                try {
+                    log.info("用户的黑名单id为：" + usrBlackList.getUuid());
+                    String mobileDes = usrBlackList.getMobileDes();
+                    log.info("用户手机号DES加密：" + mobileDes);
+                    String mobile = DESUtils.decrypt(mobileDes);
+                    if (!StringUtils.isEmpty(mobile)) {
+                        log.info("用户手机号为：" + mobile);
+                        String mobileAes = AesUtil.encryptMobile(mobile);
+                        log.info("用户手机号AES加密为：" + mobileAes);
+                        if (!StringUtils.isEmpty(mobileAes)) {
+                            UsrBlackList update = new UsrBlackList();
+                            update.setUuid(usrBlackList.getUuid());
+                            update.setMobileDes(mobileAes);
+                            this.usrBlackListDao.update(update);
+                        }
+
+                    }
+                } catch (Exception e) {
+                    log.error("清洗数据库中的用户黑名单号码加密 异常", e);
+                    log.error("异常的用户黑名单uuid为：" + usrBlackList.getUuid());
+                }
+            }
+        }
+    }
+//
+//    //  清洗数据库中的手机号码加密 SysSmsCode mobile  DES-》AES
+//    public  void  repairData9(){
+//
+//        List<SysSmsCode> smsCodeList = this.sysSmsCodeDao.getAllSysSmsCode();
+//        if (!CollectionUtils.isEmpty(smsCodeList)) {
+//            log.info("需要处理的验证码数量有" + smsCodeList.size());
+//            for (SysSmsCode code : smsCodeList) {
+//                try {
+//                    log.info("验证码的id为：" + code.getUuid());
+//                    String mobileDes = code.getMobile();
+//                    log.info("验证码手机号DES加密：" + mobileDes);
+//                    String mobile = DESUtils.decrypt(mobileDes);
+//                    if (!StringUtils.isEmpty(mobile)) {
+//                        log.info("验证码手机号为：" + mobile);
+//                        String mobileAes = AesUtil.encryptMobile(mobile);
+//                        log.info("验证码手机号AES加密为：" + mobileAes);
+//                        if (!StringUtils.isEmpty(mobileAes)) {
+//                            SysSmsCode update = new SysSmsCode();
+//                            update.setUuid(code.getUuid());
+//                            update.setMobile(mobileAes);
+//                            this.sysSmsCodeDao.update(update);
+//                        }
+//
+//                    }
+//                } catch (Exception e) {
+//                    log.error("清洗数据库中的验证码手机号码加密 异常", e);
+//                    log.error("异常的验证码uuid为：" + code.getUuid());
+//                }
+//            }
+//        }
+//    }
 }

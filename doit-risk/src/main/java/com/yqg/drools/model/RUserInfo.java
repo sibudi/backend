@@ -160,6 +160,8 @@ public class RUserInfo {
 
     private IziWhatsAppDetail ownerWhatsAppDetail;
 
+    private Boolean hasPassport; //护照
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -288,6 +290,46 @@ public class RUserInfo {
         private int code;
     }
 
+    @Getter
+    public enum ReligionEnum{
+        Islam("Islam"), //伊斯兰教
+        Christianity("Kristen Protestan"),//基督教
+        Catholicism("Kristen Katolik"),//天主教
+        Hinduism("Hindu"), //印度教
+        Buddhism("Buddha"), //佛教
+        Confucianism("Konghucu"),//孔教/儒教
+        ;
+        ReligionEnum(String code){
+            this.code= code;
+        }
+        private String code;
+    }
+    @Getter
+    public enum PositionEnum{
+        CIVIL_SERVANT("Pegawai negeri"),//公务员
+        Worker("Pekerja"),//工人
+        Farmer("Petani"),//农民
+        Driver("Pengemudi"),//司机
+        Cleaner("Pembersih"),//清洁工
+        Staff("Staf perusahaan"),//公司职员
+        House_Keeper("Pembantu rumah tangga"),//保姆
+        Cooker("Koki"),//厨师
+        Waiter("Pelayan"),//服务员
+        Doctor("Staf medis"),//医护人员
+        Teacher("Guru"),//教师
+        Courier("Kurir"),//快递员
+        Seller("Staf Penjualan"),//销售
+        Security_Guard("Keamanan"),//保安
+        Engineer("Insinyur"),//工程师
+        Individual_Business("Vendor individu"),//个体商贩
+        HouseWife("Ibu rumah tangga"),//家庭主妇
+        Other("Lainnya"),//其它
+        ;
+        PositionEnum(String code){
+            this.code= code;
+        }
+        private String code;
+    }
 
 
     @Getter

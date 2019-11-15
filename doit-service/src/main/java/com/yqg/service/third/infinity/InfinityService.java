@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,10 +154,9 @@ public class InfinityService {
     }
 
     public Map<String, String> makeCall(InfinityRequest req) throws Exception {
-        log.info("..........makeCall start..........");
 
         //规范号码格式(公司电话不需要格式化）
-        if (!req.getCallType().equals(2)) {
+        if (req.getCallType() == null || !req.getCallType().equals(2)) {
             req.setDestnumber(CheakTeleUtils.telephoneNumberValid2(req.getDestnumber()));
         }
         Map<String, String> map = new HashMap<>();
@@ -188,25 +188,37 @@ public class InfinityService {
             this.throwException(map);
         }
         //查询订单申请期限和金额
-        OrdOrder ordOrder = new OrdOrder();
-        ordOrder.setUuid(req.getOrderNo());
-        ordOrder.setDisabled(0);
-        List<OrdOrder> ordOrders = manOrderDao.scan(ordOrder);
-        if (CollectionUtils.isEmpty(ordOrders)) {
-            return map;
-        }
-//        JsonUtils.toList();
         InfinityBillEntity entity = new InfinityBillEntity();
+        if (StringUtils.isNotEmpty(req.getOrderNo())) {
+            OrdOrder ordOrder = new OrdOrder();
+            ordOrder.setUuid(req.getOrderNo());
+            ordOrder.setDisabled(0);
+            List<OrdOrder> ordOrders = manOrderDao.scan(ordOrder);
+            if (CollectionUtils.isEmpty(ordOrders)) {
+                return map;
+            }
+            entity.setApplyAmount(ordOrders.get(0).getAmountApply());
+            entity.setApplyDeadline(ordOrders.get(0).getBorrowingTerm());
+            entity.setRealName(req.getRealName());
+            entity.setUserName(req.getUserName());
+            entity.setCallNode(req.getCallNode());
+            entity.setCallType(req.getCallType());
+            entity.setOrderNo(req.getOrderNo());
+            entity.setSourceType(0);
+        } else {
+            //调查问卷
+            entity.setSourceType(1);
+            entity.setRealName("-");
+            entity.setUserName("-");
+            entity.setApplyAmount(BigDecimal.ZERO);
+            entity.setApplyDeadline(0);
+            entity.setCallNode(0);
+            entity.setCallType(0);
+            entity.setOrderNo(req.getUuid());
+        }
         entity.setUuid(UUIDGenerateUtil.uuid());
-        entity.setOrderNo(req.getOrderNo());
         entity.setExtnumber(req.getExtnumber());
         entity.setDestnumber(req.getDestnumber());
-        entity.setRealName(req.getRealName());
-        entity.setUserName(req.getUserName());
-        entity.setApplyAmount(ordOrders.get(0).getAmountApply());
-        entity.setApplyDeadline(ordOrders.get(0).getBorrowingTerm());
-        entity.setCallNode(req.getCallNode());
-        entity.setCallType(req.getCallType());
         entity.setUserid(userId);
 
         infinityBillDao.saveBill(entity);

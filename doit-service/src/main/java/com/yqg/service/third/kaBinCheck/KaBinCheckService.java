@@ -84,7 +84,7 @@ public class KaBinCheckService {
         Map<String,String> contents = new HashMap<String, String>();
         contents.put(BANKCODE,userBankRequest.getBankCode());
         contents.put(BANKCARDNUMBER,userBankRequest.getBankNumberNo());
-        contents.put("paymentChannel","XENDIT");
+        contents.put("paymentChannel","CIMB");
         int connectTimeout=30000;
         int readTimeout=10000;
         // ??????
@@ -97,6 +97,16 @@ public class KaBinCheckService {
         sysThirdLogsService.addSysThirdLogs(userBankRequest.getOrderNo(),userBankRequest.getUserUuid(), SysThirdLogsEnum.KABIN_CHECK.getCode(),null,JSON.toJSONString(requestObj),null);
         String cardBinUrlResponse = "";
         try {
+            String name = userBankRequest.getBankCardName();
+            //ahalim: Use cardbin service
+            /*
+            String str = "{\n" +
+                    "  \"bankCardVerifyStatus\" : \"SUCCESS\",\n" +
+                    "  \"bankHolderName\" : \""+name+"\",\n" +
+                    "  \"code\" : \"0\",\n" +
+                    "}";
+            cardBinUrlResponse =str;
+            */
             cardBinUrlResponse = HttpTools.post(cardBinUrl,headers,contents,connectTimeout,readTimeout);
             // ???????sysThirdLogs
             sysThirdLogsService.addSysThirdLogs(userBankRequest.getOrderNo(),userBankRequest.getUserUuid(), SysThirdLogsEnum.KABIN_CHECK.getCode(),null,null,cardBinUrlResponse);

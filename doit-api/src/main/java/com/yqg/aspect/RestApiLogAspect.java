@@ -187,18 +187,18 @@ public class RestApiLogAspect {
 
     }
 
-    public static void main(String[] args) {
-        String str = " {\"net_type\":\"4G\",\"system_version\":\"7.0\",\"client_type\":\"android\",\"channel_sn\":\"10001\",\"channel_name\":\"playStore\",\"deviceId\":\"357059081241395\",\"client_version\":\"1.3.1\",\"resolution\":\"1920*1080\",\"IPAdress\":\"10.56.233.242\",\"sign\":\"JkZjhjNWI3YTgzNDUzMTBiZmM1NmVjZTBiNDc4M2\",\"timestamp\":\"1519330915\",\"sessionId\":\"c78293c336304ff2baf41250966506e4\",\"userUuid\":\"72248DBDB7C041BD85ABF0AA702B0240\",\"mac\":null,\"wifimac\":null,\"lbsX\":null,\"lbsY\":null,\"orderNo\":\"011802230253249410\",\"certificationType\":3,\"certificationData\":\"\",\"certificationResult\":null,\"attachmentUrl\":\"/MyUpload/VIDEO/N/N/c577134de38e88e377b8636defe957d3.mp4\",\"ipadress\":\"10.56.233.242\"}";
-        System.err.println(findPostKeyInfo(str,"userUuid"));
-        System.err.println(findPostKeyInfo(str,"orderNo"));
-
-
-        String getStr = " userUuid=90791C020F3545EFA4E42A48A6952106&orderNo=011802221746216610&report_task_token=0ce3e1b0ea5b4a3a93c6c3c84192fa56&code=SUCCESS&api_key=43f4df6b145a47dcbd7e5d894104fec3&sdk=false";
-
-        System.err.println(findGetKeyInfo(getStr,"userUuid"));
-        System.err.println(findGetKeyInfo(getStr,"orderNo"));
-
-    }
+//    public static void main(String[] args) {
+//        String str = " {\"net_type\":\"4G\",\"system_version\":\"7.0\",\"client_type\":\"android\",\"channel_sn\":\"10001\",\"channel_name\":\"playStore\",\"deviceId\":\"357059081241395\",\"client_version\":\"1.3.1\",\"resolution\":\"1920*1080\",\"IPAdress\":\"10.56.233.242\",\"sign\":\"JkZjhjNWI3YTgzNDUzMTBiZmM1NmVjZTBiNDc4M2\",\"timestamp\":\"1519330915\",\"sessionId\":\"c78293c336304ff2baf41250966506e4\",\"userUuid\":\"72248DBDB7C041BD85ABF0AA702B0240\",\"mac\":null,\"wifimac\":null,\"lbsX\":null,\"lbsY\":null,\"orderNo\":\"011802230253249410\",\"certificationType\":3,\"certificationData\":\"\",\"certificationResult\":null,\"attachmentUrl\":\"/MyUpload/VIDEO/N/N/c577134de38e88e377b8636defe957d3.mp4\",\"ipadress\":\"10.56.233.242\"}";
+//        System.err.println(findPostKeyInfo(str,"userUuid"));
+//        System.err.println(findPostKeyInfo(str,"orderNo"));
+//
+//
+//        String getStr = " userUuid=90791C020F3545EFA4E42A48A6952106&orderNo=011802221746216610&report_task_token=0ce3e1b0ea5b4a3a93c6c3c84192fa56&code=SUCCESS&api_key=43f4df6b145a47dcbd7e5d894104fec3&sdk=false";
+//
+//        System.err.println(findGetKeyInfo(getStr,"userUuid"));
+//        System.err.println(findGetKeyInfo(getStr,"orderNo"));
+//
+//    }
 
     /***
      * 判断realUrl是否在limitUrls中

@@ -25,7 +25,7 @@ public interface ManUsrQuestionnaireDao extends BaseMapper<UsrQuestionnaire> {
     @Select("select * from usrQuestionnaire where disabled = 0 and userUuid=#{userUuid}")
     UserQuestionnaireDetailResponse getManQuestionnaireDetail(@Param("userUuid") String userUuid);
 
-    @Update("update usrQuestionnaire set checker=#{checker}, state=#{state} where disabled = 0 and userUuid=#{userUuid};")
+    @Update("update usrQuestionnaire set checker=#{checker}, state=#{state}, updateTime=now() where disabled = 0 and userUuid=#{userUuid};")
     int updateChecker(@Param("userUuid") String userUuid, @Param("state") Integer state,
                       @Param("checker") Integer checker);
 }

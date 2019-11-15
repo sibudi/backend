@@ -20,9 +20,6 @@ import java.math.BigDecimal;
 @ApiModel
 public class AssignableCollectionOrderReq extends OrderSearchRequest{
 
-    @ApiModelProperty(value = "订单号")
-    private String uuid;
-
     @ApiModelProperty(value = "订单标签(1:完全失联,2:暂时失联,3:可联跳票,4:可联承诺)")
     private Integer orderTag;
 
@@ -75,4 +72,7 @@ public class AssignableCollectionOrderReq extends OrderSearchRequest{
 
     @ApiModelProperty(value = "申请金额")
     private BigDecimal amountApply;
+
+    private String orderNo;
+
 }

@@ -3,6 +3,10 @@ package com.yqg.drools.service;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.UUIDGenerateUtil;
 import com.yqg.drools.executor.firstBorrowing.Product100ExecutionChain;
+import com.yqg.drools.executor.firstBorrowing.Product50ExecutionChain;
+import com.yqg.drools.executor.firstBorrowing.Product50ExtendRuleExecutionChain;
+import com.yqg.drools.executor.reBorrowing.ReBorrowingProduct600ExtendExecutionChain;
+import com.yqg.drools.executor.reBorrowing.ReBorrowingUniversalExecutionChain;
 import com.yqg.risk.dao.OrderScoreDao;
 import com.yqg.risk.dao.OrderScoreDetailDao;
 import com.yqg.risk.dao.RiskResultDao;
@@ -114,12 +118,14 @@ public class RuleTestService {
 
     @Autowired
     Product100ExecutionChain product100ExecutionChain;
+    @Autowired
+    Product50ExecutionChain product50ExecutionChain;
 
     public void testRuleWith100Pass() {
         Map<String, SysAutoReviewRule> allRules = ruleService.getAllRules();
         OrdOrder order = ordService.getOrderByOrderNo("011906191029451230");
         try {
-            RuleSetExecutedResult ruleSetResult = product100ExecutionChain.execute(order, allRules, getRuleWith100PassFacts());
+            RuleSetExecutedResult ruleSetResult = product50ExecutionChain.execute(order, allRules, getRuleWith100PassFacts());
             System.err.println(JsonUtils.serialize(ruleSetResult));
         } catch (Exception e) {
             e.printStackTrace();
@@ -380,7 +386,7 @@ public class RuleTestService {
                 "\t\t\"product600Score\": 484.544,\n" +
                 "\t\t\"product100Score\": 709.078,\n" +
                 "\t\t\"product50Score\": null,\n" +
-                "\t\t\"product600ScoreV2\": 560.312\n" +
+                "\t\t\"product600ScoreV2\": 160.312\n" +
                 "\t}";
 
         facts.add(JsonUtil.toObject(str1,ModelScoreResult.class));
@@ -958,9 +964,359 @@ public class RuleTestService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
 
+
+    public void testReborrowingFlow(){
+        List<Object> facts = new ArrayList<>();
+        String str1 = "{\n" +
+                "\t\"overdueDays\": 1,\n" +
+                "\t\"borrowingAmount\": 1200000.00,\n" +
+                "\t\"lastLoanModelScore\":{\n" +
+                "\t   \"product600Score\":400,\n" +
+                "\t   \"product100Score\":100,\n" +
+                "\t   \"product50Score\":null,\n" +
+                "\t   \"product600ScoreV2\":500\n" +
+                "\t},\n" +
+                "\t\"diffHoursBetweenFirstCollectionAndRefundTime\":3,\n" +
+                "\t\"loanPassType\":1,\n" +
+                "\t\"noCollectionRecord\":true,\n" +
+                "\t\"intervalDays\":3\n" +
+                "}";
+        LastLoan lastLoan = JsonUtil.toObject(str1,LastLoan.class);
+        facts.add(lastLoan);
+
+        str1 = " {\n" +
+                "\t\"appForLoanCount\": 1,\n" +
+                "\t\"appForLoanRatio\": 0.0130,\n" +
+                "\t\"incrementalAppForLoanCount\": 1,\n" +
+                "\t\"appForLoanRatioChange\": 0.0130,\n" +
+                "\t\"hasLatestOrder\": true,\n" +
+                "\t\"totalApps\": 77,\n" +
+                "\t\"diffDaysBetweenLatestUpdateTimeAndCommitTime\": 0,\n" +
+                "\t\"diffDaysBetweenEarliestUpdateTimeAndCommitTime\": 3843,\n" +
+                "\t\"diffDaysBetweenForEarliestAndLatestUpdateTime\": 3843,\n" +
+                "\t\"appCountForNews\": 0,\n" +
+                "\t\"appCountForEnterprise\": 2,\n" +
+                "\t\"appCountForBeauty\": 0,\n" +
+                "\t\"appCountForGambling\": 1,\n" +
+                "\t\"appCountForCreditCard\": 2,\n" +
+                "\t\"appCountForBeautyPicture\": 0,\n" +
+                "\t\"appCountForPhotography\": 1,\n" +
+                "\t\"appCountForEcommerce\": 3,\n" +
+                "\t\"appCountForGame\": 0,\n" +
+                "\t\"appCountForSocial\": 9,\n" +
+                "\t\"appCountForTaxBPJS\": 0,\n" +
+                "\t\"appCountForBank\": 2,\n" +
+                "\t\"appCountForCinema\": 2,\n" +
+                "\t\"appCountForTicket\": 1\n" +
+                "}";
+        InstalledAppInfo appInfo = JsonUtil.toObject(str1,InstalledAppInfo.class);
+        facts.add(appInfo);
+
+        str1 = "{\n" +
+                "\t\"totalDistanceFor180\": 50.952,\n" +
+                "\t\"totalFareFor180\": 68000,\n" +
+                "\t\"totalCountFor180\": 7,\n" +
+                "\t\"totalPickUpAddressCountFor180\": 3,\n" +
+                "\t\"totalTaxiTypeCountFor180\": 1,\n" +
+                "\t\"totalSpecialTaxiTypeCountFor180\": 0,\n" +
+                "\t\"totalDistanceFor30\": 50.952,\n" +
+                "\t\"totalFareFor30\": 68000,\n" +
+                "\t\"totalCountFor30\": 7,\n" +
+                "\t\"totalPickUpAddressCountFor30\": 3,\n" +
+                "\t\"totalTaxiTypeCountFor30\": 1,\n" +
+                "\t\"totalSpecialTaxiTypeCountFor30\": 0,\n" +
+                "\t\"diffDaysForFirstRideAndApplyTime\": 18,\n" +
+                "\t\"diffDaysForLastRideAndApplyTime\": 6,\n" +
+                "\t\"averageFarePerMonth\": 68000.00,\n" +
+                "\t\"averageRideCountPerMonth\": 7.00,\n" +
+                "\t\"averageFare\": 9714.29,\n" +
+                "\t\"averageDistance\": 7.2789,\n" +
+                "\t\"maxFare\": 17000,\n" +
+                "\t\"maxDistance\": 10.852,\n" +
+                "\t\"paymentMethodCount\": 1,\n" +
+                "\t\"cashPayCount\": 0,\n" +
+                "\t\"homeAddrBoolean\": true,\n" +
+                "\t\"schoolAddrBoolean\": true,\n" +
+                "\t\"companyAddrBoolean\": false,\n" +
+                "\t\"diffDaysForLatestRideContainHomeAndApplyTime\": null,\n" +
+                "\t\"diffDaysForLatestRideContainSchoolAndApplyTime\": null,\n" +
+                "\t\"diffDaysForLatestRideContainCompanyAndApplyTime\": 9,\n" +
+                "\t\"diffDaysForFirstRideContainHomeAndApplyTime\": 0,\n" +
+                "\t\"diffDaysForFirstRideContainSchoolAndApplyTime\": 0,\n" +
+                "\t\"diffDaysForFirstRideContainCompanyAndApplyTime\": 9,\n" +
+                "\t\"personBaseInfo\": {\n" +
+                "\t\t\"phone\": \"6281310827710\",\n" +
+                "\t\t\"email\": \"mandewsopian@gmail.com\"\n" +
+                "\t},\n" +
+                "\t\"mobilePhoneNotSame\": false,\n" +
+                "\t\"emailNotSame\": true,\n" +
+                "\t\"matchCompanyNum\": 0\n" +
+                "}";
+
+        GojekModel gojekModel = JsonUtil.toObject(str1,GojekModel.class);
+        facts.add(gojekModel);
+        str1 = "{\n" +
+                "\t\"deviceId\": \"\",\n" +
+                "\t\"matchedForOthersCount\": null,\n" +
+                "\t\"matchedIMEIForOthersCount\": null,\n" +
+                "\t\"sameIpApplyCount\": 1,\n" +
+                "\t\"mobileLanguage\": \"in\",\n" +
+                "\t\"netType\": \"4G\",\n" +
+                "\t\"pictureNumber\": \"0\",\n" +
+                "\t\"totalMemory\": 1.93,\n" +
+                "\t\"totalSpace\": 27.32,\n" +
+                "\t\"isJailBreak\": false,\n" +
+                "\t\"phoneBrand\": \"samsung\",\n" +
+                "\t\"isIOS\": false,\n" +
+                "\t\"matchedIMSIForOthersCount\": null,\n" +
+                "\t\"matchedCustomDeviceFingerprintWithApps\": 0,\n" +
+                "\t\"matchedCustomDeviceFingerprintWithIp\": 0,\n" +
+                "\t\"matchedCustomDeviceFingerprintWithPhoneBrand\": 0,\n" +
+                "\t\"matchedCustomDeviceFingerprintNotEmptyWithDeviceNameCpuType\": 0,\n" +
+                "\t\"matchedCustomDeviceFingerprintWithoutAndroidId\": 0,\n" +
+                "\t\"hitSameExtendDeviceCount\": 0\n" +
+                "}";
+        DeviceModel deviceModel = JsonUtil.toObject(str1,DeviceModel.class);
+        facts.add(deviceModel);
+
+        str1 = "{\n" +
+                "\t\"idCardNoInOverdue15BlackList\": null,\n" +
+                "\t\"mobileInOverdue15BlackList\": false,\n" +
+                "\t\"emergencyTelInOverdue15BlackListEmergencyTel\": null,\n" +
+                "\t\"bankcardNoInOverdue15BlackList\": null,\n" +
+                "\t\"imeiInOverdue15BlackList\": null,\n" +
+                "\t\"mobileIsOverdue15BlackListEmergencyTel\": null,\n" +
+                "\t\"emergencyTelInOverdue15BlackList\": null,\n" +
+                "\t\"mobileInOverdue15BlackListContacts\": null,\n" +
+                "\t\"mobileInOverdue15BlackListCallRecords\": null,\n" +
+                "\t\"mobileInOverdue15BlackListShortMsg\": null,\n" +
+                "\t\"contactInOverdue15BlackList\": null,\n" +
+                "\t\"callRecordInOverdue15BlackList\": null,\n" +
+                "\t\"contactInOverdue15Count\": 0,\n" +
+                "\t\"callRecordInOverdue15Count\": 0,\n" +
+                "\t\"mobileIsFraudUserEmergencyTel\": null,\n" +
+                "\t\"mobileInFraudUserCallRecordsCount\": null,\n" +
+                "\t\"imeiInFraudUser\": false,\n" +
+                "\t\"mobileInFraudUser\": null,\n" +
+                "\t\"idCardNoInFraudUser\": null,\n" +
+                "\t\"hitFraudUserInfo\": false,\n" +
+                "\t\"deviceIdInOverdue30DaysUser\": false,\n" +
+                "\t\"smsContactOverdue15DaysCount\": null,\n" +
+                "\t\"callRecordInOverdue7BlackList\": null,\n" +
+                "\t\"imeiInOverdue7BlackList\": null,\n" +
+                "\t\"idCardNoInOverdue7BlackList\": null,\n" +
+                "\t\"mobileInOverdue7BlackList\": null,\n" +
+                "\t\"bankcardInOverdue7BlackList\": null,\n" +
+                "\t\"emergencyTelInOverdue7BlackListEmergencyTel\": null,\n" +
+                "\t\"mobileInOverdue7BlackListEmergencyTel\": null,\n" +
+                "\t\"emergencyTelInOverdue7BlackList\": null,\n" +
+                "\t\"hitSensitiveUserInfo\": false,\n" +
+                "\t\"hitCollectorBlackUserInfo\": false,\n" +
+                "\t\"hitComplaintUserInfo\": false,\n" +
+                "\t\"whatsappInOverdue7BlackList\": null,\n" +
+                "\t\"whatsappInOverdue7BlackListEmergencyTel\": null,\n" +
+                "\t\"whatsappInOverdue7BlackListCallRecord\": null,\n" +
+                "\t\"whatsappInOverdue7BlackListContact\": null,\n" +
+                "\t\"whatsappInOverdue7BlackListSms\": null,\n" +
+                "\t\"emergencyTelInFraudUserEmergencyTel\": null,\n" +
+                "\t\"emergencyTelInFraudUserCallRecord\": null,\n" +
+                "\t\"emergencyTelInFraudUserContact\": null,\n" +
+                "\t\"emergencyTelInFraudUserSms\": null,\n" +
+                "\t\"emergencyTelInFraudUserWhatsapp\": null,\n" +
+                "\t\"companyTelInOverdue7BlackList\": null,\n" +
+                "\t\"companyAddressInOverdue7BlackList\": null,\n" +
+                "\t\"homeAddressInOverdue7BlackList\": null,\n" +
+                "\t\"companyTelInFraudBlackList\": null,\n" +
+                "\t\"companyAddressInFraudBlackList\": null,\n" +
+                "\t\"homeAddressInFraudBlackList\": null,\n" +
+                "\t\"mobileIsEmergencyTelForUnSettledOverdue7UserWith1th\": null,\n" +
+                "\t\"emergencyTelIsUnSettledOverdue7UserWith1th\": null,\n" +
+                "\t\"emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith1th\": null,\n" +
+                "\t\"emergencyTelIsUnSettledOverdue7UserWith2th\": null,\n" +
+                "\t\"emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith2th\": null,\n" +
+                "\t\"mobileIsEmergencyTelForUnSettledOverdue7UserWith2th\": null,\n" +
+                "\t\"emergencyTelIsEmergencyTelForUnSettledOverdue7UserWith3Or4th\": null,\n" +
+                "\t\"mobileIsEmergencyTelForSettledOverdue7UserWith1th\": null,\n" +
+                "\t\"emergencyTelIsSettledOverdue7UserWith1th\": null,\n" +
+                "\t\"emergencyTelIsEmergencyTelForSettledOverdue7UserWith1th\": null,\n" +
+                "\t\"emergencyTelIsSettledOverdue7UserWith2th\": null,\n" +
+                "\t\"emergencyTelIsEmergencyTelForSettledOverdue7UserWith2th\": null,\n" +
+                "\t\"mobileIsEmergencyTelForSettledOverdue7UserWith2th\": null,\n" +
+                "\t\"emergencyTelIsEmergencyTelForSettledOverdue7UserWith3Or4th\": null\n" +
+                "}";
+
+        BlackListUserCheckModel checkModel = JsonUtil.toObject(str1,BlackListUserCheckModel.class);
+        facts.add(checkModel);
+
+        str1 = "{\n" +
+                "\t\"provinceInEarthquakeArea\": false,\n" +
+                "\t\"cityInEarthquakeArea\": false\n" +
+                "}";
+
+        SpecialModel specialModel = JsonUtil.toObject(str1,SpecialModel.class);
+        facts.add(specialModel);
+
+        str1 = "{\n" +
+                "\t\"applyCount\": 2,\n" +
+                "\t\"successLoanCount\": 2,\n" +
+                "\t\"successRatio\": 1.0000,\n" +
+                "\t\"overdueCount\": 1,\n" +
+                "\t\"overdueSuccessLoanRatio\": 0.5000,\n" +
+                "\t\"averageOverdueDays\": -11.0000,\n" +
+                "\t\"averageIntervalDays\": 7.0000,\n" +
+                "\t\"overdue1Count\": 1,\n" +
+                "\t\"overdue2Count\": 0,\n" +
+                "\t\"overdue3Count\": 0,\n" +
+                "\t\"overdue4Count\": 0,\n" +
+                "\t\"overdue5Count\": 0,\n" +
+                "\t\"overdue6Count\": 0,\n" +
+                "\t\"overdueMoreThan6Count\": 0,\n" +
+                "\t\"overdue1Ratio\": 0.5000,\n" +
+                "\t\"overdue2Ratio\": 0.0000,\n" +
+                "\t\"overdue3Ratio\": 0.0000,\n" +
+                "\t\"overdue4Ratio\": 0.0000,\n" +
+                "\t\"overdue5Ratio\": 0.0000,\n" +
+                "\t\"overdue6Ratio\": 0.0000,\n" +
+                "\t\"overdueMoreThan6Ratio\": 0.0000\n" +
+                "}";
+        LoanHistory loanHistory  = JsonUtil.toObject(str1,LoanHistory.class);
+        facts.add(loanHistory);
+
+        str1 = " {\n" +
+                "\t\"applyTimeHour\": 14,\n" +
+                "\t\"currentBorrowCount\": 3,\n" +
+                "\t\"historySubmitCount\": 2,\n" +
+                "\t\"diffMinutesOfUserCreateTimeAndOrderSubmitTime\": 72334,\n" +
+                "\t\"diffMinutesOfStepOne2StepTwo\": null,\n" +
+                "\t\"borrowingPurpose\": \"Modal Usaha\",\n" +
+                "\t\"borrowingAmount\": 1200000.00,\n" +
+                "\t\"firstBorrowingAmount\": 1200000.00\n" +
+                "}";
+        LoanInfo loanInfo = JsonUtil.toObject(str1,LoanInfo.class);
+        facts.add(loanInfo);
+
+        str1 = "{\n" +
+                "\t\"idCard\": null,\n" +
+                "\t\"age\": 27,\n" +
+                "\t\"homeAddress\": null,\n" +
+                "\t\"userRole\": null,\n" +
+                "\t\"schoolAddress\": null,\n" +
+                "\t\"companyAddress\": null,\n" +
+                "\t\"orderAddress\": null,\n" +
+                "\t\"isCompanyTelphoneNotInJarkat\": null,\n" +
+                "\t\"homeAddressNotBelongToJarkat\": null,\n" +
+                "\t\"schoolAddressNotBelongToJarkat\": null,\n" +
+                "\t\"companyAddressNotBelongToJarkat\": null,\n" +
+                "\t\"orderAddressNotBelongToJarkat\": null,\n" +
+                "\t\"companyAddressNotBelongToJarkatNormal\": null,\n" +
+                "\t\"companyAddressNotBelongToJarkatIOS\": null,\n" +
+                "\t\"yituScore\": null,\n" +
+                "\t\"facePlusPlusScore\": null,\n" +
+                "\t\"advanceVerifyResult\": null,\n" +
+                "\t\"sex\": 2,\n" +
+                "\t\"hasDriverLicense\": false,\n" +
+                "\t\"companyAddrProvice\": null,\n" +
+                "\t\"companyAddrCity\": null,\n" +
+                "\t\"homeAddrProvice\": null,\n" +
+                "\t\"homeAddrCity\": null,\n" +
+                "\t\"childrenAmount\": 0,\n" +
+                "\t\"academic\": null,\n" +
+                "\t\"maritalStatus\": null,\n" +
+                "\t\"thirdType\": null,\n" +
+                "\t\"mobileAsEmergencyTelCount\": null,\n" +
+                "\t\"hasInsuranceCard\": null,\n" +
+                "\t\"hasFamilyCard\": null,\n" +
+                "\t\"hasTaxNumber\": null,\n" +
+                "\t\"hasPayroll\": null,\n" +
+                "\t\"positionName\": null,\n" +
+                "\t\"hitOverDuePositionMan\": null,\n" +
+                "\t\"hitOverDuePositionFeMen\": null,\n" +
+                "\t\"hitHomeProviceMan\": null,\n" +
+                "\t\"hitHomeProviceFeMen\": null,\n" +
+                "\t\"hitHomeProviceMan150\": null,\n" +
+                "\t\"hitHomeProviceFeMen150\": null,\n" +
+                "\t\"hitHomeProviceMan80\": null,\n" +
+                "\t\"dependentBusiness\": null,\n" +
+                "\t\"religionName\": null,\n" +
+                "\t\"monthlyIncome\": null,\n" +
+                "\t\"firstLinkmanExists\": null,\n" +
+                "\t\"firstLinkmanExistsRelatedUserSettled\": null,\n" +
+                "\t\"emailExists\": null,\n" +
+                "\t\"firstEmailExistsRelatedUserSettled\": null,\n" +
+                "\t\"linkmanExists\": null,\n" +
+                "\t\"existsLinkmanHasSettledOrder\": null,\n" +
+                "\t\"existsLinkmanWithoutSuccessOrder\": null,\n" +
+                "\t\"workAddressExists\": null,\n" +
+                "\t\"orderAddressExists\": null,\n" +
+                "\t\"homeAddressExists\": null,\n" +
+                "\t\"iziPhoneAgeResult\": {\n" +
+                "\t\t\"status\": \"OK\",\n" +
+                "\t\t\"age\": 6\n" +
+                "\t},\n" +
+                "\t\"iziPhoneVerifyResult\": {\n" +
+                "\t\t\"status\": \"OK\",\n" +
+                "\t\t\"message\": \"MATCH\"\n" +
+                "\t},\n" +
+                "\t\"companyTel\": null,\n" +
+                "\t\"companyName\": null,\n" +
+                "\t\"whatsappAccount\": null,\n" +
+                "\t\"whatsappAccountStr\": null,\n" +
+                "\t\"mobileNumber\": null,\n" +
+                "\t\"idCardSex\": null,\n" +
+                "\t\"idCardBirthday\": null,\n" +
+                "\t\"birthday\": null,\n" +
+                "\t\"countOfOverdueLessThan5UsersByEmergencyTel\": null,\n" +
+                "\t\"hasCreditCard\": null,\n" +
+                "\t\"gojekVerified\": true,\n" +
+                "\t\"bankCode\": null,\n" +
+                "\t\"whatsAppCheckResult\": null,\n" +
+                "\t\"whatsAppYesRadio\": null,\n" +
+                "\t\"linkmanInMultiBankcardUser\": null,\n" +
+                "\t\"mobileInMultiBankcardUserEmergencyTel\": null,\n" +
+                "\t\"sameBankcardNumberWithOthersCount\": null,\n" +
+                "\t\"orderSmallDirectIsNull\": null,\n" +
+                "\t\"mobileInOverdueLessThan5UserEmergencyTel\": null,\n" +
+                "\t\"linkmanWhatsAppCheckWithNoCount\": null,\n" +
+                "\t\"ownerWhatsAppDetail\": null\n" +
+                "}";
+
+        RUserInfo rUserInfo = JsonUtil.toObject(str1,RUserInfo.class);
+        facts.add(rUserInfo);
+
+
+        String str = "{\n" +
+                "\t\t\"overdueDays\": 30,\n" +
+                "\t\t\"borrowingAmount\": 1200000.00,\n" +
+                "\t\t\"lastLoanModelScore\": {\n" +
+                "\t\t\t\"product600Score\": 465.704,\n" +
+                "\t\t\t\"product100Score\": null,\n" +
+                "\t\t\t\"product50Score\": null,\n" +
+                "\t\t\t\"product600ScoreV2\": 441.174\n" +
+                "\t\t},\n" +
+                "\t\t\"diffHoursBetweenFirstCollectionAndRefundTime\": null,\n" +
+                "\t\t\"loanPassType\": 3,\n" +
+                "\t\t\"noCollectionRecord\": true,\n" +
+                "\t\t\"intervalDays\": 3\n" +
+                "\t}";
+        LastLoanForExtend lastLoanForExtend = JsonUtil.toObject(str,LastLoanForExtend.class);
+        facts.add(lastLoanForExtend);
+
+
+        Map<String, SysAutoReviewRule> allRules = ruleService.getAllRules();
+        OrdOrder order = ordService.getOrderByOrderNo("011907111545554141");
+        try {
+            reBorrowingProduct600ExtendExecutionChain.execute(order,allRules,facts);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+    @Autowired
+    ReBorrowingProduct600ExtendExecutionChain reBorrowingProduct600ExtendExecutionChain;
 
 
 

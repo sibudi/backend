@@ -31,9 +31,9 @@ public interface InfinityBillDao {
 
     @Insert(
             "insert into qualityCheckingVoice( " + // uuid,extnumber,  destnumber,status,createTime,updateTime) "
-                    "uuid,orderNo,extNumber,destNumber,realName,applyAmount,applyDeadline,userName,callNode,callType,createTime,updateTime, userId"
+                    "uuid,orderNo,extNumber,destNumber,realName,applyAmount,applyDeadline,userName,callNode,callType,createTime,updateTime, userId, sourceType "
                     + " ) values( " +
-                    "#{uuid},#{orderNo},#{extnumber},#{destnumber},#{realName},#{applyAmount},#{applyDeadline},#{userName},#{callNode},#{callType},now(),now(),#{userid})")
+                    "#{uuid},#{orderNo},#{extnumber},#{destnumber},#{realName},#{applyAmount},#{applyDeadline},#{userName},#{callNode},#{callType},now(),now(),#{userid},#{sourceType})")
     int saveBill(InfinityBillEntity entity);
 
     @Select("select * from qualityCheckingVoice where disabled=0")

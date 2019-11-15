@@ -82,7 +82,7 @@ public class CheakThirdDataScheduling {
                     // ?????
                     String certType = certRedisEntity.getCertType();
                     if (certType.equals("tokoPedia")){
-                        String pwdDes = DESUtils.decrypt(certRedisEntity.getPwd());
+                        String pwdDes = DESUtils.decryptNew(certRedisEntity.getPwd());
                         request.setPwd(pwdDes);
                     }else {
                         request.setPwd(certRedisEntity.getPwd());
@@ -335,41 +335,5 @@ public class CheakThirdDataScheduling {
         }
     }
 
-//
-//    /**
-//     *    ??tokopedia????
-//     * */
-//    public void dealWithTokopediaData() throws Exception{
-//
-//
-//        UserCertificationInfoInRedis certRedisEntity =  redisClient.listGetTail(RedisContants.USER_CERTIFICATION_LIST,UserCertificationInfoInRedis.class);
-//
-//        try {
-//           for (int i = 0; i<=100;i++){
-//            log.info("======================"+certRedisEntity.toString()+"=====================");
-//               if (certRedisEntity != null){
-//
-//                   // ?????
-//                   String certType = certRedisEntity.getCertType();
-//                   if (certType.equals("tokoPedia")){
-//                       OpratorsRequest request = new OpratorsRequest();
-//                       request.setEmail(certRedisEntity.getEmail());
-//                       request.setPwd(DESUtils.decrypt(certRedisEntity.getPwd()));
-//                       String requestStr = this.opratorsService.getInfo("http://47.74.190.108:8080/spider/toko/getDetail",request);
-//                       JSONObject res = JSONObject.parseObject(requestStr);
-////                   String code = res.get("code").toString();
-//                       // ?????batchId
-//                       if(res.get("batchId") != null){
-//                           certRedisEntity.setBatchId(res.get("batchId").toString());
-//                           this.redisClient.listAdd(RedisContants.USER_CERTIFICATION_LIST ,certRedisEntity);
-//                       }
-//                   }
-//               }
-//           }
-//       }catch (Exception e){
-//           log.info(e.getMessage());
-//           this.redisClient.listAdd(RedisContants.USER_CERTIFICATION_LIST ,certRedisEntity);
-//       }
-//
-//    }
+
 }

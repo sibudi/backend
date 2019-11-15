@@ -1,0 +1,30 @@
+
+server:
+  port: 8085
+
+upload:
+  rootPath: /mnt/MyUpload
+  rootPathBak: /mnt/MyUpload_bak
+#  rootPath: E:/Do-It/SECRET
+#  rootPathBak: E:/Do-It/SECRET
+  maxFileSize: 10MB
+  maxRequestSize: 20MB
+
+jedis:
+  pool:
+    database: 1
+    password: doit2019
+    timeout: 3000
+    config:
+      maxTotal: 500         #连接池的最大数据库连接数。设为0表示无限制,如果是jedis 2.4以后用redis.maxTotal
+      maxIdle: 10          #最大空闲数
+      minIdle: 0
+      maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+    sentinel:
+      master: mymaster
+      nodes: redis-A-01.uat.doitglotech.cloud:26379, redis-B-01.uat.doitglotech.cloud:26379, redis-B-02.uat.doitglotech.cloud:26379
+
+rsa:
+  file:
+    privateKey: /SECRET/rsa-pri-test.cer
+    publicKey: /SECRET/rsa-pub-test.cer

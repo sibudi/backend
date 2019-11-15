@@ -1,0 +1,243 @@
+server:
+  port: 8081
+mysql:
+  datasource:
+    readSize: 2
+    type: com.alibaba.druid.pool.DruidDataSource
+    write:
+      name: yishu
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
+      username: userdoit
+      password: PJf4jqQZ0igtKQ
+
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: stat
+      maxActive: 300
+      initialSize: 1
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      # validationQuery: select 'x'
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+    read01:
+      name: yishu
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
+      username: userdoit
+      password: PJf4jqQZ0igtKQ
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: stat
+      maxActive: 300
+      initialSize: 1
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      # validationQuery: select 'x'
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+    read02:
+      name: yishu
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
+      username: userdoit
+      password: PJf4jqQZ0igtKQ
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: stat
+      maxActive: 300
+      initialSize: 1
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      # validationQuery: select 'x'
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+    riskBackup:
+      name: riskBackup
+      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
+      username: userdoit
+      password: PJf4jqQZ0igtKQ
+
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: stat
+      maxActive: 300
+      initialSize: 1
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: select 'x'
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+jedis:
+  pool:
+    database: 1
+    password: doit2019
+    timeout: 3000
+    config:
+      maxTotal: 500         #连接池的最大数据库连接数。设为0表示无限制,如果是jedis 2.4以后用redis.maxTotal
+      maxIdle: 10          #最大空闲数
+      minIdle: 0
+      maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+    sentinel:
+      master: mymaster
+      nodes: redis-A-01.uat.doitglotech.cloud:26379, redis-B-01.uat.doitglotech.cloud:26379, redis-B-02.uat.doitglotech.cloud:26379
+
+mongo:
+  repleSet: mongo-A-01.uat.doitglotech.cloud:37837,
+  username: do-it-use
+  password: do-it-pwd
+  dbName: do-it
+  connectionsPerHost: 20
+  threadsAllowedToBlockForConnectionMultiplier: 10
+
+upload:
+  path: http://www.do-it.id
+  #path:  http://10.24.30.72:8082
+  imagePath: http://api.uat.doitglotech.cloud/manage/showStreamOnBrowser?path= #:8082/manage/showStreamOnBrowser?path=
+third:
+  upload:
+    uploadHost: http://api.uat.doitglotech.cloud
+    uploadFilePath: /uploadFile/uploadManageFile
+    uploadManageFileUnverified: /uploadFile/uploadManageFileUnverified
+  pay:
+    cardBinUrl: http://api.uat.doitglotech.cloud/bankcard/verify #:8888/bankcard/verify
+    cardBinToken: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
+  cashcash:
+    #订单状态回调地址
+    orderStatusFeedback: http://testloanapi.cashcash.id/call-back/order-status
+    #订单审核结果回调地址
+    orderCheckResultFeedback: http://testloanapi.cashcash.id/call-back/approval-result
+    #银行卡绑卡结果回调地址
+    cardCash2Url: https//testloanapi.cashcash.id/call-back/bind-bank-status
+    #aesKey: 27oovmz7gueaud8l
+    aesKey: invalidKey
+    initVector: abc123rty456nji7
+    md5Token: KY8GZ-42A0A-Q8OXB-HOJJY-4U8UM-KLTGM
+    appId: 10000
+    version: 1
+    partnerName: UangUang
+    #partnerKey: 8uv4g8z33rcg6mh5ejziq5b8h
+    partnerKey: invalidKey
+  inforbip:
+    userName: do-it
+    #password: do-it2018
+    password: invalidPassword
+    #host: https://api.infobip.com
+    host: https://api-id1.infobip.com
+    mobileLookUpUrl: /tts/3/single
+    mobileLookUpUrlMulti: /tts/3/multi
+    reportUrl: /tts/3/reports
+    fromTel: 02166685333
+  xiaomi:
+    url: http://staging.id.credit.mi.com/data/upload/kbuser
+    appId: 3126382946971650
+    #appKey: 4ac4f483ac89a20ae5dfdcf33ee36fafaf2f562db54929abc353d76733184309
+    appKey: invalidKey
+  twilio:
+    accountSid: AC8521b50dcb9ecb3cd79304d6749e11d5
+    #authToken: 5c900a16403d61d949a883b98cdbc004
+    authToken: invalidToken
+    from: +6285574677952
+    demoUrl: https://demo.twilio.com/welcome/voice/
+    serverAddress: 172.31.178.144
+  digiSign:
+    token: atXytejhMO5pMsaAtLdcrkQ2WFlb7uHSCBXXhmnv6jV5AWIdFGofaM4nD6EGQT
+    doitAdminEmail: it@do-it.id
+    #test env
+    #      registerUrl: https://api.tandatanganku.com/REG-MITRA.html
+    #      activationUrl: https://api.tandatanganku.com/ACTMitra-M.html
+    #      sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
+    #      signUrl: https://api.tandatanganku.com/SignWebView.html
+    #      tmpContractDir: C:/Users/zxc20/Desktop/digSign/contract-tmp
+    #      automaticSignKUser: e8r5QbytnJ5g2HOo
+    #      apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
+    #      apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
+    #      apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA.html
+
+    #uat env
+    registerUrl: https://apiuat.tandatanganku.com/REG-MITRA.html
+    activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
+    sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
+    signUrl: https://apiuat.tandatanganku.com/SignWebView.html
+    contractDir: /mnt/MyUpload/DOIT_CONTRACT
+    automaticSignKUser: e8r5QbytnJ5g2HOo
+    apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
+    apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
+    apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
+
+manager:
+  #        path: http://cn.control.do-it.id/manage/
+  path: http://api.uat.doitglotech.cloud/manage/ #:8082/manage/
+des:
+  file:
+    path: /SECRET/des-test.cer
+
+telk:
+  url: http://10.24.30.69:8899/spider/telk/getDetail
+  url2: http://10.24.30.69:8899/spider/telk/accountInfo
+tokopedia:
+  url: http://10.24.30.69:8899/spider/toko/getDetail
+xl:
+  url: http://10.24.30.69:8899/spider/xl/getDetail
+jxl:
+  getReportDataurl: http://10.24.30.69:8899/spider/jxl/getJXLReportData
+  sendReportTokenUrl: http://10.24.30.69:8899/spider/jxl/finishProcess/
+sms:
+  cheakSmsBalanceUrl: http://10.24.30.69:8899/sms/balance/
+pay:
+  cheakLoanBalanceUrl: http://10.24.30.69:8899/balance/xendit
+  checkPayOrderUrl: http://10.24.30.69:8899/check/order
+  #  checkPayOrderUrl: http://192.168.0.151:8888/check/order
+  token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
+excel:
+  file:
+    dir: /LOG/excel/pay
+    #      targetPath: /LOG/excel/target
+    #      templatesPath: /LOG/excel/templates
+    targetPath: /Users/NeverMore/Desktop/excel
+    templatesPath: /Users/NeverMore/Desktop/templates
+HttpUrl:
+  #smsUrl: http://api.uat.doitglotech.cloud #:8899/sms/send
+  smsUrl: http://invalid_url.uat.doitglotech.cloud #:8899/sms/send
+  #smsUrlTwilio: http://api.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
+SmsChannelType:
+  type: ZENZIVA
+spring:
+  mail:
+    host: smtp.yinyichina.cn
+    username: wanghuaizhou@yinyichina.cn
+    #password: wang123456@
+    password: invalidPassword
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: false
+            required: false
+    port: 25
+    default-encoding: UTF-8
+    protocol: smtp
+  velocity:
+    check-template-location: false
+  freemarker:
+    checkTemplateLocation: false

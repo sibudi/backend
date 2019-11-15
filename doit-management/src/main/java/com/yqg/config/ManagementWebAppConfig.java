@@ -31,7 +31,7 @@ public class ManagementWebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(localInterceptor())
             .addPathPatterns("/**")
             .excludePathPatterns("/manage/sysLogin").excludePathPatterns("/manage/forceChangePassword.json")
-//                .excludePathPatterns("/manage/twilioD_1XML")
+                .excludePathPatterns("/manage/manQuestionnaire/uploadQuestionnaireAttach")
 //                .excludePathPatterns("/manage/twilioD_2XML")
 //                .excludePathPatterns("/manage/twilioD_3XML")
 //                .excludePathPatterns("/manage/twilioD0XML")

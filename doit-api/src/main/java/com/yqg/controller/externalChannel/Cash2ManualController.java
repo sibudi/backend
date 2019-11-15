@@ -15,8 +15,7 @@ import javax.ws.rs.core.MediaType;
 /**
  * Created by wanghuaizhou on 2019/1/16.
  */
-
-
+@H5Request
 @RestController
 @Slf4j
 @RequestMapping("/cash2/manual")

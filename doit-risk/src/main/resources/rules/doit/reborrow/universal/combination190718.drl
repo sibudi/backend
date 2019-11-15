@@ -1,0 +1,253 @@
+package com.doit.reborrow.universal
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.LastLoan;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+
+rule "COMB190718_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.MALE.getCode()
+             && $hasPassport!=null && $hasPassport
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&有护照")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB190718_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.MALE.getCode()
+             && $hasPassport!=null && $hasPassport
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_HAS_PASSPORT.getMessage(),
+                                                    "false",
+                                                    "未命中男&当天还款&有护照")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB190718_002_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $age: age);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.MALE.getCode()
+             && !($hasPassport!=null && $hasPassport)
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE.getMessage(),
+                                                    "true",
+                                                    "命中男&当天还款&没有护照&25<=年龄<30")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB190718_002_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $hasPassport: hasPassport, $age: age);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.MALE.getCode()
+             && !($hasPassport!=null && $hasPassport)
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_MALE_OVERDUEDAYS_NO_PASSPORT_AGE.getMessage(),
+                                                    "false",
+                                                    "未命中男&当天还款&没有护照&25<=年龄<30")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB190718_003_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $age: age);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && (RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+                || RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+               )
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&年龄<25或>=45")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+rule "COMB190718_003_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE
+         .getMessage()]);
+         RUserInfo($sex: sex, $age: age);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && (RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+                || RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+               )
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&年龄<25或>=45")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "COMB190718_004_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $age: age, $monthlyIncome:monthlyIncome);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,6))
+             );
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage(),
+                                                    "true",
+                                                    "命中女&当天还款&25<=年龄<45&月收入<2000")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB190718_004_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME
+         .getMessage()]);
+         RUserInfo($sex: sex, $age: age, $monthlyIncome:monthlyIncome);
+         LastLoan($overdueDays: overdueDays, $borrowingAmount: borrowingAmount);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount), RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount), RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount), RuleUtils.getRuleParam($threshData,2))
+             && RuleUtils.equalTo(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData,3))
+             && $sex==RUserInfo.SexEnum.FEMALE.getCode()
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,4))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($age),RuleUtils.getRuleParam($threshData,5))
+             && RuleUtils.lessThan(RuleUtils.valueOfStr($monthlyIncome),RuleUtils.getRuleParam($threshData,6))
+             ));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_CURRENT_AMOUNT_FEMALE_OVERDUEDAYS_AGE_MONTHLY_INCOME.getMessage(),
+                                                    "false",
+                                                    "未命中女&当天还款&25<=年龄<45&月收入<2000")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "COMB190729_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LOAN_AMOUNT.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LOAN_AMOUNT.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LOAN_AMOUNT
+         .getMessage()]);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(RuleUtils.containsStringIgnoreCase(RuleUtils.valueOfStr($currentBorrowingAmount),$threshData));
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.LOAN_AMOUNT.getMessage(),
+                                                    "true",
+                                                    "命中贷款额度规则")
+                                                    .addToResultList(ruleSetResultList);
+end
+
+
+rule "COMB190729_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LOAN_AMOUNT.getMessage()))
+    when
+         RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LOAN_AMOUNT.getMessage()));
+         $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LOAN_AMOUNT
+         .getMessage()]);
+         LoanInfo($currentBorrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount)
+         eval(!RuleUtils.containsStringIgnoreCase(RuleUtils.valueOfStr($currentBorrowingAmount),$threshData));
+    then
+        RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.LOAN_AMOUNT.getMessage(),
+                                                    "false",
+                                                    "未命中贷款额度规则")
+                                                    .addToResultList(ruleSetResultList);
+end
+

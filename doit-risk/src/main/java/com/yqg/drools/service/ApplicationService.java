@@ -13,6 +13,7 @@ import com.yqg.drools.executor.base.FlowEnum;
 import com.yqg.drools.executor.firstBorrowing.LabelExecutionChain;
 import com.yqg.drools.executor.firstBorrowing.Product100ExecutionChain;
 import com.yqg.drools.executor.loanLimit.LoanLimitExecutor;
+import com.yqg.drools.executor.reBorrowing.ReBorrowingUniversalExecutionChain;
 import com.yqg.drools.extract.BaseExtractor;
 import com.yqg.drools.model.KeyConstant;
 import com.yqg.drools.model.base.LoanLimitRuleResult;
@@ -46,6 +47,13 @@ public class ApplicationService {
                     RuleSetEnum.TOKOPEIDA, RuleSetEnum.FACEBOOK,
                     RuleSetEnum.BLACK_LIST_USER, RuleSetEnum.SPECIAL_RULE, RuleSetEnum.LOAN_INFO,
                     RuleSetEnum.SPECIFIED_PRODUCT_100RMB);
+
+    private List<RuleSetEnum> reBorrowRuleSet = Arrays
+            .asList(RuleSetEnum.LATEST_LOAN, RuleSetEnum.RE_BORROWING_CONTACT,
+                    RuleSetEnum.RE_BORROWING_CALL_RECORD, RuleSetEnum.RE_BORROWING_SHORT_MESSAGE,
+                    RuleSetEnum.RE_BORROWING_INSTALLED_APP, RuleSetEnum.GOJEK, RuleSetEnum.FACEBOOK, RuleSetEnum.DEVICE_INFO,
+                    RuleSetEnum.RE_BORROWING_BLACK_LIST_USER, RuleSetEnum.SPECIAL_RULE, RuleSetEnum.LOAN_HISTORY, RuleSetEnum.LOAN_INFO,
+                    RuleSetEnum.RE_BORROWING_USER_IDENTITY, RuleSetEnum.LAST_LOAN_FOR_EXTEND);
 
 
     /***
@@ -93,6 +101,9 @@ public class ApplicationService {
     private UserRiskService userRiskService;
     @Autowired
     private LoanLimitExecutor loanLimitExecutor;
+
+    @Autowired
+    private ReBorrowingUniversalExecutionChain reBorrowingUniversalExecutionChain;
 
     /***
      * 首借申请
@@ -146,7 +157,22 @@ public class ApplicationService {
      * @param allRules
      */
     public RuleSetExecutedResult applyForReBorrowing(OrdOrder order, Map<String, SysAutoReviewRule> allRules) throws Exception {
-        return ruleApplicationService.reBorrow(order, allRules);
+        long startTime = System.currentTimeMillis();
+        try {
+            List<Object> facts = fetchRuleFacts(order, allRules, reBorrowRuleSet);
+
+            RuleSetExecutedResult ruleSetResult = reBorrowingUniversalExecutionChain.execute(order, allRules, facts);
+            log.info("execute " + RuleSetEnum.RE_BORROWING + " rules with ruleSetResult: "
+                    + JsonUtils.serialize(ruleSetResult));
+            return ruleSetResult;
+        } catch (Exception e) {
+            log.error("execute " + RuleSetEnum.RE_BORROWING + " rules error, orderNo: " + order
+                    .getUuid(), e);
+            throw e;
+        } finally {
+            log.info("{} rules cost: {} ms", RuleSetEnum.RE_BORROWING,
+                    System.currentTimeMillis() - startTime);
+        }
     }
 
 
@@ -250,15 +276,17 @@ public class ApplicationService {
         boolean hit = false;
 
         if (!CollectionUtils.isEmpty(results)) {
-            hit = results.stream().filter(elem -> elem.getPass() && PRD_100_LOAN_LIMIT_RULES.contains(elem.getRuleName())).findFirst().isPresent();
+            hit =
+                    results.stream().filter(elem -> elem.getPass() && (PRD_100_LOAN_LIMIT_RULES.contains(elem.getRuleName()) || elem.getRuleName().startsWith("prd50_"))).findFirst().isPresent();
         }
         respMap.put("result", hit ? "HIT" : "NOT_HIT");
 
         //save result
 
-        log.info("response: {}",JsonUtils.serialize(response));
+        log.info("response: {}", JsonUtils.serialize(response));
         return response;
     }
+
 
 
     private Optional<RuleConditionModel> buildAutoCallRunnableRuleCondition(Map<String, SysAutoReviewRule> toRunningRules, OrdOrder order) {

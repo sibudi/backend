@@ -1,5 +1,7 @@
 package com.yqg.scheduling;
 
+import com.yqg.common.constants.RedisContants;
+import com.yqg.common.redis.RedisClient;
 import com.yqg.service.SendSmsService;
 import com.yqg.service.system.service.SmsRemindService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +29,7 @@ public class SendSmsTask {
     public void sendToLoanSuccessUserWithinFiveDay() throws Exception{
         log.info("sendToLoanSuccessUserWithinFiveDay begin");
         sendSmsService.sendToLoanSuccessUserWithinFiveDay();
-        log.info("sendToLoanSuccessUserWithinFiveDay end");
+        log.info("sendToLoanSuccessUserWithinFiveDay end") ;
     }
 
     /**
@@ -36,9 +38,12 @@ public class SendSmsTask {
      */
     @Scheduled(cron = "0 0 12 * * ?")
     public void sendSmsToSilenceUser() throws Exception{
-        log.info("sendSmsToSilenceUser begin");
-        sendSmsService.sendSmsToSilenceUser3();
-        log.info("sendSmsToSilenceUser end");
+
+        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":silientSMS")) {
+            log.info("sendSmsToSilenceUser begin");
+            sendSmsService.sendSmsToSilenceUser3();
+            log.info("sendSmsToSilenceUser end");
+        }
     }
 
 
@@ -47,9 +52,12 @@ public class SendSmsTask {
      */
     @Scheduled(cron = "0 0 12 * * ?")
     public void sendSmsToUserNotVerifyOrder() throws Exception{
-        log.info("sendSmsToUserNotVerifyOrder begin");
-        sendSmsService.sendSmsToUserNotVerifyOrder();
-        log.info("sendSmsToUserNotVerifyOrder end");
+
+        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":notSubmitSMS")) {
+            log.info("sendSmsToUserNotVerifyOrder begin");
+            sendSmsService.sendSmsToUserNotVerifyOrder();
+            log.info("sendSmsToUserNotVerifyOrder end");
+        }
     }
 
     /**  send 降额未确认放款
@@ -57,9 +65,13 @@ public class SendSmsTask {
      */
     @Scheduled(cron = "0 0 12 * * ?")
     public void sendReduceSms() throws Exception{
-        log.info("sendReduceSms begin");
-        sendSmsService.sendReduceSms();
-        log.info("sendReduceSms end");
+
+        if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":reduceSMS")) {
+            log.info("sendReduceSms begin");
+            sendSmsService.sendReduceSms();
+            log.info("sendReduceSms end");
+
+        }
     }
 
     /**  每周五早上十点定时发送  20w已还款用户 没有再复借
@@ -711,6 +723,14 @@ public class SendSmsTask {
         log.info("sendSmsOn20190218 begin");
         sendSmsService.sendSmsOn20190218();
         log.info("sendSmsOn20190218 end");
+    }
+
+    @Autowired
+    private RedisClient redisClient;
+
+    private boolean judgeSwitchOpen(String key) {
+
+        return "true".equals(redisClient.get(key));
     }
 
 }

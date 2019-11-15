@@ -1,0 +1,1148 @@
+package com.doit.reborrow
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.LastLoanForExtend;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.drools.model.RUserInfo.EducationEnum;
+import com.yqg.drools.model.LoanLimitModel
+import com.yqg.drools.model.InstalledAppInfo
+
+
+global  List ruleSetResultList;
+
+
+rule "SEX_OVERDUEDAYS_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo();
+     eval($userInfo.getSex()==1
+          && RuleUtils.lessThan(RuleUtils.valueOfStr($LastLoanForExtend.getOverdueDays()),
+                                 RuleUtils.getRuleParam($threshData,0))
+          && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($LastLoanForExtend.getOverdueDays()),
+                                        RuleUtils.getRuleParam($threshData,1))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage(),
+                                            "true",
+                                            "命中男&提前还款天数(0,28]")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_OVERDUEDAYS_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getSex()==1
+          && RuleUtils.lessThan(RuleUtils.valueOfStr($LastLoanForExtend.getOverdueDays()),
+                                 RuleUtils.getRuleParam($threshData,0))
+          && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($LastLoanForExtend.getOverdueDays()),
+                                        RuleUtils.getRuleParam($threshData,1))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_OVERDUEDAYS.getMessage(),
+                                            "false",
+                                            "未命中男&提前还款天数(0,28]")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEX_REPYATODAY_COLLEAGE_MODELV1_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($modelScore: lastLoanModelScore);
+     $userInfo:RUserInfo();
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                                            .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($userInfo.getAcademic()))
+            && $modelScore!=null
+            && ($modelScore.getProduct600Score() != null && RuleUtils.greatThan(RuleUtils.valueOfStr($modelScore.getProduct600Score()), RuleUtils.getRuleParam($threshData,0))
+            &&RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($modelScore.getProduct600Score()), RuleUtils.getRuleParam($threshData,1))
+          ) && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($userInfo.getMonthlyIncome()), RuleUtils.getRuleParam($threshData,2))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&学历大专及以上&模型分V1(490,505]&月收入>=4000")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPYATODAY_COLLEAGE_MODELV1_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($modelScore: lastLoanModelScore);
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                                            .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($userInfo.getAcademic()))
+            && $modelScore!=null
+            && ($modelScore.getProduct600Score() != null && RuleUtils.greatThan(RuleUtils.valueOfStr($modelScore.getProduct600Score()), RuleUtils.getRuleParam($threshData,0))
+            &&RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($modelScore.getProduct600Score()), RuleUtils.getRuleParam($threshData,1))
+          ) && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($userInfo.getMonthlyIncome()), RuleUtils.getRuleParam($threshData,2))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPYATODAY_COLLEAGE_MODELV1.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&学历大专及以上&模型分V1(490,505]&月收入>=4000")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime() != null && RuleUtils.lessThan(RuleUtils.valueOfStr($LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime()), RuleUtils.getRuleParam($threshData,0))
+            && $mobileNumber!=null && !RuleUtils.equalString($whatsappAccount,$mobileNumber)
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&上一笔第一次催收到还款<1h&WA账号与手机号不一致")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime() != null && RuleUtils.lessThan(RuleUtils.valueOfStr($LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime()), RuleUtils.getRuleParam($threshData,0))
+            && $mobileNumber!=null && !RuleUtils.equalString($whatsappAccount,$mobileNumber)
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_LASTGETPAY_WANOTSAMEWITHPHONE.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&上一笔第一次催收到还款<1h&WA账号与手机号不一致")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $monthIncome:monthlyIncome, $age: age);
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthIncome), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&免审核&有驾驶证&月收入>=5000&年龄>=35")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $monthIncome: mobileNumber, $age: age);
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthIncome), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOTCHECK_HASDRIVERLICENSE_MONTHINCOME_AGE.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&免审核&有驾驶证&月收入>=5000&年龄>=35")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord: noCollectionRecord);
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $monthIncome: monthlyIncome, $age: age);
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $hasDriverLicense == true
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&首借未催收&有驾驶证&年龄>=35")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord: noCollectionRecord);
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $monthIncome: monthlyIncome, $age: age);
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $hasDriverLicense == true
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_HASDIRVER_AGE.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&首借未催收&有驾驶证&年龄>=35")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($gojekVerified: gojekVerified, $monthIncome:getMonthlyIncome(), $age:getAge());
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $gojekVerified!=null && $gojekVerified == false
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&首借未催收&未验证gojek&年龄>=35")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($gojekVerified: gojekVerified, $monthIncome:getMonthlyIncome(), $age:getAge());
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $gojekVerified!=null && $gojekVerified == false
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECKGOJEK_AGE.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&首借未催收&未验证gojek&年龄>=35")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($gojekVerified: gojekVerified, $monthIncome:getMonthlyIncome(), $age:getAge());
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $gojekVerified == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&首借未催收&验证gojek&年龄>=30")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($gojekVerified: gojekVerified, $monthIncome:getMonthlyIncome(), $age:getAge());
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $gojekVerified == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_CHECKGOJEK_AGE.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&首借未催收&验证gojek&年龄>=30")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($age:getAge());
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $LastLoanForExtend.getLoanPassType() == 1
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&首借未催收&免审核")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($age:getAge());
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $LastLoanForExtend.getLoanPassType() == 1
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_NOTCHECK.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&首借未催收&免审核")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($age:getAge());
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $LastLoanForExtend.getLoanPassType() == 3
+            && (RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                                          .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($userInfo.getAcademic())))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&首借未催收&人工审核&大专及以上")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:getNoCollectionRecord());
+     $userInfo:RUserInfo($age:getAge());
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $noCollectionRecord != null && $noCollectionRecord == true
+            && $LastLoanForExtend.getLoanPassType() == 3
+            && (RuleUtils.containsString(Arrays.asList(EducationEnum.Specialty.getCode(),EducationEnum.Undergraduate.getCode(),EducationEnum
+                                          .GraduateStudent.getCode(),EducationEnum.Doctor.getCode()),RuleUtils.valueOfStr($userInfo.getAcademic())))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_NOCOLLECTION_PERSONCHECK_EDUCATION.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&首借未催收&人工审核&大专及以上")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($age:getAge(), $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount);
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 1))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&WA与手机号一致&免审核&借款间隔天数in(3,5)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($age:getAge(), $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount);
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 1))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_AGREEPHONEANDWA_NOTCHECK_INTERVALDAYS.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&WA与手机号一致&免审核&借款间隔天数in(3,5)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     DeviceModel($totalMemory:totalMemory);
+     $userInfo:RUserInfo($age:getAge(), $academic:academic, $hasDriverLicense:hasDriverLicense);
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.equalsIgnoreCase("Sarjana",$academic)
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalMemory),
+                                                RuleUtils.getRuleParam($threshData,2)
+                                         )
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&本科&年龄[40,45)&有驾驶证&手机总内存>=3GB")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     DeviceModel($totalMemory:totalMemory);
+     $userInfo:RUserInfo($age:getAge(), $academic:academic, $hasDriverLicense:hasDriverLicense);
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.equalsIgnoreCase("Sarjana",$academic)
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalMemory),
+                                                RuleUtils.getRuleParam($threshData,2)
+                                         )
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_EDUCATION_AGE_HASDIRVIER_MEMORY.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&本科&年龄[40,45)&有驾驶证&手机总内存>=3GB")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_BRAND_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     DeviceModel($phoneBrand:phoneBrand);
+     $userInfo:RUserInfo();
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.containsString(Arrays.asList("Apple","Honor","Sony","lge"),$phoneBrand)
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&手机品牌in(Apple,Honor,Sony,lge)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_BRAND_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     DeviceModel($phoneBrand:phoneBrand);
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.containsString(Arrays.asList("Apple","Honor","Sony","lge"),$phoneBrand)
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_BRAND.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&手机品牌in(Apple,Honor,Sony,lge)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($gojekVerified:gojekVerified);
+     eval($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $gojekVerified == true
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage(),
+                                            "true",
+                                            "命中男&当天还款&验证gojek&借款间隔天数>4")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($gojekVerified:gojekVerified);
+     eval(!($userInfo.getSex()==1
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $gojekVerified == true
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_CHECKGOJIEK_INTERVALDAYS.getMessage(),
+                                            "false",
+                                            "未命中男&当天还款&验证gojek&借款间隔天数>4")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEX_REPAYBEFORE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYBEFORE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYBEFORE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYBEFORE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($overdueDays:overdueDays);
+     $userInfo:RUserInfo();
+     eval($userInfo.getSex()==2
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData, 1))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYBEFORE.getMessage(),
+                                            "true",
+                                            "命中女&提前还款天数(0,25]")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYBEFORE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYBEFORE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYBEFORE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYBEFORE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($overdueDays:overdueDays);
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getSex()==2
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData, 1))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($overdueDays), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYBEFORE.getMessage(),
+                                            "false",
+                                            "未命中女&提前还款天数(0,25]")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_INTERVALDAYS_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo();
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&借款间隔天数>5")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEX_REPAYTODAY_INTERVALDAYS_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEX_REPAYTODAY_INTERVALDAYS.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&借款间隔天数>5")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $monthIncome:getMonthlyIncome(), $age:getAge());
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthIncome), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&免审核&有驾驶证&月收入>=5000")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $monthIncome:getMonthlyIncome(), $age:getAge());
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($monthIncome), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_MONTHINCOME.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&免审核&有驾驶证&月收入>=5000")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime() != null && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime()), RuleUtils.getRuleParam($threshData,0))
+            && $intervalDays != null && RuleUtils.equalTo(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 1))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&免审核&上一笔催收到还款<=3h&借款间隔天数=1")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime() != null && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($LastLoanForExtend.getDiffHoursBetweenFirstCollectionAndRefundTime()), RuleUtils.getRuleParam($threshData,0))
+            && $intervalDays != null && RuleUtils.equalTo(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 1))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCHECK_LASTREPAYTIME_INTERVALDAYS.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&免审核&上一笔催收到还款<=3h&借款间隔天数=1")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays, $noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $noCollectionRecord == true
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 1))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&首借未催收&借款间隔天数(0,3]")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays, $noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $noCollectionRecord == true
+            && $intervalDays != null && RuleUtils.greatThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 1))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_INTERVALDAYS.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&首借未催收&借款间隔天数(0,3]")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend()
+     DeviceModel($totalSpace:totalSpace)
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $age:getAge());
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&免审核&有驾驶证&总容量>=55GB")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend()
+     DeviceModel($totalSpace:totalSpace)
+     $userInfo:RUserInfo($hasDriverLicense: hasDriverLicense, $age:getAge());
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($totalSpace), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_HASDIRVIVER_MEMORY.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&免审核&有驾驶证&总容量>=55GB")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($age:getAge(), $hasDriverLicense:hasDriverLicense, $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $gojekVerified:gojekVerified);
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $noCollectionRecord == true
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $gojekVerified == true
+            && $hasDriverLicense == false
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+                        && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&免审核&首借未催收&WA账号与手机号一致&gojek&没有驾驶证&年龄[25,45)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($age:getAge(), $hasDriverLicense:hasDriverLicense, $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $gojekVerified:gojekVerified);
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $noCollectionRecord == true
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $gojekVerified == true
+            && $hasDriverLicense == false
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+                        && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_WAAGGRENPHONE_GOJEK_NODIRVIER_AGE.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&免审核&首借未催收&WA账号与手机号一致&gojek&没有驾驶证&年龄[25,45)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($age:getAge(), $hasDriverLicense:hasDriverLicense, $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $gojekVerified:gojekVerified);
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $noCollectionRecord == true
+            && (RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+                        || (RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+                        && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 2))
+                        )
+                        )
+
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&首借未催收&没有驾驶证&年龄>=40或[30,35)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($age:getAge(), $hasDriverLicense:hasDriverLicense, $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $gojekVerified:gojekVerified);
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $noCollectionRecord == true
+            && (RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+                        || (RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+                        && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 2))
+                        )
+                        )
+
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOCOLLECTION_NOTDIRCER_AGE.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&首借未催收&没有驾驶证&年龄>=40或[30,35)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($hasCreditCard:hasCreditCard, $hasDriverLicense:hasDriverLicense);
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && $hasCreditCard!=null && $hasCreditCard == true
+
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&免审核&有驾驶证&有信用卡")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     $userInfo:RUserInfo($hasCreditCard:hasCreditCard, $hasDriverLicense:hasDriverLicense);
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $hasDriverLicense == true
+            && $hasCreditCard!=null && $hasCreditCard == true
+
+    ))
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_NOTCHECK_HASDRIVER_HASCIRECARD.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&免审核&有驾驶证&有信用卡")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $intervalDays != null && RuleUtils.equalTo(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&WA与手机号一致&免审核&借款间隔天数=4")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays);
+     $userInfo:RUserInfo($mobileNumber:getMobileNumber(), $whatsappAccount:getWhatsappAccount());
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $LastLoanForExtend.getLoanPassType() == 1
+            && $intervalDays != null && RuleUtils.equalTo(RuleUtils.valueOfStr($intervalDays), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_NOTCHECK_INTERVDAYS.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&WA与手机号一致&免审核&借款间隔天数=4")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($age:getAge(), $hasCreditCard:hasCreditCard, $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $gojekVerified:gojekVerified);
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 2
+            && $hasCreditCard == true
+            && $gojekVerified == false
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&公司通过&有信用卡&未验证gojek")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($noCollectionRecord:noCollectionRecord);
+     $userInfo:RUserInfo($age:getAge(), $hasCreditCard:hasCreditCard, $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $gojekVerified:gojekVerified);
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $LastLoanForExtend.getLoanPassType() == 2
+            && $hasCreditCard == true
+            && $gojekVerified == false
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_COMPANYPASS_HASCARD_NOTGOJEK.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&公司通过&有信用卡&未验证gojek")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_PHONEBRAND_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     DeviceModel($phoneBrand:phoneBrand);
+     $userInfo:RUserInfo();
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.containsString(Arrays.asList("Apple","Honor","Sony"),$phoneBrand)
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&手机品牌in(Apple,Honor,Sony)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEXMEMAL_REPAYTODAY_PHONEBRAND_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend();
+     DeviceModel($phoneBrand:phoneBrand);
+     $userInfo:RUserInfo();
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.containsString(Arrays.asList("Apple","Honor","Sony"),$phoneBrand)
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_PHONEBRAND.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&手机品牌in(Apple,Honor,Sony)")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays)
+     LoanLimitModel($hasSalaryPic:hasSalaryPic)
+     InstalledAppInfo($appCountForTicket:appCountForTicket)
+     $userInfo:RUserInfo($age:getAge(), $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $hasDriverLicense:hasDriverLicense);
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $hasDriverLicense == true
+            && $hasSalaryPic == false
+            && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForTicket), RuleUtils.getRuleParam($threshData, 0))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&WA与手机号一致&有驾驶证&没有工资单&票务类APP个数=2")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend($intervalDays:intervalDays)
+     LoanLimitModel($hasSalaryPic:hasSalaryPic)
+     InstalledAppInfo($appCountForTicket:appCountForTicket)
+     $userInfo:RUserInfo($age:getAge(), $mobileNumber:mobileNumber, $whatsappAccount: whatsappAccount, $hasDriverLicense:hasDriverLicense);
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && $mobileNumber!=null && RuleUtils.equalString($whatsappAccount,$mobileNumber)
+            && $hasDriverLicense == true
+            && $hasSalaryPic == false
+            && RuleUtils.equalTo(RuleUtils.valueOfStr($appCountForTicket), RuleUtils.getRuleParam($threshData, 0))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_WAAGGREMENTPHONE_HASDIRVERS_NOSALARY_APPCOUNT.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&WA与手机号一致&有驾驶证&没有工资单&票务类APP个数=2")
+                                            .addToResultList(ruleSetResultList);
+end
+
+
+rule "SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend()
+     InstalledAppInfo($totalApps:totalApps)
+     $userInfo:RUserInfo($age:getAge());
+     eval($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($totalApps), RuleUtils.getRuleParam($threshData, 2))
+    );
+then
+    RuleUtils.buildHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage(),
+                                            "true",
+                                            "命中女&当天还款&年龄[35,40)&首借累计APP<10")
+                                            .addToResultList(ruleSetResultList);
+end
+
+rule "SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage()))
+when
+     RuleConditionModel(isSuitableForRule(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage()));
+     $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage()]);
+     $LastLoanForExtend:LastLoanForExtend()
+     InstalledAppInfo($totalApps:totalApps)
+     $userInfo:RUserInfo($age:getAge());
+     eval(!($userInfo.getSex()==2
+            && $LastLoanForExtend.getOverdueDays() == 0
+            && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 0))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($age), RuleUtils.getRuleParam($threshData, 1))
+            && RuleUtils.lessThan(RuleUtils.valueOfStr($totalApps), RuleUtils.getRuleParam($threshData, 2))
+    ));
+then
+    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.SEXMEMAL_REPAYTODAY_AGE_ALLAPPCOUNT.getMessage(),
+                                            "false",
+                                            "未命中女&当天还款&年龄[35,40)&首借累计APP<10")
+                                            .addToResultList(ruleSetResultList);
+end

@@ -1,0 +1,59 @@
+package com.doit.reborrow
+
+import com.yqg.drools.model.base.RuleResult;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.LastLoan;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+
+global java.util.List ruleSetResultList;
+
+/****
+* 上一笔贷款相关规则
+**/
+
+rule "LAST_LOAN_001_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage()))
+    when
+        //conditions
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        LastLoan($overdueDays : overdueDays,
+                RuleUtils.greatThan(RuleUtils.valueOfStr(overdueDays),
+                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage())));
+    then
+        //actions
+		    RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage(),
+		                                                   RuleUtils.valueOfStr($overdueDays),
+		                                                   "上次贷款逾期天数大于阈值").addToResultList(ruleSetResultList);
+end
+
+rule "LAST_LOAN_001_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage()))
+    when
+        //conditions
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        LastLoan($overdueDays : overdueDays,
+                RuleUtils.lessOrEqualThan(RuleUtils.valueOfStr(overdueDays),
+                                     $thresholdValues.getThresholdValue(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage())));
+    then
+        //actions
+		    RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage(),
+		                                                   RuleUtils.valueOfStr($overdueDays),
+		                                                   "上次贷款逾期天数小于等于阈值").addToResultList(ruleSetResultList);
+end
+
+
+rule "LAST_LOAN_EMPTY"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage()))
+    when
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_LAST_TIME_DAY.getMessage()));
+        $thresholdValues: RuleThresholdValues();
+        not LastLoan();
+    then
+        RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_LAST_LOAN_EMPTY_DATA_EMPTY.getMessage(),
+                               $thresholdValues.getRuleDesc(BlackListTypeEnum.MULTI_LAST_LOAN_EMPTY_DATA_EMPTY.getMessage()),
+                               "此用户之前没有查到成功复借的订单-复借").addToResultList(ruleSetResultList);
+end

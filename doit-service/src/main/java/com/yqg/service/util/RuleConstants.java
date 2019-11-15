@@ -17,7 +17,7 @@ public class RuleConstants {
     public static final String NON_MANUAL_TEST_WITH_100RMB_PRODUCT = "NON_MANUAL_TEST_WITH_100RMB_PRODUCT";
 
 
-    public static final  String NEED_RE_FILL_LINKMAN = "NEED_RE_FILL_LINKMAN";
+    public static final String NEED_RE_FILL_LINKMAN = "NEED_RE_FILL_LINKMAN";
 
 
     public static final int ORDER_OWNER_CALL_LIMIT = 10;
@@ -33,6 +33,10 @@ public class RuleConstants {
     public static final String PRODUCT600TO150 = "PRODUCT600TO150";  //600 产品转100
     public static final String PRODUCT600TO150_SENIOR_REVIEW = "PRODUCT600TO150_SENIOR_REVIEW"; //复审600转100
     public static final String PRODUCT150TO80 = "PRODUCT150TO80"; //100转50
+
+
+    public static final String RE_BORROWING_PRD600TO400 = "RE_BORROWING_PRD600TO400";//复借600转400
+    public static final String RE_BORROWING_PRD400TO200 = "RE_BORROWING_PRD400TO200";//复借400转200
 
     public static final String PRODUCT50TO80_FOR_EXTEND_RULE = "PRODUCT50TO80_FOR_EXTEND_RULE"; //100转50特殊规则未命中
 
@@ -50,6 +54,7 @@ public class RuleConstants {
     public static final BigDecimal PRODUCT100_V0 = new BigDecimal("200000.00");
     public static final BigDecimal PRODUCT50_V0 = new BigDecimal("100000.00");
     public static final BigDecimal PRODUCT400 = new BigDecimal("800000.00");
+    public static final BigDecimal PRODUCT200 = new BigDecimal("400000.00");
 
     public static final String PERSON_NOT_FOUND = "实名认证失败：PERSON_NOT_FOUND";
 
@@ -64,12 +69,14 @@ public class RuleConstants {
     public static final String REAL_NAME_COMB_VERIFY_ABTEST_MALE = "REAL_NAME_COMB_VERIFY_ABTEST_MALE";
 
 
+    public static final String REJECT_REASON_NOT_NON_MANUAL = "REJECT_REASON_NOT_NON_MANUAL";
+
 
     public static Map<String, String> ordBlackRemarks = new HashMap<>();
 
     static {
-        ordBlackRemarks.put("PRODUCT_600",PRODUCT600WITHRISKSCORE);
-        ordBlackRemarks.put("PRODUCT_100",PRODUCT100WITHRISKSCORE);
-        ordBlackRemarks.put("PRODUCT_600_V2",PRODUCT600_V2WITHRISKSCORE);
+        ordBlackRemarks.put("PRODUCT_600", PRODUCT600WITHRISKSCORE);
+        ordBlackRemarks.put("PRODUCT_100", PRODUCT100WITHRISKSCORE);
+        ordBlackRemarks.put("PRODUCT_600_V2", PRODUCT600_V2WITHRISKSCORE);
     }
 }

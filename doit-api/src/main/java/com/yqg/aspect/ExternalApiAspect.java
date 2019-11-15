@@ -1,6 +1,7 @@
 package com.yqg.aspect;
 
 import com.yqg.common.exceptions.ServiceException;
+import com.yqg.common.utils.AesUtil;
 import com.yqg.common.utils.GetIpAddressUtil;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
@@ -25,8 +26,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Map;
 

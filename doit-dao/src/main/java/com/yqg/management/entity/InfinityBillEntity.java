@@ -39,6 +39,8 @@ public class InfinityBillEntity extends BaseEntity implements Serializable {
     private String callmethod;
     @Column("userId")
     private String userid;
+    @Column("sourceType")
+    private Integer sourceType; // 0 一键外呼 1.调查问卷客服外呼
     private String memberid;
     private String chengshudu;
     private String recordfilename;

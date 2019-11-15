@@ -298,13 +298,16 @@ public class AutoCallScheduler {
                 reviewStep = StepEnum.getEnumFromCode(dbReviewStep.getStep());
             }
             boolean callFinished;
+            /***
+             * 关于外呼：因为降额规则的一些关联影响，本人外呼放到联系人+公司外呼之后，因此首借外呼分两步，复借还是一步，只有公司+联系人
+             */
             switch (reviewStep) {
                 case LINKMAN_AND_COMPANY_CALL:
                     //已经审核过联系人，检查公司外呼是否结束
                     callFinished = isOwnerAutoCallFinishedForMachineCheck(waitingItem, callResultList);
                     break;
                 case OWNER_CALL:
-                    //已经进行过外呼，无需继续,可能会进行重复审核，如果上次审核时间超过了20min可以继续
+                    //已经进行过外呼，无需继续,可能会进行重复审核[联系人回退的情况或者人工需要重新进行审核的情况]，如果上次审核时间超过了20min可以继续
                     if(dbReviewStep!=null && DateUtil.getDiffMinutes(dbReviewStep.getCreateTime(),new Date())>20){
                         //20分钟后可以再进行审核
                         reviewStep = StepEnum.UNKNOWN;
@@ -585,6 +588,7 @@ public class AutoCallScheduler {
                             callResult.getTellNumber());
                     if (earliestDiffDays != null && earliestDiffDays > 3) {
                         log.info("the number auto call exceed days, orderNo: {}, telNumber: {} ", callResult.getOrderNo(), callResult.getTellNumber());
+                        return true;
                     } else {
                         return false;// 只要有一个号码外呼次数《=3的当做未完成
                     }

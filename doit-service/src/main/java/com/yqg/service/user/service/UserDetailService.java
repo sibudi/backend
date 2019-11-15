@@ -208,6 +208,8 @@ public class UserDetailService {
             userDetailInfo.setMotherName(usrWorkDetail.getMotherName());
             userDetailInfo.setAcademic(usrWorkDetail.getAcademic());
             userDetailInfo.setMarriageStatus(String.valueOf(usrWorkDetail.getMaritalStatus()));
+            userDetailInfo.setMonthlyIncome(usrWorkDetail.getMonthlyIncome());
+            userDetailInfo.setPositionName(usrWorkDetail.getPositionName());
         } else if (usrUser.getUserRole() == 3) {
             //家庭主妇
             UsrHouseWifeDetail usrHouseWifeDetail = getUserHouseWifeDetail(usrUser.getUuid());
@@ -219,6 +221,7 @@ public class UserDetailService {
             userDetailInfo.setMotherName(usrHouseWifeDetail.getMotherName());
             userDetailInfo.setAcademic(usrHouseWifeDetail.getAcademic());
             userDetailInfo.setMarriageStatus(String.valueOf(usrHouseWifeDetail.getMaritalStatus()));
+            userDetailInfo.setMonthlyIncome(usrHouseWifeDetail.getMouthIncome());
         } else if (usrUser.getUserRole() == 1) {
             //学生
             UsrStudentDetail usrStudentDetail = getUserStudentDetail(usrUser.getUuid());
@@ -227,6 +230,7 @@ public class UserDetailService {
             userDetailInfo.setEmail(usrStudentDetail.getEmail());
             userDetailInfo.setMotherName(usrStudentDetail.getMotherName());
             userDetailInfo.setAcademic(usrStudentDetail.getAcademic());
+
         }
         return userDetailInfo;
     }
@@ -243,6 +247,11 @@ public class UserDetailService {
 
         private String marriageStatus;
         private String academic;
+
+        private String monthlyIncome;
+
+        private String positionName;
+
     }
 
 
