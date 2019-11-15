@@ -22,6 +22,8 @@ public class LoanInfo {
 
     private BigDecimal firstBorrowingAmount ;// the loan amount of the first order
 
+
+
     @Getter
     public enum LoanPurpose {
         EDUCATION(1, "Pendidikan"),//教育

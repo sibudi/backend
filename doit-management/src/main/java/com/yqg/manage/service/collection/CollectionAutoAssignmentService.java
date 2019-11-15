@@ -1,6 +1,6 @@
 package com.yqg.manage.service.collection;
 
-//import com.sun.tools.javac.util.Convert;
+import com.sun.tools.javac.util.Convert;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.manage.dal.collection.CollectionOrderDetailDao;
@@ -212,8 +212,13 @@ public class CollectionAutoAssignmentService {
         Integer maxOverdueDays = Integer.valueOf(overduePeriod.split("#")[1]);
 
         OverdueCollectionStatisticsResponse response = new OverdueCollectionStatisticsResponse();
-        response.setOrderStatistics(
-                manCollectionDao.getOverdueOrderStatistics(minOverdueDays, maxOverdueDays, sourceType, amountApply,getOtherAmount(amountApply, otherAmount)));
+        if (sourceType != null && sourceType == 0) {
+            response.setOrderStatistics(
+                    manCollectionDao.getOverdueOrderStatistics(minOverdueDays, maxOverdueDays, sourceType, amountApply,getOtherAmount(amountApply, otherAmount)));
+        } else if (sourceType != null && sourceType == 1){
+            response.setOrderStatistics(
+                    manCollectionDao.getOverdueOrderStatisticsCheck(minOverdueDays, maxOverdueDays, sourceType, amountApply,getOtherAmount(amountApply, otherAmount)));
+        }
         List<OverdueCollectorOrderStatistics> collectorStatisticsList = new ArrayList<>();
         response.setCollectorOrderStatistics(collectorStatisticsList);
         //处理postId对应的用户
@@ -225,9 +230,16 @@ public class CollectionAutoAssignmentService {
 
 
         collectors.forEach(elem -> {
-            OverdueCollectorOrderStatistics statistics = manCollectionDao
-                    .getOverdueCollectorOrderStatistics(minOverdueDays, maxOverdueDays,
-                            Integer.valueOf(elem.getCode()), sourceType, amountApply, getOtherAmount(amountApply, otherAmount));
+            OverdueCollectorOrderStatistics statistics = new OverdueCollectorOrderStatistics();
+            if (sourceType != null && sourceType == 0) {
+                statistics = manCollectionDao
+                        .getOverdueCollectorOrderStatistics(minOverdueDays, maxOverdueDays,
+                                Integer.valueOf(elem.getCode()), sourceType, amountApply, getOtherAmount(amountApply, otherAmount));
+            } else if (sourceType != null && sourceType == 1) {
+                statistics = manCollectionDao
+                        .getOverdueCollectorOrderStatisticsCheck(minOverdueDays, maxOverdueDays,
+                                Integer.valueOf(elem.getCode()), sourceType, amountApply, getOtherAmount(amountApply, otherAmount));
+            }
             statistics.setUserId(Integer.valueOf(elem.getCode()));
             statistics.setRealName(elem.getName());
             collectorStatisticsList.add(statistics);

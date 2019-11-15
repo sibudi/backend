@@ -151,7 +151,7 @@ public class QualityCheckService {
         record.setUserUuid(userUuid);
         record.setCollectorId(lists.get(0).getOutsourceId());
         record.setCheckTag(orderTag);
-        record.setRemark("系统自动审核");
+        record.setRemark("system automatic quality check.");
         record.setType(0);
         manQualityCheckRecordDao.insert(record);
 

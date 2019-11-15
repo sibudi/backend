@@ -251,7 +251,7 @@ public class CollectionSmsService {
         RequestBody requestBody = new FormBody.Builder()
                 .add("smsChannel",smsChannel)
                 .add("productType","PAYDAYLOAN")
-                .add("sendFrom","Do-it")
+                .add("sendFrom","Do-It")
                 .add("sendTo",sendTo)
                 .add("smsTrigger","Collection")
                 .add("content",content)
@@ -259,7 +259,7 @@ public class CollectionSmsService {
 
         Request request = new Request.Builder()
                 .url(smsUrl)
-                .addHeader("X-AUTH-TOKEN","Do-it")
+                .addHeader("X-AUTH-TOKEN","Do-It")
                 .post(requestBody)
                 .build();
         return request;

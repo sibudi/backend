@@ -325,7 +325,7 @@ public class ActivityAccountRecordService {
         String lockKey = SysParamContants.ACTIVITY_ACCOUNT + caseoutRequest.getUserUuid();
         if (redisClient.tryGetLock(lockKey, 10)) {
             //2.添加流水
-            //2.1 查询之前账户信息
+                //2.1 查询之前账户信息
             ActivityAccount account = this.inviteService.findInviteAccountByUserUuid(caseoutRequest.getUserUuid());
 
 

@@ -88,6 +88,7 @@ public class RepayService {
 
     @Autowired
     private CouponService couponService;
+
     /**
      *   ??paymentCode
      *   ??payType?1 ????? bluePay ,  paymentCode?????????
@@ -546,20 +547,21 @@ public class RepayService {
 
             if (object instanceof OrdOrder){
                 OrdOrder ordOrder = (OrdOrder) object;
+                BigDecimal[] overdueRates = getOverDueRates(ordOrder);
+
                 if (ordOrder.getOrderType().equals("0")){
-                    SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
                     if(overdueDay <=3 ) {
-                        shouldPayAmount = ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(overdueDay)).setScale(2);
+                        shouldPayAmount = ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay)).setScale(2);
                     } else {
-                        shouldPayAmount = ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3))
-                                .add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
+                        shouldPayAmount = ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3))
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
                     }
                 } else {
                     if (overdueDay <=3 ) {
-                        shouldPayAmount = ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay)).setScale(2);
+                        shouldPayAmount = ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay)).setScale(2);
                     } else {
-                        shouldPayAmount = ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(3))
-                                .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
+                        shouldPayAmount = ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3))
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
                     }
                 }
             }else if (object instanceof OrdBill){
@@ -639,7 +641,8 @@ public class RepayService {
             shouldPayAmount = ordOrder.getAmountApply().add(ordOrder.getInterest());
         }
 
-        BigDecimal limit = ordOrder.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+        //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+        BigDecimal limit = ordOrder.getAmountApply().subtract(ordOrder.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
         if (shouldPayAmount.compareTo(limit) > 0 ){
             shouldPayAmount = limit;
         }
@@ -700,18 +703,20 @@ public class RepayService {
                     }
 
                     // ??<=3??overdueRate1?>3??overdueRate2
+                    // SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
+                    BigDecimal[] overdueRates = getOverDueRates(ordOrder);
                     if(overdueDay <=3){
                         // ????? = ????+  ????? + ?? + ????????*??????*??????
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
-                                .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
 
                     }else{
 
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
-                                .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(3)))
-                                .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3)))
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
 
                     }
 
@@ -722,7 +727,8 @@ public class RepayService {
 
             }
 
-            BigDecimal limit = ordOrder.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+            //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+            BigDecimal limit = ordOrder.getAmountApply().subtract(ordOrder.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
             if (shouldPayAmount.compareTo(limit) > 0 ){
                 shouldPayAmount = limit;
             }
@@ -752,8 +758,8 @@ public class RepayService {
                 shouldPayAmount = bill.getBillAmout().add(bill.getInterest());
             }
 
-
-            BigDecimal limit = bill.getBillAmout().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+            //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+            BigDecimal limit = bill.getBillAmout().subtract(bill.getBillAmout().multiply(BigDecimal.valueOf(0.006542)).multiply(BigDecimal.valueOf(30))).multiply(BigDecimal.valueOf(2)).setScale(2);
             if (shouldPayAmount.compareTo(limit) > 0 ){
                 shouldPayAmount = limit;
             }
@@ -791,17 +797,20 @@ public class RepayService {
                         delayFee = BigDecimal.valueOf(40000);
                     }
 
+                    // SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
+                    BigDecimal[] overdueRates = getOverDueRates(ordOrder);
+
                     if (overdueDay <=3) {
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
-                                .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
 
                     } else {
 
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
-                                .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(3)))
-                                .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3)))
+                                .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
 
                     }
                 } else {
@@ -809,7 +818,8 @@ public class RepayService {
                 }
 
             }
-            BigDecimal limit = ordOrder.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+            //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+            BigDecimal limit = ordOrder.getAmountApply().subtract(ordOrder.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
             if (shouldPayAmount.compareTo(limit) > 0 ){
                 shouldPayAmount = limit;
             }
@@ -840,19 +850,22 @@ public class RepayService {
                     delayFee = BigDecimal.valueOf(40000);
                 }
 
+                // SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
                 // ??<=3??overdueRate1?>3??overdueRate2
+
+                BigDecimal[] overdueRates = getOverDueRates(ordOrder);
                 if(overdueDay <=3){
                     // ????? = ????+  ????? + ?? + ????????*??????*??????
                     shouldPayAmount = ordOrder.getAmountApply()
                             .add(delayFee)
-                            .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
+                            .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
 
                 }else{
 
                     shouldPayAmount = ordOrder.getAmountApply()
                             .add(delayFee)
-                            .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(3)))
-                            .add(ordOrder.getAmountApply().multiply(BigDecimal.valueOf(0.01)).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
+                            .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3)))
+                            .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
 
                 }
             }else {
@@ -894,7 +907,8 @@ public class RepayService {
             shouldPayAmount = ordOrder.getAmountApply().add(ordOrder.getInterest());
         }
 
-        BigDecimal limit = ordOrder.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+        //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+        BigDecimal limit = ordOrder.getAmountApply().subtract(ordOrder.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
         if (shouldPayAmount.compareTo(limit) > 0 ){
             shouldPayAmount = limit;
         }
@@ -920,11 +934,31 @@ public class RepayService {
             shouldPayAmount = ordOrder.getAmountApply().add(ordOrder.getInterest());
         }
 
-        BigDecimal limit = ordOrder.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+        //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+        BigDecimal limit = ordOrder.getAmountApply().subtract(ordOrder.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
         if (shouldPayAmount.compareTo(limit) > 0 ){
             shouldPayAmount = limit;
         }
         return shouldPayAmount;
+    }
+
+    public BigDecimal[] getOverDueRates(OrdOrder ordOrder){
+
+        SysProduct sysProd = null;
+        if(!ordOrder.getProductUuid().isEmpty()){
+            sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
+        }
+        else{
+            sysProd = sysProductDao.getBlankProductInfoIgnoreDisabled(ordOrder.getAmountApply());
+        }
+
+        BigDecimal[] overDueRates = new BigDecimal[2];
+        overDueRates[0] = sysProd.getOverdueRate1();
+        overDueRates[1] = sysProd.getOverdueRate2();
+
+        log.info("orderNo: " + ordOrder.getUuid() + " productUuid: " + ordOrder.getProductUuid() + " overduerate1: " + overDueRates[0] + " overduerate2: " + overDueRates[1]);
+
+        return overDueRates;
     }
 
 

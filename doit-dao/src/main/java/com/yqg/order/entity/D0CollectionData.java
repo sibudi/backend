@@ -8,11 +8,11 @@ import lombok.Data;
 @Data
 public class D0CollectionData {
 
-    private String date;
-    private String realName;
-    private String parentName;
-    private String taskNum;
-    private String recoveryNum;
-    private String ratio;
+    private String Date;
+    private String Staff;
+    private String Groups;
+    private String taskOrders;
+    private String repayOrders;
+    private String Rate;
 
 }

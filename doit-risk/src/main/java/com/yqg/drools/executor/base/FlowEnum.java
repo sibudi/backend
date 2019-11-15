@@ -8,6 +8,7 @@ public enum FlowEnum {
     PRODUCT_100,//100rmb规则，20w产品
     PRODUCT_100_EXTEND, //100rmb扩展规则
     PRODUCT_50, //50rmb规则，10w产品
+    PRODUCT_50_EXTEND,//50rmb扩展规则
     NON_MANUAL_RULE,//免核规则
 //    AUTO_CALL_FIRST_BORROWING, //首借外呼
     AUTO_CALL_RE_BORROWING, //复借外呼
@@ -23,4 +24,10 @@ public enum FlowEnum {
     AUTO_CALL_OWNER,//本人外呼
 
     RISK_SCORE,//评分
+
+
+    RE_BORROWING_UNIVERSAL,  //复借通用规则
+    RE_BORROWING_PRD600_EXTEND, //复借600扩展规则(判断600好用户)
+    RE_BORROWING_PRD400_EXTEND, //复借400扩展规则(判断400好用户)
+    RE_BORROWING_LOAN_LIMIT,// 复借额度流程
 }

@@ -20,5 +20,10 @@ public class DelayOrdResponse {
      private Float delayFee;    // 展期服务费
      private Float granulaNum;  //展期金额颗粒度
 
+     private String feeExtension;
+     private String lateFree;
+     private String operationalFee;
+
+
      private List<Map<String,String>> config;  //日期 金额配置
 }

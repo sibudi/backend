@@ -2,7 +2,6 @@ package com.yqg.service.loan.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.yqg.common.constants.RedisContants;
-import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.*;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.ServiceException;
@@ -25,7 +24,6 @@ import com.yqg.service.loan.response.CheckRepayResponse;
 import com.yqg.service.loan.response.LoanResponse;
 import com.yqg.service.order.OrdBillService;
 import com.yqg.service.order.OrdService;
-import com.yqg.service.p2p.response.P2PResponse;
 import com.yqg.service.p2p.service.P2PService;
 import com.yqg.service.p2p.utils.P2PMD5Util;
 import com.yqg.service.pay.RepayService;
@@ -35,7 +33,6 @@ import com.yqg.service.system.service.StagingProductWhiteListService;
 import com.yqg.service.third.sms.SmsServiceUtil;
 import com.yqg.service.user.service.UsrService;
 import com.yqg.system.dao.SysProductDao;
-import com.yqg.system.entity.CollectionOrderDetail;
 import com.yqg.system.entity.ManCollectionOrderHistory;
 import com.yqg.system.entity.StagingProductWhiteList;
 import com.yqg.system.entity.SysProduct;
@@ -44,7 +41,6 @@ import com.yqg.user.dao.ManCollectionOrderHistorysDao;
 import com.yqg.user.dao.UsrProductRecordDao;
 import com.yqg.user.entity.UsrProductRecord;
 import com.yqg.user.entity.UsrUser;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +51,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
@@ -479,9 +474,6 @@ public class LoanInfoService {
           /**
            *   判断是否手动降额过 如果有操作 则不进行降额处理
            * */
-
-
-
           UsrUser user = this.usrService.getUserByUuid(order.getUserUuid());
 
           Integer borrowCount = order.getBorrowingCount();
@@ -491,19 +483,21 @@ public class LoanInfoService {
           // 判断复借次数
           if (borrowCount == 1){
               // 首借逾期
-              if (dayNum > 0){
+              if (dayNum > 0 || order.getOrderType().equals("1") || order.getOrderType().equals("2")){
 //            通用_第2笔, 首借逾期,  首借逾期天数>0 , 首借额度 80&150的降80,600的降400
                  if (amount.compareTo(BigDecimal.valueOf(160000.00)) == 0 || amount.compareTo(BigDecimal.valueOf(300000.00)) == 0 ){
                      updateUserProductLevel(user,order,-5,"通用_第2笔");
                  }else if(amount.compareTo(BigDecimal.valueOf(1200000.00)) == 0){
                      updateUserProductLevel(user,order,-4,"通用_第2笔");
+                     UsrUser newUser = this.usrService.getUserByUuid(order.getUserUuid());
+                     updateUserToLowLevel(newUser,order,"通用_第2笔(第二次降额)");
                  }
               }
           }else if (borrowCount > 1){
               //   首先判断通用提额规则  ，提额未转化&上一笔逾期 ,取消提额
 
               // 判断是否是提额用户
-              if (user.getProductLevel() > 0 && dayNum > 0 && checkUserIsUpUserButNotConversion(user,order)){
+              if (user.getProductLevel() > 0 && dayNum > 0 && checkUserIsUpUserButNotConversion(user,order) || order.getOrderType().equals("1") || order.getOrderType().equals("2") ){
                   // 查询提额记录  获取之前的额度
                   List<UsrProductRecord> records = this.usrProductRecordDao.getUpRecord(user.getUuid(),order.getUuid(),user.getProductLevel());
                   if (!CollectionUtils.isEmpty(records)){
@@ -514,7 +508,7 @@ public class LoanInfoService {
                   }
               }
 
-              if (user.getProductLevel() == -4  && dayNum > 0 && checkUserIsUpUserButNotConversion(user,order)){
+              if (user.getProductLevel() == -4  && dayNum > 0 && checkUserIsUpUserButNotConversion(user,order) || order.getOrderType().equals("1") || order.getOrderType().equals("2")){
                   // 查询提额记录  获取之前的额度
                   List<UsrProductRecord> records = this.usrProductRecordDao.getUpRecord(user.getUuid(),order.getUuid(),user.getProductLevel());
                   if (!CollectionUtils.isEmpty(records)){
@@ -526,11 +520,14 @@ public class LoanInfoService {
               }
 
               //     通用_第3笔及以后 , 上一笔逾期天数>1, 当前产品级别上降1级
-              if (dayNum > 1){
+              //     2019-07-22修改：  上一笔逾期天数>1  修改为   上一笔逾期天数>0或上一笔订单是展期订单(ordeType 1 / 2)
+              if (dayNum > 0 || order.getOrderType().equals("1") || order.getOrderType().equals("2")){
                   if (amount.compareTo(BigDecimal.valueOf(400000.00)) == 0 || amount.compareTo(BigDecimal.valueOf(300000.00)) == 0 ){
                       updateUserProductLevel(user,order,-5,"通用_第3笔及以后");
                   }else {
                       updateUserToLowLevel(user,order,"通用_第3笔及以后");
+                      UsrUser newUser = this.usrService.getUserByUuid(order.getUserUuid());
+                      updateUserToLowLevel(newUser,order,"通用_第3笔及以后(第二次降额)");
                   }
               }
           }
@@ -852,7 +849,7 @@ public class LoanInfoService {
           {
               String  responseStr = response.body().string();
               // 查询用户是否降额
-              log.info("查询用户是否降额 请求后返回:{}", JsonUtils.serialize(responseStr));
+              log.info("查询用户是否降额 请求后返回:{}", JsonUtils.serialize(responseStr)+"订单号为："+order.getUuid());
               JSONObject object = JSONObject.parseObject(responseStr);
               if(object.get("data") != null){
                   JSONObject data  = (JSONObject)object.get("data");
@@ -875,12 +872,12 @@ public class LoanInfoService {
                           //  逾期天数
                           int dayNum = (int) DateUtils.daysBetween(DateUtils.formDate(order.getRefundTime(), "yyyy-MM-dd"), DateUtils.formDate(new Date(), "yyyy-MM-dd"));
                           if (order.getAmountApply().compareTo(BigDecimal.valueOf(160000)) == 0 ){
-                              if (dayNum >= 0){
+                              if (dayNum == 0){
 //                          首借80rmb,命中复借提额至200rmb规则,且首借80rmb的逾期天数=0的用户 全部降额至80rmb(第二笔借80rmb);
                                   userUser.setProductLevel(-5);
                                   this.usrService.updateUser(userUser);
                                   record.setCurrentProductLevel(-5);
-                                  record.setRuleName(" 首借80rmb,命中复借提额至200rmb规则,且首借80rmb的逾期天数=0");
+                                  record.setRuleName("首借80rmb,命中复借提额至200rmb规则,且首借80rmb的逾期天数=0");
                                   this.usrProductRecordDao.insert(record);
                                   log.info("命中降额规则，用户降额到16W，用户id为:"+userUuid);
                               }else if(dayNum < 0){

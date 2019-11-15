@@ -3,7 +3,7 @@ package com.yqg.service.externalChannel.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.service.externalChannel.config.Cash2Config;
-import com.yqg.service.externalChannel.utils.AesUtil;
+import com.yqg.common.utils.AesUtil;
 import lombok.Getter;
 import lombok.Setter;
 

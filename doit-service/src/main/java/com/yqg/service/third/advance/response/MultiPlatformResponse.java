@@ -1,5 +1,6 @@
 package com.yqg.service.third.advance.response;
 
+import com.yqg.user.entity.UsrUser;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.util.CollectionUtils;
@@ -20,7 +21,7 @@ public class MultiPlatformResponse {
     private String pricingStrategy;
     private Object extra;
 
-    public boolean isHitReject() {
+    public boolean isHitReject(UsrUser user) {
         if (this.getData() == null) {
             return false;
         }
@@ -31,20 +32,29 @@ public class MultiPlatformResponse {
         if (CollectionUtils.isEmpty(customerInfoList)) {
             return false;
         }
-        return customerInfoList.stream().filter(elem -> "1-7d".equalsIgnoreCase(elem.getTimePeriod()) && elem.getQueryCount() != null && elem.getQueryCount() >= 11).findFirst().isPresent();
+        return customerInfoList.stream().filter(elem -> hitRejectRule(elem, user)).findFirst().isPresent();
 
+    }
+
+    private boolean hitRejectRule(DataDetail.StatisticsDetail.StatisticCustomerInfoDetail elem, UsrUser user) {
+        if (user.getSex() == 1) {
+            //男
+            return "1-7d".equalsIgnoreCase(elem.getTimePeriod()) && elem.getQueryCount() != null && elem.getQueryCount() >= 11;
+        } else {
+            return "1-7d".equalsIgnoreCase(elem.getTimePeriod()) && elem.getQueryCount() != null && elem.getQueryCount() >= 10;
+        }
     }
 
     @Getter
     @Setter
-    public static class DataDetail{
+    public static class DataDetail {
         private List<RecordDetail> records;
 
         private StatisticsDetail statistics;
 
         @Getter
         @Setter
-        public static class RecordDetail{
+        public static class RecordDetail {
             private String type;
             private String queryCount;
             private List<String> queryDates;
@@ -52,7 +62,7 @@ public class MultiPlatformResponse {
 
         @Getter
         @Setter
-        public static class StatisticsDetail{
+        public static class StatisticsDetail {
             private String firstQueryTime;
             private String lastQueryTime;
             private List<LastTwoWeeksQueryInfoDetail> lastTwoWeeksQueryInfo;
@@ -63,14 +73,15 @@ public class MultiPlatformResponse {
 
             @Getter
             @Setter
-            public static class LastTwoWeeksQueryInfoDetail{
+            public static class LastTwoWeeksQueryInfoDetail {
                 private String timeSlice;
                 private Integer maxQueryCount;
                 private List<String> queryTimeSlots;
             }
+
             @Getter
             @Setter
-            public static class LastThreeDaysDetailInfo{
+            public static class LastThreeDaysDetailInfo {
                 private String queryDate;
                 private Integer queryCount;
                 private List<String> queryTimeSlots;
@@ -78,13 +89,14 @@ public class MultiPlatformResponse {
 
             @Getter
             @Setter
-            public static class StatisticCustomerInfoDetail{
+            public static class StatisticCustomerInfoDetail {
                 private String timePeriod;
                 private Integer queryCount;
             }
+
             @Getter
             @Setter
-            public static class CustomerNumberListDetail{
+            public static class CustomerNumberListDetail {
                 private String queryDate;
                 private Integer customerNumber;
             }

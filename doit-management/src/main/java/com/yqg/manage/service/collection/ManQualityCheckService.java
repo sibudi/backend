@@ -2,9 +2,11 @@ package com.yqg.manage.service.collection;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.yqg.common.constants.RedisContants;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.ServiceExceptionSpec;
 import com.yqg.common.models.PageData;
+import com.yqg.common.redis.RedisClient;
 import com.yqg.manage.dal.collection.CollectionOrderDetailDao;
 import com.yqg.manage.dal.collection.ManCollectionRemarkDao;
 import com.yqg.manage.dal.collection.ManQualityCheckConfigDao;
@@ -81,10 +83,7 @@ public class ManQualityCheckService {
     private UploadService uploadService;
 
     @Autowired
-    private UsrDao usrUserDao;
-
-    @Autowired
-    private ManOrderOrderDao manOrderOrderDao;
+    private RedisClient redisClient;
 
     @Value("${downlaod.filePath}")
     private String filePath;
@@ -101,7 +100,7 @@ public class ManQualityCheckService {
         ManQualityCheckConfig config = new ManQualityCheckConfig();
         config.setDisabled(0);
         config.setType(type);
-        config.set_orderBy("updateTime desc");
+        config.set_orderBy("type asc, updateTime desc");
         List<ManQualityCheckConfig> lists = manQualityCheckConfigDao.scan(config);
         PageInfo pageInfo = new PageInfo(lists);
         return PageDataUtils.mapPageInfoToPageData(pageInfo);
@@ -129,7 +128,12 @@ public class ManQualityCheckService {
     @Transactional(rollbackFor = Exception.class)
     public Integer insertQualityCheckRecord(ManQualityRecordRequest param) throws ServiceExceptionSpec {
 
+
         if (StringUtils.isEmpty(param.getOrderNo()) || param.getCheckTag() == null) {
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_BASE_PARAMS_ILLEGAL);
+        }
+        String lockKey = RedisContants.ORDER_COLLECTION_CHECK_QUALITY + param.getOrderNo();
+        if (!redisClient.lock(lockKey)) {
             throw new ServiceExceptionSpec(ExceptionEnum.USER_BASE_PARAMS_ILLEGAL);
         }
         ManQualityCheckRecord manQualityCheckRecord = new ManQualityCheckRecord();
@@ -150,15 +154,8 @@ public class ManQualityCheckService {
             manQualityCheckRecord.setCollectorId(lists.get(0).getSubOutSourceId().equals(0) ? lists.get(0).getOutsourceId()
                                                 : lists.get(0).getSubOutSourceId());
         }
-        manQualityCheckRecordDao.insert(manQualityCheckRecord);
-        //将记录更新到催收分配表
-        Integer count = 0;
-        if (param.getType().equals(0)) {
-            count = collectionOrderDetailDao.updateCollectionDetailCheck(param.getCheckTag(), param.getOrderNo());
-        } else {
-            count = collectionOrderDetailDao.updateCollectionDetailCheckVoice(param.getCheckTag(), param.getOrderNo());
-        }
-        return count;
+        redisClient.unLock(lockKey);
+        return manQualityCheckRecordDao.insert(manQualityCheckRecord);
     }
 
     /**

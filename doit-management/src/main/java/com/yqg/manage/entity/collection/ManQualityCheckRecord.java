@@ -26,5 +26,5 @@ public class ManQualityCheckRecord extends BaseEntity implements Serializable {
     private Integer collectorId;
     private String userUuid;
 
-    private Integer type;//类型：0.备注质检 1.语音质检
+    private Integer type;//类型：0.备注质检 1.语音质检 2.WA质检 3.二次备注质检 4.二次语音质检 5.二次WA质检
 }

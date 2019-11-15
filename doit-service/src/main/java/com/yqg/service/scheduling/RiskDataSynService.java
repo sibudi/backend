@@ -3,6 +3,7 @@ package com.yqg.service.scheduling;
 import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
+import com.yqg.common.utils.UUIDGenerateUtil;
 import com.yqg.mongo.entity.OrderRiskRecordMongo;
 import com.yqg.mongo.entity.UserIziVerifyResultMongo;
 import com.yqg.order.dao.OrdDao;
@@ -13,13 +14,16 @@ import com.yqg.risk.dao.SyncDataDao;
 import com.yqg.risk.entity.RiskSyncDataConfig;
 import com.yqg.risk.entity.RiskSyncDataIds;
 import com.yqg.risk.repository.OrderRiskRecordRepository;
+import com.yqg.user.dao.UsrVerifyResultDao;
 import com.yqg.user.entity.UsrIziVerifyResult;
+import com.yqg.user.entity.UsrVerifyResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -233,5 +237,56 @@ public class RiskDataSynService {
 
 
 
+
+    @Autowired
+    private UsrVerifyResultDao usrVerifyResultDao;
+
+
+    //初始化验证信息
+    public void initVerifyResult(String orderNo, String userUuid,
+                                 UsrVerifyResult.VerifyTypeEnum verifyType) {
+        UsrVerifyResult result = new UsrVerifyResult();
+        result.setCreateTime(new Date());
+        result.setUpdateTime(new Date());
+        result.setUuid(UUIDGenerateUtil.uuid());
+        if(StringUtils.isEmpty(orderNo)||"null".equals(orderNo)){
+            //取用户最近的一个订单号
+            List<OrdOrder> ordList = ordDao.getLatestOrder(userUuid);
+            if(CollectionUtils.isEmpty(ordList)){
+                result.setOrderNo("");
+            }else{
+                result.setOrderNo(ordList.get(0).getUuid());
+            }
+
+        }else{
+            result.setOrderNo(orderNo);
+        }
+
+        result.setUserUuid(userUuid);
+        result.setVerifyType(verifyType.getCode());
+        result.setVerifyResult(UsrVerifyResult.VerifyResultEnum.INIT.getCode());
+        usrVerifyResultDao.insert(result);
+    }
+
+    //更新最近的一次验证记录
+    public void updateVerifyResult(String orderNo,String userUuid,String response,
+                                   UsrVerifyResult.VerifyResultEnum verifyResult,
+                                   UsrVerifyResult.VerifyTypeEnum verifyType){
+        UsrVerifyResult searchEntity = new UsrVerifyResult();
+        searchEntity.setDisabled(0);
+        searchEntity.setUserUuid(userUuid);
+        searchEntity.setOrderNo(orderNo);
+        searchEntity.setVerifyType(verifyType.getCode());
+        List<UsrVerifyResult> searchResultList = usrVerifyResultDao.scan(searchEntity);
+        if(CollectionUtils.isEmpty(searchResultList)){
+            log.warn("cannot find the verify result with userId: {}, orderNo: {}",userUuid,orderNo);
+            return;
+        }
+
+        UsrVerifyResult searchResult = searchResultList.stream().max(Comparator.comparing(UsrVerifyResult::getId)).get();
+        searchResult.setVerifyResult(verifyResult.getCode());
+        searchResult.setRemark(response);
+        usrVerifyResultDao.update(searchResult);
+    }
 
 }

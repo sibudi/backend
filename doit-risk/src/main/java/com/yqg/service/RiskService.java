@@ -7,14 +7,15 @@ import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.SmsCodeMandaoUtil;
 import com.yqg.common.utils.StringUtils;
-import com.yqg.risk.dao.RiskErrorLogDao;
-import com.yqg.risk.entity.RiskErrorLog;
 import com.yqg.drools.beans.RuleSetExecutedResult;
 import com.yqg.drools.service.ApplicationService;
 import com.yqg.drools.service.RuleApplicationService;
 import com.yqg.drools.service.RuleService;
+import com.yqg.drools.utils.RuleUtils;
 import com.yqg.order.dao.OrdRiskRecordDao;
 import com.yqg.order.entity.OrdOrder;
+import com.yqg.risk.dao.RiskErrorLogDao;
+import com.yqg.risk.entity.RiskErrorLog;
 import com.yqg.service.externalChannel.service.Cash2OrderService;
 import com.yqg.service.externalChannel.service.CheetahOrderService;
 import com.yqg.service.externalChannel.utils.Cash2OrdCheckResultEnum;
@@ -28,17 +29,17 @@ import com.yqg.service.user.service.UsrService;
 import com.yqg.system.dao.SysAutoReviewRuleDao;
 import com.yqg.system.entity.SysAutoReviewRule;
 import com.yqg.user.entity.UsrUser;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-
 import com.yqg.utils.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Didit Dwianto on 2017/11/30.
@@ -159,30 +160,42 @@ public class RiskService {
                 UsrUser user = this.usrService.getUserByUuid(order.getUserUuid());
                 if (order.getBorrowingCount() >= 2) {// 复借用户
 
+                    this.multiReviewPass(order, user);
                     //新规则使用：
-                    RuleSetExecutedResult ruleSetResult = applicationService
-                        .applyForReBorrowing(order, codeEntityMap);
-                    if (ruleSetResult.isRuleSetResult()) {
-                        this.multiReviewPass(order, user);
-                    } else {
-                        this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
-                    }
+                    // RuleSetExecutedResult ruleSetResult = applicationService
+                    //     .applyForReBorrowing(order, codeEntityMap);
+                    // if (ruleSetResult.isRuleSetResult()) {
+                    //     this.multiReviewPass(order, user);
+                    // } else {
+                    //     this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
+                    // }
 
                 } else {// 初借用户
 
-                    //新规则使用：
-                    RuleSetExecutedResult ruleSetResult = applicationService
-                        .apply(order, codeEntityMap);
-                    if(!ruleSetResult.isPreExecuteResult()){
-                        //预处理失败
-                        LogUtils.removeMDCRequestId();
-                        continue;
-                    }
-                    if (ruleSetResult.isRuleSetResult()) {
-                        this.reviewPass(order);
+                    //reject all
+                    SysAutoReviewRule rejectAll = codeEntityMap.get(BlackListTypeEnum.REJECT_ALL.getMessage());
+
+                    boolean isKudoChannel = user.getUserSource() != null && Arrays.asList("81", "82", "83").contains(user.getUserSource().toString());
+
+                    if (rejectAll != null && rejectAll.getRuleResult() == 2 && !isKudoChannel) {
+                        log.info("reject all first borrowing .");
+                        this.reviewRefuse(order, rejectAll);
                     } else {
-                        this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
+                        //新规则使用：
+                        RuleSetExecutedResult ruleSetResult = applicationService
+                                .apply(order, codeEntityMap);
+                        if (!ruleSetResult.isPreExecuteResult()) {
+                            //预处理失败
+                            LogUtils.removeMDCRequestId();
+                            continue;
+                        }
+                        if (ruleSetResult.isRuleSetResult()) {
+                            this.reviewPass(order);
+                        } else {
+                            this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
+                        }
                     }
+
                 }
                 //评分
                 //this.caculateScoreHandler.doHandler(user, order, codeEntityMap);
@@ -209,7 +222,7 @@ public class RiskService {
 
 
     public void sendSmsCodeFun() {
-        String mobiles = "15605519015,17610156636,13816763914,18119604421";
+        String mobiles = "17610156636";
         String smsContont = "doit机审报异常";
         if (StringUtils.isEmpty(redisClient.get(SysParamContants.SMS_RISK_EXCEPTION))) {
             SmsCodeMandaoUtil.sendSmsCode(mobiles, smsContont);

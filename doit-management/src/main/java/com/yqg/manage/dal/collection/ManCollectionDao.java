@@ -238,6 +238,44 @@ public interface ManCollectionDao extends BaseMapper<OrdOrder> {
             @Param("array") BigDecimal[] amountApply,
             @Param("otherArray") BigDecimal[] otherArray);
 
+    @Select("<script> SELECT \n"
+            + "    COUNT(CASE WHEN (c.id IS NOT NULL AND c.outsourceId != '0' )\n"
+            + "        THEN o.id\n"
+            + "        END) AS totalAssigned,\n"
+            + "    COUNT(CASE WHEN  o.borrowingCount = 1 AND (c.id IS NOT NULL AND c.outsourceId != '0' )\n"
+            + "          THEN o.id\n"
+            + "        END) AS assignedReBorrowingCount0,\n"
+            + "    COUNT(CASE WHEN o.borrowingCount <![CDATA[>]]> 1 AND (c.id IS NOT NULL AND c.outsourceId != '0' )\n"
+            + "          THEN o.id\n"
+            + "          END) AS assignedReBorrowingCountN,\n"
+            + "    COUNT(CASE WHEN (c.id IS NULL OR c.outsourceId = '0' )\n"
+            + "        THEN o.id\n"
+            + "        END) AS totalUnAssigned,\n"
+            + "    COUNT(CASE WHEN  o.borrowingCount = 1 AND (c.id IS NULL OR c.outsourceId = '0' )\n"
+            + "          THEN o.id\n"
+            + "        END) AS unAssignedReBorrowingCount0,\n"
+            + "    COUNT(CASE WHEN o.borrowingCount <![CDATA[>]]> 1 AND (c.id IS NULL OR c.outsourceId = '0' )\n"
+            + "          THEN o.id\n"
+            + "          END) AS unAssignedReBorrowingCountN\n"
+            + "FROM\n"
+            + "    ordOrder o\n"
+            + "        LEFT JOIN\n"
+            + "    collectionOrderDetail c ON c.orderUUID = o.uuid and c.disabled =0 and c.sourceType = #{sourceType} \n"
+            + "WHERE\n"
+            + "     o.disabled =0 \n"
+            + "        AND DATEDIFF(NOW(), o.refundTime) <![CDATA[>=]]>#{minOverdueDays}"
+            + "        AND DATEDIFF(NOW(), o.refundTime) <![CDATA[<=]]>#{maxOverdueDays} "
+            + "<choose><when test='otherArray != null and otherArray.length > 0'> and o.amountApply not in <foreach collection='otherArray' index='index' " +
+            "item='item' open='(' separator=',' close=')'>#{item}</foreach></when> "
+            + "<otherwise><if test='array != null and array.length > 0'> and o.amountApply in <foreach collection='array' index='index' " +
+            "item='item1' open='(' separator=',' close=')'>#{item1}</foreach></if></otherwise></choose>"+
+            "</script>")
+    OverdueOrderStatistics getOverdueOrderStatisticsCheck(
+            @Param("minOverdueDays") Integer minOverdueDays,
+            @Param("maxOverdueDays") Integer maxOverdueDays,
+            @Param("sourceType") Integer sourceType,
+            @Param("array") BigDecimal[] amountApply,
+            @Param("otherArray") BigDecimal[] otherArray);
 
 
     @Select("<script> SELECT "
@@ -261,6 +299,34 @@ public interface ManCollectionDao extends BaseMapper<OrdOrder> {
             "item='item1' open='(' separator=',' close=')'>#{item1}</foreach></if></otherwise></choose>"+
             "</script>")
     OverdueCollectorOrderStatistics getOverdueCollectorOrderStatistics(
+            @Param("minOverdueDays") Integer minOverdueDays,
+            @Param("maxOverdueDays") Integer maxOverdueDays,
+            @Param("outSourceId") Integer outSourceId,
+            @Param("sourceType") Integer sourceType,
+            @Param("array") BigDecimal[] amountApply,
+            @Param("otherArray") BigDecimal[] otherArray);
+
+    @Select("<script> SELECT "
+            + "    COUNT(CASE WHEN  o.borrowingCount = 1 AND (c.id IS NOT NULL AND c.outsourceId != '0' ) "
+            + "          THEN o.id"
+            + "        END) AS assignedReBorrowingCount0,"
+            + "    COUNT(CASE WHEN o.borrowingCount > 1 AND (c.id IS NOT NULL AND c.outsourceId != '0' ) "
+            + "          THEN o.id"
+            + "          END) AS assignedReBorrowingCountN "
+            + "FROM"
+            + "    ordOrder o "
+            + "        JOIN "
+            + "    collectionOrderDetail c ON c.orderUUID = o.uuid and c.disabled =0 and c.outsourceId = #{outSourceId} and c.sourceType = #{sourceType} "
+            + "WHERE "
+            + "     o.disabled =0 "
+            + "    <![CDATA[ AND DATEDIFF(NOW(), o.refundTime) >=]]>#{minOverdueDays}"
+            + "    <![CDATA[ AND DATEDIFF(NOW(), o.refundTime) <=]]>#{maxOverdueDays} "
+            + "<choose><when test='otherArray != null and otherArray.length > 0'> and o.amountApply not in <foreach collection='otherArray' index='index' " +
+            "item='item' open='(' separator=',' close=')'>#{item}</foreach></when> "
+            + "<otherwise><if test='array != null and array.length > 0'> and o.amountApply in <foreach collection='array' index='index' " +
+            "item='item1' open='(' separator=',' close=')'>#{item1}</foreach></if></otherwise></choose>"+
+            "</script>")
+    OverdueCollectorOrderStatistics getOverdueCollectorOrderStatisticsCheck(
             @Param("minOverdueDays") Integer minOverdueDays,
             @Param("maxOverdueDays") Integer maxOverdueDays,
             @Param("outSourceId") Integer outSourceId,
@@ -343,4 +409,8 @@ public interface ManCollectionDao extends BaseMapper<OrdOrder> {
             "from doit.usrEvaluateScore score join doit.usrUser usr on usr.id = score.createUser and score.disabled = 0 join doit.manUser manUser on manUser.disabled = 0 and manUser.uuid = score.userUuid join sysDicItem item on item.disabled =0 and item.id = score.postId \n" +
             "where score.type = 1 and score.postId = #{postId} order by manUser.username, createTime desc ")
     List<CollectorScoreResponse> getDetailScore(@Param("postId") Integer postId);
+
+    @SelectProvider(type = CollectionSqlProvider.class, method = "secondQualityCheck")
+    @Options(useGeneratedKeys = true)
+    List<CollectionOrderResponse> secondQualityCheck(@Param("AssignableCollectionOrderReq") AssignableCollectionOrderReq request);
 }

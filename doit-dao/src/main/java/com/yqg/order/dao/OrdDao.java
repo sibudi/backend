@@ -75,7 +75,9 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     @Select("select * from ordOrder where disabled = 0 and userUuid = #{userUuid}  and status in(2,3,4,17,18,19)  and orderStep = 7")
     List<OrdOrder> loneOrderList(@Param("userUuid") String userUuid);
 
-    @Select("select * from ordOrder where status = 5 and orderStep in(7,8) and disabled = 0 ")
+    @Select("select * from ordOrder o where o.status = 5 and o.orderStep in(7,8) and o.disabled = 0 " +
+            " and not exists (select 1 from usrUser ss where ss.uuid=o.userUuid and ss.userSource not in(81,82,83) and o.borrowingCount<=1 and ss.disabled=0) "
+    )
     public List<OrdOrder> getLoanList();
 
     @Select("select * from ordOrder where status = 5 and orderStep in(7,8) and orderType != 3 and markStatus is not null and markStatus not in ('0','6','7','8') " +
@@ -125,8 +127,9 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     public List<OrdOrder> getRiskOrderTestList();
 
     @Select("select * from ordOrder u where u.disabled=0 and u.status in (17,18) and updateTime< date_add(now(),INTERVAL -5 MINUTE) " +
-            "  and mod(id,3)=#{modId} order by " +
-            " updateTime asc")
+            "  and mod(id,3)=#{modId}" +
+            " and not exists(select 1 from asyncTaskInfo aa where aa.orderNo = u.uuid and aa.disabled=0 and aa.taskType=1)" +
+            " order by  updateTime asc")
     List<OrdOrder> getWaitingAutoCallOrders(@Param("modId") Integer modId);
 
     @Select("select * from ordOrder u where u.disabled=0 and u.status in (17,18) and borrowingCount=1 and updateTime<=#{updateTime}")
@@ -147,6 +150,7 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
             " and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%') " +
             " and mod(id,11)=#{num}  " +
             " and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1) " +
+            " and not exists (select 1 from usrUser ss where ss.uuid=o.userUuid and ss.userSource not in(81,82,83) and o.borrowingCount<=1 and ss.disabled=0) " +
             "  order by id desc limit 30 ")
     List<OrdOrder> getRiskOrderListById(@Param("num") Integer num);
 
@@ -1670,501 +1674,880 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     @Select("select * from ordOrder where amountApply = '200000.00' and productUuid = '';")
     public List<OrdOrder> getOrderWithNoProductUuid();
 
-    // 整首逾监控
-    @Select("-- 1.1、整点首逾监控\n" +
+    // 整点首逾监控(overall first pass monitoring)
+    @Select("select \n" +
+            "ifnull(dueDay,'Avg') as dueDay,  -- 到期日(due date)\n" +
+            "sum(1) as orders,                -- 订单(pesanan)\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 9,1,0)))/sum(1)*100,1),'%') as H09,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 10,1,0)))/sum(1)*100,1),'%') as H10,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 11,1,0)))/sum(1)*100,1),'%') as H11,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 12,1,0)))/sum(1)*100,1),'%') as H12,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 13,1,0)))/sum(1)*100,1),'%') as H13,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 14,1,0)))/sum(1)*100,1),'%') as H14,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 15,1,0)))/sum(1)*100,1),'%') as H15,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 16,1,0)))/sum(1)*100,1),'%') as H16,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 17,1,0)))/sum(1)*100,1),'%') as H17,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 18,1,0)))/sum(1)*100,1),'%') as H18,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 19,1,0)))/sum(1)*100,1),'%') as H19,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 20,1,0)))/sum(1)*100,1),'%') as H20,\n" +
+            "concat(round((sum(if(ordStatus = 'noback',1,0)) + sum(if(ordStatus = 'repay' and date(repayTime) = dueDay and date_format(repayTime,'%k') >= 21,1,0)))/sum(1)*100,1),'%') as H21\n" +
+            "from \n" +
+            "(\n" +
             "select \n" +
-            "'≤20万D1逾' as product,   -- 产品\n" +
-            "count(1) as orders,      -- 订单\n" +
-            "if(now() < concat(curdate(),' 09:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 09:00:00'),1,0)))/count(1)*100,1),'%')) as H09,   -- H09\n" +
-            "if(now() < concat(curdate(),' 10:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 10:00:00'),1,0)))/count(1)*100,1),'%')) as H10,   -- H10\n" +
-            "if(now() < concat(curdate(),' 11:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 11:00:00'),1,0)))/count(1)*100,1),'%')) as H11,   -- H11\n" +
-            "if(now() < concat(curdate(),' 12:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 12:00:00'),1,0)))/count(1)*100,1),'%')) as H12,   -- H12\n" +
-            "if(now() < concat(curdate(),' 13:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 13:00:00'),1,0)))/count(1)*100,1),'%')) as H13,   -- H13\n" +
-            "if(now() < concat(curdate(),' 14:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 14:00:00'),1,0)))/count(1)*100,1),'%')) as H14,   -- H14\n" +
-            "if(now() < concat(curdate(),' 15:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 15:00:00'),1,0)))/count(1)*100,1),'%')) as H15,   -- H15\n" +
-            "if(now() < concat(curdate(),' 16:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 16:00:00'),1,0)))/count(1)*100,1),'%')) as H16,   -- H16\n" +
-            "if(now() < concat(curdate(),' 17:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 17:00:00'),1,0)))/count(1)*100,1),'%')) as H17,   -- H17\n" +
-            "if(now() < concat(curdate(),' 18:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 18:00:00'),1,0)))/count(1)*100,1),'%')) as H18,   -- H18\n" +
-            "if(now() < concat(curdate(),' 19:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 19:00:00'),1,0)))/count(1)*100,1),'%')) as H19,   -- H19\n" +
-            "if(now() < concat(curdate(),' 20:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 20:00:00'),1,0)))/count(1)*100,1),'%')) as H20,   -- H20\n" +
-            "if(now() < concat(curdate(),' 21:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 21:00:00'),1,0)))/count(1)*100,1),'%')) as H21    -- H21\n" +
+            "orderType,\n" +
+            "case when orderType = 3 then billId when orderType in (0,1,2) then orderId else null end as orderId,\n" +
+            "case when orderType = 3 then billStatus when orderType in (0,1,2) then ordStatus else null end as ordStatus,\n" +
+            "case when orderType = 3 then billDueDay when orderType in (0,1,2) then ordDueDay else null end as dueDay,\n" +
+            "case when orderType = 3 then billRepayTime when orderType in (0,1,2) then repayTime else null end as repayTime\n" +
+            "from\n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "date(refundtime) as ordDueDay,\n" +
+            "date(lendingTime) as ordLendDay,\n" +
+            "actualRefundTime as repayTime,\n" +
+            "if(status = 10,'repay','noback') as ordStatus,\n" +
+            "orderType\n" +
             "from ordOrder\n" +
             "where disabled = 0 \n" +
-            "and amountApply in (200000,100000)\n" +
-            "and status in (7,10)\n" +
-            "and orderType in (0,2)\n" +
-            "and date(refundTime) = date_sub(curdate(),interval 0 day)\n" +
-            "\n" +
-            "union all\n" +
-            "\n" +
+            "and status in (7,8,10,11)\n" +
+            "and orderType in (0,1,2,3)\n" +
+            "and if(ordertype = 3,1,date(refundTime) between date_sub(curdate(),interval 7 day) and date_sub(curdate(),interval 0 day))\n" +
+            ") ord  \n" +
+            "left join\n" +
+            "(\n" +
             "select \n" +
-            "'≤20万目标' as product,\n" +
-            "'-' as orders,\n" +
-            "'44.5%' as H09,\n" +
-            "'43.89%' as H10,\n" +
-            "'42.53%' as H11,\n" +
-            "'40.81%' as H12,\n" +
-            "'39.13%' as H13,\n" +
-            "'37.95%' as H14,\n" +
-            "'36.96%' as H15,\n" +
-            "'36.18%' as H16,\n" +
-            "'35.37%' as H17,\n" +
-            "'34.72%' as H18,\n" +
-            "'34.11%' as H19,\n" +
-            "'33.75%' as H20,\n" +
-            "'33.40%' as H21\n" +
-            "from dual\n" +
-            "\n" +
-            "\n" +
-            "union all \n" +
-            "\n" +
-            "select \n" +
-            "'40-80万D1逾' as product, \n" +
-            "count(1) as orders,      \n" +
-            "if(now() < concat(curdate(),' 09:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 09:00:00'),1,0)))/count(1)*100,1),'%')) as H09,\n" +
-            "if(now() < concat(curdate(),' 10:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 10:00:00'),1,0)))/count(1)*100,1),'%')) as H10,\n" +
-            "if(now() < concat(curdate(),' 11:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 11:00:00'),1,0)))/count(1)*100,1),'%')) as H11,\n" +
-            "if(now() < concat(curdate(),' 12:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 12:00:00'),1,0)))/count(1)*100,1),'%')) as H12,\n" +
-            "if(now() < concat(curdate(),' 13:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 13:00:00'),1,0)))/count(1)*100,1),'%')) as H13,\n" +
-            "if(now() < concat(curdate(),' 14:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 14:00:00'),1,0)))/count(1)*100,1),'%')) as H14,\n" +
-            "if(now() < concat(curdate(),' 15:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 15:00:00'),1,0)))/count(1)*100,1),'%')) as H15,\n" +
-            "if(now() < concat(curdate(),' 16:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 16:00:00'),1,0)))/count(1)*100,1),'%')) as H16,\n" +
-            "if(now() < concat(curdate(),' 17:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 17:00:00'),1,0)))/count(1)*100,1),'%')) as H17,\n" +
-            "if(now() < concat(curdate(),' 18:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 18:00:00'),1,0)))/count(1)*100,1),'%')) as H18,\n" +
-            "if(now() < concat(curdate(),' 19:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 19:00:00'),1,0)))/count(1)*100,1),'%')) as H19,\n" +
-            "if(now() < concat(curdate(),' 20:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 20:00:00'),1,0)))/count(1)*100,1),'%')) as H20,\n" +
-            "if(now() < concat(curdate(),' 21:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 21:00:00'),1,0)))/count(1)*100,1),'%')) as H21\n" +
-            "from ordOrder\n" +
-            "where disabled = 0 \n" +
-            "and amountApply in (400000,800000)\n" +
-            "and status in (7,10)\n" +
-            "and orderType in (0,2)\n" +
-            "and date(refundTime) = date_sub(curdate(),interval 0 day)\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "union all\n" +
-            "\n" +
-            "select \n" +
-            "'40-80万目标' as product,\n" +
-            "'-' as orders,\n" +
-            "'47.00%' as H09,\n" +
-            "'46.21%' as H10,\n" +
-            "'44.40%' as H11,\n" +
-            "'42.11%' as H12,\n" +
-            "'40.12%' as H13,\n" +
-            "'38.35%' as H14,\n" +
-            "'36.87%' as H15,\n" +
-            "'36.18%' as H16,\n" +
-            "'35.53%' as H17,\n" +
-            "'34.31%' as H18,\n" +
-            "'32.92%' as H19,\n" +
-            "'31.20%' as H20,\n" +
-            "'30.62%' as H21\n" +
-            "from dual\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "union all \n" +
-            "\n" +
-            "select \n" +
-            "'120万D1逾' as product,   \n" +
-            "count(1) as orders,     \n" +
-            "if(now() < concat(curdate(),' 09:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 09:00:00'),1,0)))/count(1)*100,1),'%')) as H09,\n" +
-            "if(now() < concat(curdate(),' 10:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 10:00:00'),1,0)))/count(1)*100,1),'%')) as H10,\n" +
-            "if(now() < concat(curdate(),' 11:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 11:00:00'),1,0)))/count(1)*100,1),'%')) as H11,\n" +
-            "if(now() < concat(curdate(),' 12:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 12:00:00'),1,0)))/count(1)*100,1),'%')) as H12,\n" +
-            "if(now() < concat(curdate(),' 13:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 13:00:00'),1,0)))/count(1)*100,1),'%')) as H13,\n" +
-            "if(now() < concat(curdate(),' 14:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 14:00:00'),1,0)))/count(1)*100,1),'%')) as H14,\n" +
-            "if(now() < concat(curdate(),' 15:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 15:00:00'),1,0)))/count(1)*100,1),'%')) as H15,\n" +
-            "if(now() < concat(curdate(),' 16:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 16:00:00'),1,0)))/count(1)*100,1),'%')) as H16,\n" +
-            "if(now() < concat(curdate(),' 17:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 17:00:00'),1,0)))/count(1)*100,1),'%')) as H17,\n" +
-            "if(now() < concat(curdate(),' 18:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 18:00:00'),1,0)))/count(1)*100,1),'%')) as H18,\n" +
-            "if(now() < concat(curdate(),' 19:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 19:00:00'),1,0)))/count(1)*100,1),'%')) as H19,\n" +
-            "if(now() < concat(curdate(),' 20:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 20:00:00'),1,0)))/count(1)*100,1),'%')) as H20,\n" +
-            "if(now() < concat(curdate(),' 21:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 21:00:00'),1,0)))/count(1)*100,1),'%')) as H21\n" +
-            "from ordOrder\n" +
-            "where disabled = 0 \n" +
-            "and amountApply in (1200000)\n" +
-            "and status in (7,10)\n" +
-            "and orderType in (0,2)\n" +
-            "and date(refundTime) = date_sub(curdate(),interval 0 day)\n" +
-            "\n" +
-            "\n" +
-            "union all\n" +
-            "\n" +
-            "select \n" +
-            "'120万目标' as product,\n" +
-            "'-' as orders,\n" +
-            "'63.06%' as H09,\n" +
-            "'61.33%' as H10,\n" +
-            "'58.39%' as H11,\n" +
-            "'54.83%' as H12,\n" +
-            "'51.30%' as H13,\n" +
-            "'47.96%' as H14,\n" +
-            "'45.22%' as H15,\n" +
-            "'42.99%' as H16,\n" +
-            "'40.72%' as H17,\n" +
-            "'38.88%' as H18,\n" +
-            "'37.38%' as H19,\n" +
-            "'36.03%' as H20,\n" +
-            "'34.93%' as H21\n" +
-            "from dual\n" +
-            "\n" +
-            "\n" +
-            "union all  \n" +
-            "\n" +
-            "select \n" +
-            "'150-200万D1逾' as product,   \n" +
-            "count(1) as orders,      \n" +
-            "if(now() < concat(curdate(),' 09:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 09:00:00'),1,0)))/count(1)*100,1),'%')) as H09,\n" +
-            "if(now() < concat(curdate(),' 10:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 10:00:00'),1,0)))/count(1)*100,1),'%')) as H10,\n" +
-            "if(now() < concat(curdate(),' 11:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 11:00:00'),1,0)))/count(1)*100,1),'%')) as H11,\n" +
-            "if(now() < concat(curdate(),' 12:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 12:00:00'),1,0)))/count(1)*100,1),'%')) as H12,\n" +
-            "if(now() < concat(curdate(),' 13:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 13:00:00'),1,0)))/count(1)*100,1),'%')) as H13,\n" +
-            "if(now() < concat(curdate(),' 14:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 14:00:00'),1,0)))/count(1)*100,1),'%')) as H14,\n" +
-            "if(now() < concat(curdate(),' 15:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 15:00:00'),1,0)))/count(1)*100,1),'%')) as H15,\n" +
-            "if(now() < concat(curdate(),' 16:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 16:00:00'),1,0)))/count(1)*100,1),'%')) as H16,\n" +
-            "if(now() < concat(curdate(),' 17:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 17:00:00'),1,0)))/count(1)*100,1),'%')) as H17,\n" +
-            "if(now() < concat(curdate(),' 18:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 18:00:00'),1,0)))/count(1)*100,1),'%')) as H18,\n" +
-            "if(now() < concat(curdate(),' 19:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 19:00:00'),1,0)))/count(1)*100,1),'%')) as H19,\n" +
-            "if(now() < concat(curdate(),' 20:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 20:00:00'),1,0)))/count(1)*100,1),'%')) as H20,\n" +
-            "if(now() < concat(curdate(),' 21:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 21:00:00'),1,0)))/count(1)*100,1),'%')) as H21\n" +
-            "from ordOrder\n" +
-            "where disabled = 0 \n" +
-            "and amountApply in (1500000,2000000)\n" +
-            "and status in (7,10)\n" +
-            "and orderType in (0,2)\n" +
-            "and date(refundTime) = date_sub(curdate(),interval 0 day)\n" +
-            "\n" +
-            "\n" +
-            "union all\n" +
-            "\n" +
-            "select \n" +
-            "'150-200万目标' as product,\n" +
-            "'-' as orders,\n" +
-            "'53.48%' as H09,\n" +
-            "'51.36%' as H10,\n" +
-            "'47.94%' as H11,\n" +
-            "'43.92%' as H12,\n" +
-            "'40.41%' as H13,\n" +
-            "'37.68%' as H14,\n" +
-            "'34.94%' as H15,\n" +
-            "'32.25%' as H16,\n" +
-            "'30.00%' as H17,\n" +
-            "'28.30%' as H18,\n" +
-            "'26.69%' as H19,\n" +
-            "'25.43%' as H20,\n" +
-            "'24.30%' as H21\n" +
-            "from dual\n" +
-            "\n" +
-            "\n" +
-            "union all  \n" +
-            "\n" +
-            "select \n" +
-            "'总体D1' as product,   \n" +
-            "count(1) as orders,      \n" +
-            "if(now() < concat(curdate(),' 09:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 09:00:00'),1,0)))/count(1)*100,1),'%')) as H09,\n" +
-            "if(now() < concat(curdate(),' 10:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 10:00:00'),1,0)))/count(1)*100,1),'%')) as H10,\n" +
-            "if(now() < concat(curdate(),' 11:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 11:00:00'),1,0)))/count(1)*100,1),'%')) as H11,\n" +
-            "if(now() < concat(curdate(),' 12:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 12:00:00'),1,0)))/count(1)*100,1),'%')) as H12,\n" +
-            "if(now() < concat(curdate(),' 13:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 13:00:00'),1,0)))/count(1)*100,1),'%')) as H13,\n" +
-            "if(now() < concat(curdate(),' 14:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 14:00:00'),1,0)))/count(1)*100,1),'%')) as H14,\n" +
-            "if(now() < concat(curdate(),' 15:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 15:00:00'),1,0)))/count(1)*100,1),'%')) as H15,\n" +
-            "if(now() < concat(curdate(),' 16:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 16:00:00'),1,0)))/count(1)*100,1),'%')) as H16,\n" +
-            "if(now() < concat(curdate(),' 17:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 17:00:00'),1,0)))/count(1)*100,1),'%')) as H17,\n" +
-            "if(now() < concat(curdate(),' 18:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 18:00:00'),1,0)))/count(1)*100,1),'%')) as H18,\n" +
-            "if(now() < concat(curdate(),' 19:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 19:00:00'),1,0)))/count(1)*100,1),'%')) as H19,\n" +
-            "if(now() < concat(curdate(),' 20:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 20:00:00'),1,0)))/count(1)*100,1),'%')) as H20,\n" +
-            "if(now() < concat(curdate(),' 21:00:00'),'-',concat(round((sum(if(status = 7,1,0)) + sum(if(status = 10 and actualrefundTime >= concat(curdate(),' 21:00:00'),1,0)))/count(1)*100,1),'%')) as H21\n" +
-            "from ordOrder\n" +
-            "where disabled = 0 \n" +
-            "and status in (7,10)\n" +
-            "and date(refundTime) = date_sub(curdate(),interval 0 day);")
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "billTerm,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "actualRefundTime as billRepayTime,\n" +
+            "if(status in (3),'repay','noback') as billStatus\n" +
+            "from ordBill\n" +
+            "where disabled = 0\n" +
+            "and status in (1,2,3,4)\n" +
+            "and date(refundTime) between date_sub(curdate(),interval 7 day) and date_sub(curdate(),interval 0 day)\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") result \n" +
+            "where orderId is not null\n" +
+            "group by dueDay with rollup;")
     List<MonitoringData> getMonitoringData();
 
     // 内催D0分组催收情况
     @Select("select \n" +
-            "if(realName = 'Total','',createDay) as date,         -- 日期                \n" +
-            "realName,                                            -- 催收员\n" +
-            "parentName,                                          -- 组长\n" +
-            "taskNum,                                             -- 分案数\n" +
-            "recoveryNum,                                         -- 回收数\n" +
-            "ratio                                                -- 回收率\n" +
+            "if(staff = 'Total','',createDay) as Date,            -- 日期(tanggal)\n" +
+            "Staff,                                               -- 催收员(collector)\n" +
+            "Groups,                                              -- 组长(TeamLender)\n" +
+            "taskOrders,                                          -- 分案数(jumlah kasus yg dibagi)\n" +
+            "repayOrders,                                         -- 回收数(jumlah pengembalian)\n" +
+            "Rate                                                 -- 回收率(persentase pengembalian)\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "createDay,\n" +
+            "ifnull(staff,'Total') as staff,\n" +
+            "Groups,\n" +
+            "count(1) as taskOrders,\n" +
+            "ifnull(sum(repayOrder),0) as repayOrders,\n" +
+            "concat(round(ifnull(sum(repayOrder),0)/count(1)*100,1),'%') as rate\n" +
             "from \n" +
             "(\n" +
             "select\n" +
+            "billId,\n" +
+            "orderId,\n" +
             "createDay,\n" +
-            "ifnull(realName,'Total') as realName,\n" +
-            "parentName,\n" +
-            "sum(taskNum) as taskNum,\n" +
-            "sum(recoveryNum) as recoveryNum,\n" +
-            "concat(round(sum(recoveryNum)/sum(taskNum)*100,1),'%') as ratio\n" +
-            "from\n" +
-            "(\n" +
-            "select\n" +
-            "date(createTime) as createDay,\n" +
+            "dueDay,\n" +
             "outsourceId,\n" +
-            "count(1) as taskNum,\n" +
-            "0 as recoveryNum,\n" +
-            "0 as todayNum\n" +
-            "from collectionOrderHistory \n" +
-            "where id in \n" +
-            "(\n" +
-            "select max(a.id) from collectionOrderHistory a left join ordOrder b on a.orderuuId = b.uuid \n" +
-            "where sourcetype = 0 and datediff(curdate(),a.createTime) between 0 and 1\n" +
-            "and datediff(a.createTime,b.refundTime) = 0 group by orderuuId\n" +
-            ")\n" +
-            "group by createDay,outsourceId\n" +
-            "\n" +
-            "union all\n" +
-            "select\n" +
-            "createDay,\n" +
-            "outsourceId,\n" +
-            "0 as taskNum,\n" +
-            "count(uuid) as recoveryNum,\n" +
-            "sum(if(datediff(curdate(),actualRefundDay) = 0,1,0)) as todayNum\n" +
-            "from\n" +
+            "repayOrder\n" +
+            "from \n" +
             "(\n" +
             "select \n" +
-            "uuid,\n" +
-            "useruuid,\n" +
-            "date(actualrefundTime) as actualRefundDay,\n" +
-            "date(refundTime) as refundday\n" +
+            "orderId as billId,\n" +
+            "orderId,\n" +
+            "dueDay,\n" +
+            "repayOrder\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType,\n" +
+            "date(refundtime) as dueDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) = 0 then 1 else 0 end as repayOrder\n" +
+            "from ordOrder \n" +
+            "where disabled = 0 \n" +
+            "and status in (7,8,10,11) \n" +
+            "and orderType in (0,1,2)\n" +
+            ") ord\n" +
+            "\n" +
+            "union all\n" +
+            "select \n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "billDueDay,\n" +
+            "repayOrder\n" +
+            "from  \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId\n" +
             "from ordOrder\n" +
-            "where disabled = 0\n" +
-            "and status = 10 \n" +
-            "and datediff(actualrefundTime,refundTime) = 0\n" +
+            "where disabled = 0 and status in (7,8,10,11) and orderType in (3)\n" +
             ") ord\n" +
             "inner join\n" +
             "(\n" +
-            "select\n" +
-            "orderuuId,\n" +
-            "date(createTime) as createDay,\n" +
-            "outsourceId\n" +
-            "from collectionOrderHistory \n" +
-            "where id in \n" +
-            "(\n" +
-            "select max(a.id) \n" +
-            "from collectionOrderHistory a left join ordOrder b on a.orderuuId = b.uuid \n" +
-            "where sourcetype = 0 and datediff(curdate(),a.createTime) between 0 and 1\n" +
-            "and datediff(a.createTime,b.refundTime) = 0 group by orderuuId\n" +
-            ")\n" +
-            ") third on third.orderuuId = ord.uuid\n" +
-            "group by createDay,outsourceId\n" +
-            ") t\n" +
+            "select \n" +
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) = 0 then 1 else 0 end as repayOrder\n" +
+            "from ordBill\n" +
+            "where disabled = 0 and status in (1,2,3,4)\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") body\n" +
             "inner join\n" +
             "(\n" +
-            "select id,realName,parentID\n" +
-            "from manUser \n" +
+            "select\n" +
+            "orderUUID,date(createtime) as createDay,outsourceid\n" +
+            "from collectionOrderHistory\n" +
+            "where outsourceid not in (0)\n" +
+            "and id in\n" +
+            "(\n" +
+            "select max(a.id) from collectionOrderHistory a \n" +
+            "inner join ordOrder b on a.orderUUID = b.uuid \n" +
+            "left join ordBill c on c.orderNo = b.uuid\n" +
+            "where a.disabled = 0 and a.sourceType = 0 \n" +
+            "and datediff(curdate(),a.createTime) between 0 and 1\n" +
+            "and if(orderType = 3,datediff(a.createtime,c.refundtime) = 0,\n" +
+            "datediff(a.createtime,b.refundtime) = 0)\n" +
+            "group by orderUUID\n" +
+            ")\n" +
+            ") third on third.orderUUID = body.orderId\n" +
+            "where datediff(createDay,dueDay) = 0\n" +
+            ") mydata\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "id as staffId,\n" +
+            "realname as staff,\n" +
+            "parentId\n" +
+            "from manUser\n" +
             "where disabled = 0\n" +
             "and realName not in ('cuishouheimingdan')\n" +
             "and realname not like '%qinwei%'\n" +
             "and realname not like '%qingwei%'\n" +
             "and realname not like '%QUIROS%'\n" +
-            ") man on t.outsourceId = man.id\n" +
+            ") mu on mu.staffId = mydata.outsourceid\n" +
             "left join\n" +
             "(\n" +
-            "select id,realName as parentName\n" +
+            "select id,realName as Groups\n" +
             "from manUser \n" +
             "where disabled = 0\n" +
             "and realName not in ('cuishouheimingdan')\n" +
-            ") par on par.id = man.parentID\n" +
-            "group by parentName,createDay,realName with rollup\n" +
+            ") par on par.id = mu.parentId\n" +
+            "group by Groups,createDay,staff with rollup\n" +
             "having createDay is not null\n" +
             ") result\n" +
-            "order by createDay desc,parentName,case when realName = 'total' then 0 else recoveryNum/taskNum + 1 end desc;")
+            "order by createDay desc,Groups,case when staff = 'total' then 0 else repayOrders/taskOrders + 1 end desc;")
     List<D0CollectionData> getD0CollectionData();
 
     // 内催D1-2分组催收情况
     @Select("select \n" +
-            "if(realName = 'Total','',createDay) as date,         -- 日期                \n" +
-            "realName,                                            -- 催收员\n" +
-            "parentName,                                          -- 组长\n" +
-            "taskNum,                                             -- 分案数\n" +
-            "recoveryNum,                                         -- 回收数\n" +
-            "ratio,                                               -- 回收率\n" +
-            "todayNum                                             -- 今日回收数\n" +
+            "if(staff = 'Total','',createDay) as Date,            -- 日期(tanggal)\n" +
+            "Staff,                                               -- 催收员(collector)\n" +
+            "Groups,                                              -- 组长(TeamLender)\n" +
+            "taskOrders,                                          -- 分案数(jumlah kasus yg dibagi)\n" +
+            "repayOrders,                                         -- 回收数(jumlah pengembalian)\n" +
+            "Rate,                                                -- 回收率(persentase pengembalian)\n" +
+            "todayRepay                                           -- 今日回(jumlah pengembalian hari ini)\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "createDay,\n" +
+            "ifnull(staff,'Total') as staff,\n" +
+            "Groups,\n" +
+            "count(1) as taskOrders,\n" +
+            "ifnull(sum(repayOrder),0) as repayOrders,\n" +
+            "concat(round(ifnull(sum(repayOrder),0)/count(1)*100,1),'%') as rate,\n" +
+            "ifnull(sum(case when repayDay = curdate() then repayOrder else 0 end),0) as todayRepay\n" +
             "from \n" +
             "(\n" +
             "select\n" +
+            "billId,\n" +
+            "orderId,\n" +
             "createDay,\n" +
-            "ifnull(realName,'Total') as realName,\n" +
-            "parentName,\n" +
-            "sum(taskNum) as taskNum,\n" +
-            "sum(recoveryNum) as recoveryNum,\n" +
-            "concat(round(sum(recoveryNum)/sum(taskNum)*100,1),'%') as ratio,\n" +
-            "sum(todayNum) as todayNum\n" +
-            "from\n" +
-            "(\n" +
-            "select\n" +
-            "date(createTime) as createDay,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
             "outsourceId,\n" +
-            "count(1) as taskNum,\n" +
-            "0 as recoveryNum,\n" +
-            "0 as todayNum\n" +
-            "from collectionOrderHistory \n" +
-            "where id in \n" +
-            "(\n" +
-            "select max(a.id) from collectionOrderHistory a left join ordOrder b on a.orderuuId = b.uuid \n" +
-            "where sourcetype = 0 and datediff(curdate(),a.createTime) between 0 and 2\n" +
-            "and datediff(a.createTime,b.refundTime) between 1 and 2 group by orderuuId\n" +
-            ")\n" +
-            "group by createDay,outsourceId\n" +
-            "\n" +
-            "union all\n" +
-            "select\n" +
-            "createDay,\n" +
-            "outsourceId,\n" +
-            "0 as taskNum,\n" +
-            "count(uuid) as recoveryNum,\n" +
-            "sum(if(datediff(curdate(),actualRefundDay) = 0,1,0)) as todayNum\n" +
-            "from\n" +
+            "repayOrder\n" +
+            "from \n" +
             "(\n" +
             "select \n" +
-            "uuid,\n" +
-            "useruuid,\n" +
-            "date(actualrefundTime) as actualRefundDay,\n" +
-            "date(refundTime) as refundday\n" +
+            "orderId as billId,\n" +
+            "orderId,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType,\n" +
+            "date(refundtime) as dueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 1 and 2 then 1 else 0 end as repayOrder\n" +
+            "from ordOrder \n" +
+            "where disabled = 0 \n" +
+            "and status in (7,8,10,11) \n" +
+            "and orderType in (0,1,2)\n" +
+            ") ord\n" +
+            "\n" +
+            "union all\n" +
+            "select \n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "billDueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from  \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId\n" +
             "from ordOrder\n" +
-            "where disabled = 0\n" +
-            "and status = 11 \n" +
-            "and datediff(actualrefundTime,refundTime) between 1 and 2\n" +
+            "where disabled = 0 and status in (7,8,10,11) and orderType in (3)\n" +
             ") ord\n" +
             "inner join\n" +
             "(\n" +
-            "select\n" +
-            "orderuuId,\n" +
-            "date(createTime) as createDay,\n" +
-            "outsourceId\n" +
-            "from collectionOrderHistory \n" +
-            "where id in \n" +
-            "(\n" +
-            "select max(a.id) \n" +
-            "from collectionOrderHistory a left join ordOrder b on a.orderuuId = b.uuid \n" +
-            "where sourcetype = 0 and datediff(curdate(),a.createTime) between 0 and 2\n" +
-            "and datediff(a.createTime,b.refundTime) between 1 and 2 group by orderuuId\n" +
-            ")\n" +
-            ") third on third.orderuuId = ord.uuid\n" +
-            "group by createDay,outsourceId\n" +
-            ") t\n" +
+            "select \n" +
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 1 and 2 then 1 else 0 end as repayOrder\n" +
+            "from ordBill\n" +
+            "where disabled = 0 and status in (1,2,3,4)\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") body\n" +
             "inner join\n" +
             "(\n" +
-            "select id,realName,parentID\n" +
-            "from manUser \n" +
+            "select\n" +
+            "orderUUID,date(createtime) as createDay,outsourceid\n" +
+            "from collectionOrderHistory\n" +
+            "where outsourceid not in (0)\n" +
+            "and id in\n" +
+            "(\n" +
+            "select max(a.id) from collectionOrderHistory a \n" +
+            "inner join ordOrder b on a.orderUUID = b.uuid \n" +
+            "left join ordBill c on c.orderNo = b.uuid\n" +
+            "where a.disabled = 0 and a.sourceType = 0 \n" +
+            "and datediff(curdate(),a.createTime) between 0 and 2\n" +
+            "and if(orderType = 3,datediff(a.createtime,c.refundtime) between 1 and 2,\n" +
+            "datediff(a.createtime,b.refundtime) between 1 and 2)\n" +
+            "group by orderUUID\n" +
+            ")\n" +
+            ") third on third.orderUUID = body.orderId\n" +
+            "where datediff(createDay,dueDay) between 1 and 2\n" +
+            ") mydata\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "id as staffId,\n" +
+            "realname as staff,\n" +
+            "parentId\n" +
+            "from manUser\n" +
             "where disabled = 0\n" +
+            "and realName is not null\n" +
             "and realName not in ('cuishouheimingdan')\n" +
             "and realname not like '%qinwei%'\n" +
             "and realname not like '%qingwei%'\n" +
             "and realname not like '%QUIROS%'\n" +
-            ") man on t.outsourceId = man.id\n" +
+            ") mu on mu.staffId = mydata.outsourceid\n" +
             "left join\n" +
             "(\n" +
-            "select id,realName as parentName\n" +
+            "select id,realName as Groups\n" +
             "from manUser \n" +
             "where disabled = 0\n" +
             "and realName not in ('cuishouheimingdan')\n" +
-            ") par on par.id = man.parentID\n" +
-            "group by parentName,createDay,realName with rollup\n" +
+            ") par on par.id = mu.parentId\n" +
+            "group by Groups,createDay,staff with rollup\n" +
             "having createDay is not null\n" +
             ") result\n" +
-            "order by createDay desc,parentName,case when realName = 'total' then 0 else recoveryNum/taskNum + 1 end desc;")
+            "order by createDay desc,Groups,case when staff = 'total' then 0 else repayOrders/taskOrders + 1 end desc;")
     List<D1AndD2CollectionData> getD1AndD2CollectionData();
 
     // 内催D3-7分组催收情况
     @Select("select \n" +
-            "if(realName = 'Total','',createDay) as date,         -- 日期                \n" +
-            "realName,                                            -- 催收员\n" +
-            "parentName,                                          -- 组长\n" +
-            "taskNum,                                             -- 分案数\n" +
-            "recoveryNum,                                         -- 回收数\n" +
-            "ratio,                                               -- 回收率\n" +
-            "todayNum                                             -- 今日回\n" +
+            "if(staff = 'Total','',createDay) as Date,            -- 日期(tanggal)\n" +
+            "Staff,                                               -- 催收员(collector)\n" +
+            "Groups,                                              -- 组长(TeamLender)\n" +
+            "taskOrders,                                          -- 分案数(jumlah kasus yg dibagi)\n" +
+            "repayOrders,                                         -- 回收数(jumlah pengembalian)\n" +
+            "Rate,                                                -- 回收率(persentase pengembalian)\n" +
+            "todayRepay                                           -- 今日回(jumlah pengembalian hari ini)\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "createDay,\n" +
+            "ifnull(staff,'Total') as staff,\n" +
+            "Groups,\n" +
+            "count(1) as taskOrders,\n" +
+            "ifnull(sum(repayOrder),0) as repayOrders,\n" +
+            "concat(round(ifnull(sum(repayOrder),0)/count(1)*100,1),'%') as rate,\n" +
+            "ifnull(sum(case when repayDay = curdate() then repayOrder else 0 end),0) as todayRepay\n" +
             "from \n" +
             "(\n" +
             "select\n" +
+            "billId,\n" +
+            "orderId,\n" +
             "createDay,\n" +
-            "ifnull(realName,'Total') as realName,\n" +
-            "parentName,\n" +
-            "sum(taskNum) as taskNum,\n" +
-            "sum(recoveryNum) as recoveryNum,\n" +
-            "concat(round(sum(recoveryNum)/sum(taskNum)*100,1),'%') as ratio,\n" +
-            "sum(todayNum) as todayNum\n" +
-            "from\n" +
-            "(\n" +
-            "select\n" +
-            "date(createTime) as createDay,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
             "outsourceId,\n" +
-            "count(1) as taskNum,\n" +
-            "0 as recoveryNum,\n" +
-            "0 as todayNum\n" +
-            "from collectionOrderHistory \n" +
-            "where id in \n" +
-            "(\n" +
-            "select max(a.id) from collectionOrderHistory a left join ordOrder b on a.orderuuId = b.uuid \n" +
-            "where sourcetype = 0 and datediff(curdate(),a.createTime) between 0 and 5\n" +
-            "and datediff(a.createTime,b.refundTime) between 3 and 7 group by orderuuId\n" +
-            ")\n" +
-            "group by createDay,outsourceId\n" +
-            "\n" +
-            "union all\n" +
-            "select\n" +
-            "createDay,\n" +
-            "outsourceId,\n" +
-            "0 as taskNum,\n" +
-            "count(uuid) as recoveryNum,\n" +
-            "sum(if(datediff(curdate(),actualRefundDay) = 0,1,0)) as todayNum\n" +
-            "from\n" +
+            "repayOrder\n" +
+            "from \n" +
             "(\n" +
             "select \n" +
-            "uuid,\n" +
-            "useruuid,\n" +
-            "date(actualrefundTime) as actualRefundDay,\n" +
-            "date(refundTime) as refundday\n" +
+            "orderId as billId,\n" +
+            "orderId,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType,\n" +
+            "date(refundtime) as dueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 3 and 7 then 1 else 0 end as repayOrder\n" +
+            "from ordOrder \n" +
+            "where disabled = 0 \n" +
+            "and status in (7,8,10,11) \n" +
+            "and orderType in (0,1,2)\n" +
+            ") ord\n" +
+            "\n" +
+            "union all\n" +
+            "select \n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "billDueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from  \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId\n" +
             "from ordOrder\n" +
-            "where disabled = 0\n" +
-            "and status = 11 \n" +
-            "and datediff(actualrefundTime,refundTime) between 3 and 7\n" +
+            "where disabled = 0 and status in (7,8,10,11) and orderType in (3)\n" +
             ") ord\n" +
             "inner join\n" +
             "(\n" +
-            "select\n" +
-            "orderuuId,\n" +
-            "date(createTime) as createDay,\n" +
-            "outsourceId\n" +
-            "from collectionOrderHistory \n" +
-            "where id in \n" +
-            "(\n" +
-            "select max(a.id) \n" +
-            "from collectionOrderHistory a left join ordOrder b on a.orderuuId = b.uuid \n" +
-            "where sourcetype = 0 and datediff(curdate(),a.createTime) between 0 and 5\n" +
-            "and datediff(a.createTime,b.refundTime) between 3 and 7 group by orderuuId\n" +
-            ")\n" +
-            ") third on third.orderuuId = ord.uuid\n" +
-            "group by createDay,outsourceId\n" +
-            ") t\n" +
+            "select \n" +
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 3 and 7 then 1 else 0 end as repayOrder\n" +
+            "from ordBill\n" +
+            "where disabled = 0 and status in (1,2,3,4)\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") body\n" +
             "inner join\n" +
             "(\n" +
-            "select id,realName,parentID\n" +
-            "from manUser \n" +
+            "select\n" +
+            "orderUUID,date(createtime) as createDay,outsourceid\n" +
+            "from collectionOrderHistory\n" +
+            "where outsourceid not in (0)\n" +
+            "and id in\n" +
+            "(\n" +
+            "select max(a.id) from collectionOrderHistory a \n" +
+            "inner join ordOrder b on a.orderUUID = b.uuid \n" +
+            "left join ordBill c on c.orderNo = b.uuid\n" +
+            "where a.disabled = 0 and a.sourceType = 0 \n" +
+            "and datediff(curdate(),a.createTime) between 0 and 5\n" +
+            "and if(orderType = 3,datediff(a.createtime,c.refundtime) between 3 and 7,\n" +
+            "datediff(a.createtime,b.refundtime) between 3 and 7)\n" +
+            "group by orderUUID\n" +
+            ")\n" +
+            ") third on third.orderUUID = body.orderId\n" +
+            "where datediff(createDay,dueDay) between 3 and 7\n" +
+            ") mydata\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "id as staffId,\n" +
+            "realname as staff,\n" +
+            "parentId\n" +
+            "from manUser\n" +
             "where disabled = 0\n" +
+            "and realName is not null\n" +
             "and realName not in ('cuishouheimingdan')\n" +
             "and realname not like '%qinwei%'\n" +
             "and realname not like '%qingwei%'\n" +
             "and realname not like '%QUIROS%'\n" +
-            ") man on t.outsourceId = man.id\n" +
+            ") mu on mu.staffId = mydata.outsourceid\n" +
             "left join\n" +
             "(\n" +
-            "select id,realName as parentName\n" +
+            "select id,realName as Groups\n" +
             "from manUser \n" +
             "where disabled = 0\n" +
             "and realName not in ('cuishouheimingdan')\n" +
-            ") par on par.id = man.parentID\n" +
-            "group by parentName,createDay,realName with rollup\n" +
+            ") par on par.id = mu.parentId\n" +
+            "group by Groups,createDay,staff with rollup\n" +
             "having createDay is not null\n" +
             ") result\n" +
-            "order by createDay desc,parentName,case when realName = 'total' then 0 else recoveryNum/taskNum + 1 end desc;")
+            "order by createDay desc,Groups,case when staff = 'total' then 0 else repayOrders/taskOrders + 1 end desc;")
     List<D1AndD2CollectionData> getD3ToD7CollectionData();
+
+    // 本月D8-30分组催收情况(kondisi collection D8-30 bulan ini)
+    @Select("select            \n" +
+            "Staff,                                               -- 催收员(collector)\n" +
+            "Groups,                                              -- 组长(TeamLender)\n" +
+            "taskToday,                                           -- 今日分案(jumlah kasus yg dibagi hari ini)\n" +
+            "taskOrders,                                          -- 分案数(jumlah kasus yg dibagi)\n" +
+            "repayOrders,                                         -- 回收数(jumlah pengembalian)\n" +
+            "Rate,                                                -- 回收率(persentase pengembalian)\n" +
+            "todayRepay                                           -- 今日回(jumlah pengembalian hari ini)\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "ifnull(staff,' ') as staff,\n" +
+            "Groups,\n" +
+            "ifnull(sum(case when createDay = curdate() then 1 else 0 end),0) as taskToday,\n" +
+            "count(1) as taskOrders,\n" +
+            "ifnull(sum(repayOrder),0) as repayOrders,\n" +
+            "concat(round(ifnull(sum(repayOrder),0)/count(1)*100,1),'%') as rate,\n" +
+            "ifnull(sum(case when repayDay = curdate() then repayOrder else 0 end),0) as todayRepay\n" +
+            "from \n" +
+            "(\n" +
+            "select\n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "createDay,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
+            "outsourceId,\n" +
+            "repayOrder\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "orderId as billId,\n" +
+            "orderId,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType,\n" +
+            "date(refundtime) as dueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 8 and 30 then 1 else 0 end as repayOrder\n" +
+            "from ordOrder \n" +
+            "where disabled = 0 \n" +
+            "and status in (7,8,10,11) \n" +
+            "and orderType in (0,1,2)\n" +
+            ") ord\n" +
+            "\n" +
+            "union all\n" +
+            "select \n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "billDueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from  \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId\n" +
+            "from ordOrder\n" +
+            "where disabled = 0 and status in (7,8,10,11) and orderType in (3)\n" +
+            ") ord\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 8 and 30 then 1 else 0 end as repayOrder\n" +
+            "from ordBill\n" +
+            "where disabled = 0 and status in (1,2,3,4)\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") body\n" +
+            "inner join\n" +
+            "(\n" +
+            "select\n" +
+            "orderUUID,date(createtime) as createDay,outsourceid\n" +
+            "from collectionOrderHistory\n" +
+            "where outsourceid not in (0)\n" +
+            "and id in\n" +
+            "(\n" +
+            "select max(a.id) from collectionOrderHistory a \n" +
+            "inner join ordOrder b on a.orderUUID = b.uuid \n" +
+            "left join ordBill c on c.orderNo = b.uuid\n" +
+            "where a.disabled = 0 and a.sourceType = 0 \n" +
+            "and date_format(curdate(),'%Y%m') = date_format(a.createTime,'%Y%m')\n" +
+            "and if(orderType = 3,datediff(a.createtime,c.refundtime) between 8 and 29,\n" +
+            "datediff(a.createtime,b.refundtime) between 8 and 30)\n" +
+            "group by orderUUID\n" +
+            ")\n" +
+            ") third on third.orderUUID = body.orderId\n" +
+            "where datediff(createDay,dueDay) between 8 and 30\n" +
+            ") mydata\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "id as staffId,\n" +
+            "realname as staff,\n" +
+            "parentId\n" +
+            "from manUser\n" +
+            "where disabled = 0\n" +
+            "and realName is not null\n" +
+            "and realName not in ('cuishouheimingdan','liquanxia')\n" +
+            ") mu on mu.staffId = mydata.outsourceid\n" +
+            "left join\n" +
+            "(\n" +
+            "select id,realName as Groups\n" +
+            "from manUser \n" +
+            "where disabled = 0\n" +
+            "and realName not in ('cuishouheimingdan')\n" +
+            ") par on par.id = mu.parentId\n" +
+            "group by Groups,staff with rollup\n" +
+            ") result\n" +
+            "order by Groups,case when staff = ' ' then 0 else repayOrders/taskOrders + 1 end desc;")
+    List<D8ToD30CollectionDataThisMouth> getD8ToD30CollectionDataThisMouth();
+
+
+    // 3.2 上月D8-30分组催收情况(kondisi collection tim D8-30 bulan lalu)
+    @Select("select            \n" +
+            "Staff,                                               -- 催收员(collector)\n" +
+            "Groups,                                              -- 组长(TeamLender)\n" +
+            "taskToday,                                           -- 今日分案(jumlah kasus yg dibagi hari ini)\n" +
+            "taskOrders,                                          -- 分案数(jumlah kasus yg dibagi)\n" +
+            "repayOrders,                                         -- 回收数(jumlah pengembalian)\n" +
+            "Rate,                                                -- 回收率(persentase pengembalian)\n" +
+            "todayRepay                                           -- 今日回(jumlah pengembalian hari ini)\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "ifnull(staff,' ') as staff,\n" +
+            "Groups,\n" +
+            "ifnull(sum(case when createDay = curdate() then 1 else 0 end),0) as taskToday,\n" +
+            "count(1) as taskOrders,\n" +
+            "ifnull(sum(repayOrder),0) as repayOrders,\n" +
+            "concat(round(ifnull(sum(repayOrder),0)/count(1)*100,1),'%') as rate,\n" +
+            "ifnull(sum(case when repayDay = curdate() then repayOrder else 0 end),0) as todayRepay\n" +
+            "from \n" +
+            "(\n" +
+            "select\n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "createDay,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
+            "outsourceId,\n" +
+            "repayOrder\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "orderId as billId,\n" +
+            "orderId,\n" +
+            "dueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType,\n" +
+            "date(refundtime) as dueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 8 and 30 then 1 else 0 end as repayOrder\n" +
+            "from ordOrder \n" +
+            "where disabled = 0 \n" +
+            "and status in (7,8,10,11) \n" +
+            "and orderType in (0,1,2)\n" +
+            ") ord\n" +
+            "\n" +
+            "union all\n" +
+            "select \n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "billDueDay,\n" +
+            "repayDay,\n" +
+            "repayOrder\n" +
+            "from  \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId\n" +
+            "from ordOrder\n" +
+            "where disabled = 0 and status in (7,8,10,11) and orderType in (3)\n" +
+            ") ord\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "date(actualRefundTime) as repayDay,\n" +
+            "case when datediff(actualRefundTime,refundTime) between 8 and 30 then 1 else 0 end as repayOrder\n" +
+            "from ordBill\n" +
+            "where disabled = 0 and status in (1,2,3,4)\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") body\n" +
+            "inner join\n" +
+            "(\n" +
+            "select\n" +
+            "orderUUID,date(createtime) as createDay,outsourceid\n" +
+            "from collectionOrderHistory\n" +
+            "where outsourceid not in (0)\n" +
+            "and id in\n" +
+            "(\n" +
+            "select max(a.id) from collectionOrderHistory a \n" +
+            "inner join ordOrder b on a.orderUUID = b.uuid \n" +
+            "left join ordBill c on c.orderNo = b.uuid\n" +
+            "where a.disabled = 0 and a.sourceType = 0 \n" +
+            "and date_format(date_sub(curdate(),interval 1 month),'%Y%m') = date_format(a.createTime,'%Y%m')\n" +
+            "and if(orderType = 3,datediff(a.createtime,c.refundtime) between 8 and 29,\n" +
+            "datediff(a.createtime,b.refundtime) between 8 and 30)\n" +
+            "group by orderUUID\n" +
+            ")\n" +
+            ") third on third.orderUUID = body.orderId\n" +
+            "where datediff(createDay,dueDay) between 8 and 30\n" +
+            ") mydata\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "id as staffId,\n" +
+            "realname as staff,\n" +
+            "parentId\n" +
+            "from manUser\n" +
+            "where disabled = 0\n" +
+            "and realName is not null\n" +
+            "and realName not in ('cuishouheimingdan','liquanxia')\n" +
+            ") mu on mu.staffId = mydata.outsourceid\n" +
+            "left join\n" +
+            "(\n" +
+            "select id,realName as Groups\n" +
+            "from manUser \n" +
+            "where disabled = 0\n" +
+            "and realName not in ('cuishouheimingdan')\n" +
+            ") par on par.id = mu.parentId\n" +
+            "group by Groups,staff with rollup\n" +
+            ") result\n" +
+            "order by Groups,case when staff = ' ' then 0 else repayOrders/taskOrders + 1 end desc;")
+    List<D8ToD30CollectionDataLastMouth> getD8ToD30CollectionDataLastMouth();
+
+    // 本月D31-D60分组催收情况(reminder kondisi collection team D31-D60)
+    @Select("select            \n" +
+            "Staff,                                               -- 催收员(collector)\n" +
+            "Groups,                                              -- 组长(TeamLender)\n" +
+            "taskToday,                                           -- 今日分案(jumlah kasus yg dibagi hari ini)\n" +
+            "taskOrders,                                          -- 分案数(jumlah kasus yg dibagi)\n" +
+            "repayOrders,                                         -- 回收数(jumlah pengembalian)\n" +
+            "Rate,                                                -- 回收率(persentase pengembalian)\n" +
+            "todayRepay                                           -- 今日回(jumlah pengembalian hari ini)\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "ifnull(staff,' ') as staff,\n" +
+            "Groups,\n" +
+            "ifnull(sum(case when createDay = curdate() then 1 else 0 end),0) as taskToday,\n" +
+            "sum(taskOrder) as taskOrders,\n" +
+            "ifnull(sum(repayOrder),0) as repayOrders,\n" +
+            "concat(round(ifnull(sum(repayOrder),0)/sum(taskOrder)*100,1),'%') as rate,\n" +
+            "ifnull(sum(case when repayDay = curdate() then repayOrder else 0 end),0) as todayRepay\n" +
+            "from \n" +
+            "(\n" +
+            "select\n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "createDay,\n" +
+            "outsourceId,\n" +
+            "dueDay,\n" +
+            "applyAmount,\n" +
+            "1 as taskOrder,\n" +
+            "null as repayDay,\n" +
+            "0 as repayOrder\n" +
+            "from\n" +
+            "(\n" +
+            "select \n" +
+            "orderId as billId,\n" +
+            "orderId,\n" +
+            "dueDay,\n" +
+            "applyAmount\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType,\n" +
+            "date(refundtime) as dueDay,\n" +
+            "amountApply as applyAmount\n" +
+            "from ordOrder \n" +
+            "where disabled = 0 \n" +
+            "and status in (7,8,10,11) \n" +
+            "and orderType in (0,1,2)\n" +
+            ") ord\n" +
+            "\n" +
+            "union all\n" +
+            "select \n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "billDueDay,\n" +
+            "applyAmount\n" +
+            "from  \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType\n" +
+            "from ordOrder\n" +
+            "where disabled = 0 and status in (7,8,10,11) and orderType in (3)\n" +
+            ") ord\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "billAmout as applyAmount\n" +
+            "from ordBill\n" +
+            "where disabled = 0 and status in (1,2,3,4)\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") body\n" +
+            "inner join\n" +
+            "(\n" +
+            "select\n" +
+            "orderUUID,\n" +
+            "date(createtime) as createDay,\n" +
+            "outsourceid\n" +
+            "from collectionOrderHistory\n" +
+            "where disabled = 0\n" +
+            "and id in \n" +
+            "(\n" +
+            "select max(a.id) from collectionOrderHistory a \n" +
+            "inner join ordOrder b on a.orderUUID = b.uuid \n" +
+            "left join ordBill c on c.orderNo = b.uuid \n" +
+            "where a.disabled = 0 and sourceType = 0 \n" +
+            "and date_format(a.createtime,'%Y%m') = date_format(curdate(),'%Y%m')\n" +
+            "and if(orderType = 3,datediff(a.createtime,c.refundtime) between 31 and 90,\n" +
+            "datediff(a.createtime,b.refundtime) between 31 and 90)\n" +
+            "group by orderUUID\n" +
+            ")\n" +
+            ") third on third.orderUUID = body.orderId\n" +
+            "\n" +
+            "union all\n" +
+            "\n" +
+            "select\n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "createDay,\n" +
+            "outsourceId,\n" +
+            "dueDay,\n" +
+            "applyAmount,\n" +
+            "0 as taskOrder,\n" +
+            "repayDay,\n" +
+            "1 as repayOrder\n" +
+            "from\n" +
+            "(\n" +
+            "select \n" +
+            "orderId as billId,\n" +
+            "orderId,\n" +
+            "dueDay,\n" +
+            "applyAmount,\n" +
+            "repayDay\n" +
+            "from \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType,\n" +
+            "date(refundtime) as dueDay,\n" +
+            "amountApply as applyAmount,\n" +
+            "date(actualRefundTime) as repayDay\n" +
+            "from ordOrder \n" +
+            "where disabled = 0 \n" +
+            "and status in (10,11) \n" +
+            "and datediff(actualRefundTime,refundTime) between 31 and 90\n" +
+            "and date_format(actualRefundTime,'%Y%m') = date_format(curdate(),'%Y%m')\n" +
+            "and orderType in (0,1,2)\n" +
+            ") ord\n" +
+            "\n" +
+            "union all\n" +
+            "select \n" +
+            "billId,\n" +
+            "orderId,\n" +
+            "billDueDay,\n" +
+            "applyAmount,\n" +
+            "repayDay\n" +
+            "from  \n" +
+            "(\n" +
+            "select \n" +
+            "uuid as orderId,\n" +
+            "orderType\n" +
+            "from ordOrder\n" +
+            "where disabled = 0 and status in (7,8,10,11) and orderType in (3)\n" +
+            ") ord\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "orderNo,\n" +
+            "uuid as billId,\n" +
+            "date(refundTime) as billDueDay,\n" +
+            "billAmout as applyAmount,\n" +
+            "date(actualRefundTime) as repayDay\n" +
+            "from ordBill\n" +
+            "where disabled = 0 and status in (3,4)\n" +
+            "and datediff(actualRefundTime,refundTime) between 31 and 90\n" +
+            "and date_format(actualRefundTime,'%Y%m') = date_format(curdate(),'%Y%m')\n" +
+            ") bill on bill.orderNo = ord.orderId\n" +
+            ") body\n" +
+            "inner join\n" +
+            "(\n" +
+            "select\n" +
+            "orderUUID,\n" +
+            "date(createtime) as createDay,\n" +
+            "outsourceid\n" +
+            "from collectionOrderHistory\n" +
+            "where disabled = 0\n" +
+            "and id in \n" +
+            "(\n" +
+            "select max(a.id) from collectionOrderHistory a \n" +
+            "inner join ordOrder b on a.orderUUID = b.uuid \n" +
+            "left join ordBill c on c.orderNo = b.uuid \n" +
+            "where a.disabled = 0 and sourceType = 0 \n" +
+            "and if(orderType = 3,datediff(a.createtime,c.refundtime) between 31 and 90,\n" +
+            "datediff(a.createtime,b.refundtime) between 31 and 90)\n" +
+            "group by orderUUID\n" +
+            ")\n" +
+            ") third on third.orderUUID = body.orderId\n" +
+            ") mydata\n" +
+            "inner join\n" +
+            "(\n" +
+            "select \n" +
+            "id as staffId,\n" +
+            "realname as staff,\n" +
+            "parentId\n" +
+            "from manUser\n" +
+            "where disabled = 0\n" +
+            "and realName is not null\n" +
+            "and realName not in ('cuishouheimingdan','liquanxia')\n" +
+            ") mu on mu.staffId = mydata.outsourceid\n" +
+            "left join\n" +
+            "(\n" +
+            "select id,realName as Groups\n" +
+            "from manUser \n" +
+            "where disabled = 0\n" +
+            "and realName not in ('cuishouheimingdan')\n" +
+            ") par on par.id = mu.parentId\n" +
+            "where datediff(createDay,dueDay) between 31 and 90\n" +
+            "group by Groups,staff with rollup\n" +
+            ") result\n" +
+            "order by Groups,\n" +
+            "case \n" +
+            "when staff = ' ' then 0 \n" +
+            "when Rate is null then 1 \n" +
+            "else repayOrders/taskOrders + 1 end desc;\n")
+    List<D8ToD30CollectionDataLastMouth> getD31ToD60CollectionDataThisMouth();
+
 
     // 内催D31-D60分组催收情况
     @Select("select             \n" +
@@ -3414,4 +3797,10 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     @Select("select * from ordOrder where disabled = 0 and status in (7,8) " +
             "and dateDiff(now(), refundTime) = #{days} order by createTime desc;")
     List<OrdOrder> listOrderByOverDueDays(@Param("days") Integer days);
+
+
+    //invited
+    @Select("select 1 from usrUser where uuid=#{userId} and isInvited=1")
+    List<Integer> isInvited(@Param("userId") String userId);
+
 }

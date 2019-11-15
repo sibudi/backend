@@ -43,6 +43,8 @@ public class SmsServiceUtil {
 
     @Value("${HttpUrl.smsUrl}")
     private String smsUrl;
+    @Value("${HttpUrl.smsUrlV2}")
+    private String smsUrlV2;
     @Value("${HttpUrl.smsUrlTwilio}")
     private String smsUrlTwilio;
     @Value("${HttpUrl.smsUrlTwilioVerify}")
@@ -52,8 +54,12 @@ public class SmsServiceUtil {
 
     @Value("${HttpUrl.smsUrlInforbip}")
     private String smsUrlInforbip;
+    @Value("${HttpUrl.smsUrlInforbipV2}")
+    private String smsUrlInforbipV2;
     @Value("${HttpUrl.smsUrlInforbipVerify}")
     private String smsUrlInforbipVerify;
+    @Value("${HttpUrl.smsUrlInforbipVerifyV2}")
+    private String smsUrlInforbipVerifyV2;
     // ??????
     @Autowired
     private SysThirdLogsService sysThirdLogsService;
@@ -119,6 +125,29 @@ public class SmsServiceUtil {
         map.put("sendTo",mobileNumber);
         map.put("content",content);
         String smsResponse =   HttpTools.post(smsUrl,headers,map,30000,30000);
+        // 请求数据落库，SysThirdLogs
+        sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null, JSON.toJSONString(map),null);
+        // 响应数据落库，sysThirdLogs
+        sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null,null,smsResponse);
+        log.info("结束发送验证码================================》"+mobileNumber);
+    }
+
+    //Janhsen: for sms OTP only
+    public void sendTypeSmsCodeWithTypeV2(String smsType, String mobileNumber,String content,String type) throws Exception {
+        log.info("开始发送验证码================================》"+mobileNumber);
+        //http请求头信息
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Content-type","application/x-www-form-urlencoded");
+        headers.put("X-AUTH-TOKEN", "1111");
+        //HTTP请求参数
+        Map<String,String> map = new HashMap<String, String>();
+        map.put("smsChannel",type);
+        map.put("productType","DO_IT");
+        map.put("smsTrigger",smsType);
+        map.put("sendFrom","DO_IT");
+        map.put("sendTo",mobileNumber);
+        map.put("content",content);
+        String smsResponse =   HttpTools.post(smsUrlV2,headers,map,30000,30000);
         // 请求数据落库，SysThirdLogs
         sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null, JSON.toJSONString(map),null);
         // 响应数据落库，sysThirdLogs
@@ -212,6 +241,29 @@ public class SmsServiceUtil {
         log.info("使用Inforbip 结束发送验证码================================》"+mobileNumber);
     }
 
+    public void sendSmsByInforbipV2(String mobileNumber) throws Exception {
+
+        log.info("使用Inforbip 开始发送验证码================================》"+mobileNumber);
+        //http请求头信息
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Content-type","application/x-www-form-urlencoded");
+        headers.put("X-AUTH-TOKEN", "1111");
+        //HTTP请求参数
+        Map<String,String> map = new HashMap<String, String>();
+        map.put("phoneNumber",mobileNumber);
+        String smsResponse =   HttpTools.post(smsUrlInforbipV2,headers,map,30000,30000);
+        SmsSendInforbipResponse response =  JsonUtils.deserialize(smsResponse,SmsSendInforbipResponse.class);
+        if (!StringUtils.isEmpty(response.getPinId())){
+            setInforbipPinid(mobileNumber,response.getPinId());
+        }
+        // 请求数据落库，SysThirdLogs
+        sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null, JSON.toJSONString(map),null);
+        // 响应数据落库，sysThirdLogs
+        sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null,null,smsResponse);
+        log.info("使用Inforbip 结束发送验证码================================》"+mobileNumber);
+    }
+
+
     // 使用Inforbip 校验验证码
     public SmsCheckInforbipResponse sendSmsByInforbipVerify(String code, String mobileNumber) throws Exception {
 
@@ -229,6 +281,36 @@ public class SmsServiceUtil {
             map.put("pinId",pinId);
             map.put("pin",code);
             String smsResponse =   HttpTools.post(smsUrlInforbipVerify,headers,map,60000,60000);
+            log.info("校验验证码的结果为"+smsResponse);
+            // 请求数据落库，SysThirdLogs
+            sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null, JSON.toJSONString(map),null);
+            // 响应数据落库，sysThirdLogs
+            sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null,null,smsResponse);
+
+            loanResponse = JsonUtils.deserialize(smsResponse,SmsCheckInforbipResponse.class);;
+        }else {
+            throw new ServiceException(ExceptionEnum.USER_CHECK_SMS_CODE_TIMEOUT);
+        }
+        return loanResponse;
+    }
+
+    //Janhsen: temporary to make sure sms only works for OTP
+    public SmsCheckInforbipResponse sendSmsByInforbipVerify2(String code, String mobileNumber) throws Exception {
+
+        SmsCheckInforbipResponse loanResponse = null;
+
+        String pinId = getInforbipPinid(mobileNumber);
+        if (!StringUtils.isEmpty(pinId)){
+
+            //http请求头信息
+            Map<String, String> headers = new HashMap<String, String>();
+            headers.put("Content-type","application/x-www-form-urlencoded");
+            headers.put("X-AUTH-TOKEN", "1111");
+            //HTTP请求参数
+            Map<String,String> map = new HashMap<String, String>();
+            map.put("pinId",pinId);
+            map.put("pin",code);
+            String smsResponse =   HttpTools.post(smsUrlInforbipVerifyV2,headers,map,60000,60000);
             log.info("校验验证码的结果为"+smsResponse);
             // 请求数据落库，SysThirdLogs
             sysThirdLogsService.addSysThirdLogs(null,DESUtils.encrypt(mobileNumber), SysThirdLogsEnum.SMS_SERVICE.getCode(),null, JSON.toJSONString(map),null);

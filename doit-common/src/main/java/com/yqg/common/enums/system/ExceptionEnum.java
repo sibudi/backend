@@ -9,7 +9,7 @@ import java.text.MessageFormat;
  */
 public enum ExceptionEnum {
     SESSION_UN_LOGIN(1000, "Belum masuk"),//未登录
-    USER_NOT_FOUND(1001, "Pengguna tidak terdaftar"),//用户不存在
+    USER_NOT_FOUND(1001, "Pengguna tidak terdaftar, silahkan login kembali"),//用户不存在
     USER_IS_EXIST(1002, "Pengguna sudah ada"),//用户已存在
     USER_LOGIN_ERROR(1003, "Login gagal"),//登录失败
     USER_LOGOUT_ERROR(1004, "Keluar gagal"),//退出失败
@@ -53,6 +53,7 @@ public enum ExceptionEnum {
     CASE_OUT_MIN(1052, "Jumlah penarikan uang tunai anda berada di bawah batas minimum"), // 您的提现金额低于最低限额
     CAN_NOT_REBIND_CARD(1053, "Ada pengajuan penarikan belum selesai, nomor bank tidak dapat diganti"), // 有未完成的提现操作，不能换绑卡
     USER_CHECK_SMS_CODE_TIMEOUT(1054, "Kode verifikasi SMS telah kedaluwarsa"),//短信验证码已失效
+    USER_NOT_INVITED(1055, "Anda tidak masuk dalam list undangan"),
 
 
     SYSTEM_TONGDUN_APPLY_ERROR(2003,"permintaan sertifikasi pengguna mencapai batas maksimum"),//请求同盾失败
@@ -69,14 +70,14 @@ public enum ExceptionEnum {
     SYSTEM_INVAILD_IP_ADDRESS(2037,"tidak menemukan aplikasi untuk membagikan."),//非法的IP地址
     SYSTEM_BANK_CARD_NOT_FIND_ERROR(2038,"Pendaftaran kartu bank gagal, tidak dapat menemukan kartu bank pengguna."),//解绑卡失败，未找到用户银行卡！
     SYSTEM_YITU_UPLOAD_IMAGE_FAILD(2039,"pencocokan gambar gagal, silahkan lakukan verifikasi ulang."),//活体匹配图片失败，请重新认证
-    SYSTEM_APP_NEED_UPDATE(2040,"Versi yang digunakan oleh nasabah tidak kompatibel, silahkan perbaharui terlebih dahulu"),//客户端版本过低，请更新应用
+    SYSTEM_APP_NEED_UPDATE(2040,"Mohon perbaharui app Do-it Anda di Google Play."),//客户端版本过低，请更新应用
     SYSTEM_UPGRADE(2041,"Maaf dengan adanya peningkatan versi. Terima kasih"),//抱歉，我们的系统正在升级，请至googleplay下载我们的APP。 谢谢
 
 
     ORDER_PRODUCT_CONFIG_IS_NULL(3014,"konfigurasi produk tidak terdaftar"),//产品配置不存在
-    ORDER_NOT_FOUND(3018,"permohonan tidak terdaftara"),//订单不存在
+    ORDER_NOT_FOUND(3018,"permohonan tidak terdaftar"),//订单不存在
     ORDER_UN_FINISH(3019,"terdapat permohonan yang belum selesai di proses"),//有未处理完的订单
-    ORDER_IS_NOT_APPLYING(3020,"permohonan tidak sedang diasukan"),//不是申请中的订单
+    ORDER_IS_NOT_APPLYING(3020,"permohonan tidak sedang dalam proses"),//不是申请中的订单
     ORDER_COMMIT_REPEAT(3031,"tolong jangan mengulang permintaan yang sama"),//请勿重复提交！
     ORDER_STATES_ERROR(3032,"Permohonan bermasalah!"),//订单状态异常!
     NOT_ARRVIE_DAY(3033,"Belum melebihi jumlah batas hari penolakan!"),//未到达拒绝天数
@@ -96,16 +97,17 @@ public enum ExceptionEnum {
     MANAGE_FREE_ORDER_ERROR(10010,"pelunasan offline gagal"),//线下还款失败
     MANAGR_DISTRIBUTE_ORDER_ERROR(10011,"gagal membagikan permohonan"),//订单分配失败
     MANAGE_ADD_ITEM_ERROR(10012,"gagal menambahkan"),//添加失败
-    CALL_RECORD_IS_NONE(10014,"Call record is none"),
+    CALL_RECORD_IS_NONE(10014,"Rekam panggilan tidak ditemukan"),
     MANAGE_EDIT_ITEM_ERROR(10013,"gagal merubah dikarenakan percobaan berkali-kali melebihi batas, silahkan hubungi bagian development"),//修改失败,若多次失败请联系开发人员
     SMS_COUNT_LIMIT(10015,"The number of SMS messages has reached the upper limit!"),
     LOCKED(10016,"LOCKED!"),
-    NO_USER_NAME(10017,"没有查询到该用户！"),
-    HAS_TEAM(10018,"该组长下还有组员！"),
+    NO_USER_NAME(10017,"Pengguna tidak ditemukan！"),
+    HAS_TEAM(10018,"Masih terdapat anggota tim"),
     MANAGE_HAS_LOGIN(10019,"Nasabah telah login di tempat lain!"),//用户在别处已登录;
     FILE_CONTAIN_MOBILE(10020,"文件第一行第一列必须包含mobile！"),
-    FREQUENT_OPERATION(10021,"请勿频繁操作！"),
+    FREQUENT_OPERATION(10021,"Anda terlalu cepat, tunggu sebentar！"),
     VALITYDATE_FORMAT_IS_ERROR(10022, "validity startTime or endTime format is error!"),
+    MANAGE_CANCEL_ORDER_ERROR(10023,"Tidak dapat membatalkan permohonan yang telah diproses"),
     ;
     private int code;
     private String message;

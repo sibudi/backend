@@ -35,6 +35,7 @@ import com.yqg.service.user.response.OrderUserCallRecordResponse;
 import com.yqg.service.util.RuleConstants;
 import com.yqg.system.entity.SysAutoReviewRule;
 import com.yqg.user.dao.UsrDao;
+import com.yqg.user.dao.UsrProductRecordDao;
 import com.yqg.user.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -84,6 +85,10 @@ public class UserRiskService {
 
     @Autowired
     private UserDetailService userDetailService;
+    @Autowired
+    private UsrProductRecordDao usrProductRecordDao;
+    @Autowired
+    private UsrService usrService;
 
 
     /***
@@ -252,6 +257,9 @@ public class UserRiskService {
     }
 
     public boolean isSuitableFor100RMBProduct(OrdOrder order) {
+        if ("3".equals(order.getOrderType())) {
+            return false;
+        }
         boolean switchOpen = is100RMBProductSwitchOpen(order.getUuid());
         //boolean isNotCashCashOrder = !isCashCashOrder(order);
         //CashCash 放开
@@ -619,6 +627,28 @@ public class UserRiskService {
     public Integer getAutoReviewPassABTestOrderCount(String remark) {
         Integer count = ordBlackDao.totalAutoReviewPassABTestOrders(remark);
         return count;
+    }
+
+
+    public void decreaseUserLoanLimit(OrdOrder order, Integer toProductLevel, String ruleName) {
+        try {
+            UsrUser dbUser = usrService.getUserByUuid(order.getUserUuid());
+            if (dbUser == null) {
+                return;
+            }
+            Integer oldProductLevel = dbUser.getProductLevel();
+            dbUser.setProductLevel(toProductLevel);
+            usrService.updateUser(dbUser);
+            UsrProductRecord record = new UsrProductRecord();
+            record.setUserUuid(order.getUserUuid());
+            record.setOrderNo(order.getUuid());
+            record.setLastProductLevel(oldProductLevel);
+            record.setCurrentProductLevel(toProductLevel);
+            record.setRuleName(ruleName);
+            usrProductRecordDao.insert(record);
+        } catch (Exception e) {
+            log.error("decrease loan limit error, userUuid: " + order.getUserUuid(), e);
+        }
     }
 
 }

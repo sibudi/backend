@@ -5,17 +5,14 @@ package com.yqg.service.third.ojk.aes;
  */
 
 import com.yqg.common.utils.Base64Utils;
-import com.yqg.service.externalChannel.utils.AesUtil;
 import com.yqg.service.third.ojk.config.OJKConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
 import java.util.Base64;
 
 @Slf4j

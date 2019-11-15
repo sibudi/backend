@@ -65,18 +65,28 @@ public class RiskDataSysnTask {
         log.info("updateDayLoanAmount end");
     }
 
-    /**
-     *  修复下单锁中 无超时时间的key
-     * */
-    @Scheduled(cron = "0 50 17 17 6 ?")
-    public void sendToLoanSuccessUserWithinFiveDay() {
-        this.repairOrderDataService.repairData6();
-    }
+//    /**
+//     *  修复下单锁中 无超时时间的key
+//     * */
+//    @Scheduled(cron = "0 50 17 17 6 ?")
+//    public void sendToLoanSuccessUserWithinFiveDay() {
+//        this.repairOrderDataService.repairData6();
+//    }
 
 //    //每隔三分钟同步一次mongo 的izi数据到风控库
 //    @Scheduled(cron = "13 0/3 * * * ?")
 //    public void syncIziData(){
 //
+//    }
+//
+//    /**
+//     *   将数据库usrUser 表中的 des加密切换到AES加密
+//     * */
+//    @Scheduled(cron = "0 0/1 * * * ?")
+//    public void repairData() {
+//        this.repairOrderDataService.repairData7();
+//        this.repairOrderDataService.repairData8();
+//        this.repairOrderDataService.repairData9();
 //    }
 
 }

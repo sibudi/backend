@@ -234,30 +234,30 @@ public class LoanService {
             try {
 
                 LoanResponse response = new LoanResponse();
-                    // BCA银行走BCA放款
-                    //BCA开关
-                    String sysParamValue = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO_BCA);
-                    if (bankEntity.getBankCode().equals("BCA") && !StringUtils.isEmpty(sysParamValue) && sysParamValue.equals("1")) {
-                        response = this.payService.commitPay(order, userUser,bankEntity,"BCA");
+
+                String sysParamValue = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO_BCA);
+                if (bankEntity.getBankCode().equals("BCA") && !StringUtils.isEmpty(sysParamValue) && sysParamValue.equals("1")) {
+                    response = this.payService.commitPay(order, userUser,bankEntity,"BCA");
+                }else {
+                    // BNI银行走BNI放款
+                    // BNI开关
+                    String sysParamValue2 = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO_BNI);
+                    if (bankEntity.getBankCode().equals("BNI") && !StringUtils.isEmpty(sysParamValue2) && sysParamValue2.equals("1")) {
+                        response = this.payService.commitPay(order, userUser,bankEntity,"BNI");
                     }else {
-                        // BNI银行走BNI放款
-                        // BNI开关
-                        String sysParamValue2 = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO_BNI);
-                        if (bankEntity.getBankCode().equals("BNI") && !StringUtils.isEmpty(sysParamValue2) && sysParamValue2.equals("1")) {
-                            response = this.payService.commitPay(order, userUser,bankEntity,"BNI");
+                        String sysParamValue3 = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO_CIMB);
+                        if (!StringUtils.isEmpty(sysParamValue3)
+                                && sysParamValue3.equals("1")) {
+                                // janhsen: flag if all LOAN_OFF_NO_BCA and or LOAN_OFF_NO_BNI turn off by default is CIMB
+                                // && !bankEntity.getBankCode().equals("BNI")
+                                // && !bankEntity.getBankCode().equals("BCA")) {
+                            response = this.payService.commitPay(order, userUser, bankEntity, "CIMB");
                         }else {
-                            String sysParamValue3 = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO_CIMB);
-                            if (!StringUtils.isEmpty(sysParamValue3)
-                                    && sysParamValue3.equals("1")
-                                    && !bankEntity.getBankCode().equals("BNI")
-                                    && !bankEntity.getBankCode().equals("BCA")) {
-                                response = this.payService.commitPay(order, userUser, bankEntity, "CIMB");
-                            }else {
-                                log.info("CIMB 打款开关已关闭"+order.getUuid());
-                                return;
-                            }
+                            log.info("CIMB 打款开关已关闭"+order.getUuid());
+                            return;
                         }
                     }
+                }
 
                 if (response != null && !StringUtils.isEmpty(response.getCode())) {
                     if (response.getCode().equals("0")) {

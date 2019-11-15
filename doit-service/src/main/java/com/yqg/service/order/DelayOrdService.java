@@ -11,7 +11,9 @@ import com.yqg.order.dao.OrdDelayRecordDao;
 import com.yqg.order.entity.OrdDelayRecord;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.order.request.SaveOrderUserUuidRequest;
+import com.yqg.service.order.response.ChildFormulaResponse;
 import com.yqg.service.order.response.DelayOrdResponse;
+import com.yqg.service.order.response.ExtendFormulaResponse;
 import com.yqg.service.pay.RepayService;
 import com.yqg.service.pay.request.DelayOrderRequest;
 import com.yqg.service.system.service.SysParamService;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -55,16 +58,38 @@ public class DelayOrdService {
      * */
     public DelayOrdResponse delayOrderInfo(SaveOrderUserUuidRequest request){
 
+        //DelayOrdResponse response = new DelayOrdResponse();
         DelayOrdResponse response = new DelayOrdResponse();
         OrdOrder ordOrder = new OrdOrder();
         ordOrder.setUuid(request.getOrderNo());
         List<OrdOrder> ordList = this.ordDao.scan(ordOrder);
+
         if (!CollectionUtils.isEmpty(ordList)){
 
             response = getDelayProductConfig(ordList.get(0));
+
         }
         return  response;
     }
+
+
+    // New Formula for Extension
+    public ExtendFormulaResponse delayOrderInfoV2(SaveOrderUserUuidRequest request){
+
+        //DelayOrdResponse response = new DelayOrdResponse();
+        ExtendFormulaResponse response = new  ExtendFormulaResponse();
+        OrdOrder ordOrder = new OrdOrder();
+        ordOrder.setUuid(request.getOrderNo());
+        List<OrdOrder> ordList = this.ordDao.scan(ordOrder);
+
+        if (!CollectionUtils.isEmpty(ordList)){
+
+            response =  getExtendedFormulaResponse(ordList.get(0));
+
+        }
+        return response;
+    }
+
 
     /**
      *   获取展期订单产品配置
@@ -213,4 +238,108 @@ public class DelayOrdService {
         }
         return penaltyFee;
     }
+
+
+    // New Formula for Extension
+    public ExtendFormulaResponse getExtendedFormulaResponse(OrdOrder order){
+
+
+
+        ExtendFormulaResponse response = new ExtendFormulaResponse();
+
+        response.setName("Total yang harus Dibayarkan");
+        response.setMainFormula("fun(payAmount) = feeExtension + lateFee + operationalFee + payAmount");
+        String sysParamValue = this.sysParamService.getSysParamValue(SysParamContants.DELAYORDER_OF_GRANULARITY);
+        if (StringUtils.isEmpty(sysParamValue)){
+            sysParamValue = "50000";
+        }
+        response.setGranulaNum(Float.parseFloat(sysParamValue));
+
+        ArrayList<Integer> dateList = new ArrayList<>();
+        dateList.add(30);
+        List<Map<String,String>> confList = new ArrayList<>();
+
+        for(int j=0; j<dateList.size();j++){
+            int date = dateList.get(j);
+            Map<String,String> confMap = new HashMap<>();
+            confMap.put("day",String.valueOf(date));
+            confMap.put("nextRepayDay", DateUtils.DateToString(DateUtils.addDate(new Date(),date)));
+            confList.add(confMap);
+        }
+
+        response.setConfig(confList);
+
+
+
+
+
+        ChildFormulaResponse lateFee = new ChildFormulaResponse();
+
+        try {
+            List<ChildFormulaResponse> childFormulaList = new ArrayList<>();
+
+
+            ChildFormulaResponse feeExtension = new ChildFormulaResponse();
+            feeExtension.setNama("Biaya Pembagian Pelunasan");
+            feeExtension.setVar("feeExtension");
+            feeExtension.setFormula("fun(payAmount) = 0.0064 * 30 * ("+ order.getAmountApply()+" - payAmount)");
+
+
+            int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(order.getRefundTime(), "yyyy-MM-dd"), DateUtils.formDate(new Date(), "yyyy-MM-dd"));
+            lateFee.setNama("Denda Keterlambatan");
+            lateFee.setVar("lateFee");
+            lateFee.setFormula("fun(payAmount) = if( 0.01 *"+ overdueDay +" * "+ order.getAmountApply()+" > payAmount * 2, payAmount * 2 , 0.01 * "+ overdueDay +" *"+ order.getAmountApply() +")");
+
+
+            ChildFormulaResponse operationalFee = new ChildFormulaResponse();
+            operationalFee.setNama("Biaya Operasional");
+            operationalFee.setVar("operationalFee");
+            operationalFee.setFormula("fun(payAmount) = if("+ order.getAmountApply()+">2000000, 60000 , if("+ order.getAmountApply()+">500000, 40000, 20000))");
+
+
+            childFormulaList.add(feeExtension);
+            childFormulaList.add(lateFee);
+            childFormulaList.add(operationalFee);
+
+
+
+
+            response.setChildFormula(childFormulaList);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+
+        return response;
+    }
+// public BigDecimal getRealPenaltyFee(Order order, BigDecimal totalAmout,BigDecimal interest,BigDecimal overDueFee,BigDecimal penaltyFee) {
+    //     BigDecimal[] overdueRates = this.repayService.getOverDueRates(order);
+        
+    //     BigDecimal repaymentFeeUpLimit = order.getAmountApply().multiply(overdueRates[0]).setScale(2);
+    //     if(interest.add(overDueFee).add(penaltyFee).compareTo(repaymentFeeUpLimit) >= 0) {
+    //         return repaymentFeeUpLimit.subtract(overDueFee).subtract(interest);
+    //     }
+    //     return penaltyFee;
+    // }
+
+    // public BigDecimal[] getOverDueRates(OrdOrder ordOrder){
+
+    //     SysProduct sysProd = null;
+    //     if(!ordOrder.getProductUuid().isEmpty()){
+    //         sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
+    //     }
+    //     else{
+    //         sysProd = sysProductDao.getBlankProductInfoIgnoreDisabled(ordOrder.getAmountApply());
+    //     }
+
+    //     BigDecimal[] overDueRates = new BigDecimal[2];
+    //     overDueRates[0] = sysProd.getOverdueRate1();
+    //     overDueRates[1] = sysProd.getOverdueRate2();
+
+    //     log.info("orderNo: " + ordOrder.getUuid() + " productUuid: " + ordOrder.getProductUuid() + " overduerate1: " + overDueRates[0] + " overduerate2: " + overDueRates[1]);
+
+    //     return overDueRates;
+    // }
 }

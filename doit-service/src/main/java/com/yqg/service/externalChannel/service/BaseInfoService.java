@@ -43,8 +43,10 @@ import com.yqg.system.entity.SysProduct;
 import com.yqg.user.dao.UsrCertificationInfoDao;
 import com.yqg.user.entity.UsrCertificationInfo;
 import com.yqg.user.entity.UsrUser;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -92,190 +94,203 @@ public class BaseInfoService {
 
     @Transactional(rollbackFor = Exception.class)
     public void addBaseInfo(Cash2BaseInfo baseInfo) throws Exception {
-        ExternalOrderRelation existOrderRelation = externalChannelDataService
-                .getExternalOrderRelationByExternalOrderNo(baseInfo.getOrderInfo().getOrderNo());
+        String externalOrderNo = baseInfo.getOrderInfo().getOrderNo();
+        String lockKey = "cash2:addBaseInfo:" + externalOrderNo;
+        boolean locked = redisClient.lockDistributed(lockKey, "1", 20);
+        if (!locked) {
+            log.info("last invoke is not finished.. externalOrderNo: {}", lockKey);
+            throw new IllegalArgumentException("please do not submit repeatly.");
+        }
+        try {
+            ExternalOrderRelation existOrderRelation = externalChannelDataService
+                    .getExternalOrderRelationByExternalOrderNo(baseInfo.getOrderInfo().getOrderNo());
 
-        if (existOrderRelation != null) {
-            //检查订单信息
-            OrdOrder dbExistOrder = ordService.getOrderByOrderNo(existOrderRelation.getOrderNo());
-            if (dbExistOrder != null && dbExistOrder.getStatus() != OrdStateEnum.SUBMITTING
-                    .getCode()) {
-                //订单已经存在而且非待提交状态
-                throw new IllegalArgumentException("the exist order cannot modify");
+            if (existOrderRelation != null) {
+                //检查订单信息
+                OrdOrder dbExistOrder = ordService.getOrderByOrderNo(existOrderRelation.getOrderNo());
+                if (dbExistOrder != null && dbExistOrder.getStatus() != OrdStateEnum.SUBMITTING
+                        .getCode()) {
+                    //订单已经存在而且非待提交状态
+                    throw new IllegalArgumentException("the exist order cannot modify");
+                }
+
+            }
+            if (baseInfo.getAddInfo() != null && baseInfo.getAddInfo().getDeviceInfo() == null) {
+                log.warn("the device info is empty");
+                throw new IllegalArgumentException("invalid param");
+            }
+            //在做其他处理之前统一处理图片上传到本地服务
+            baseInfoExtractor.processImage(baseInfo);
+
+            //检查参数是否为空，格式是否正确
+            //转为未Do-It各个接口需要的参数
+            UsrRequst userInfo = baseInfoExtractor.fetchUserSignUpInfo(baseInfo);
+            OrdRequest ordRequest = baseInfoExtractor.fetchOrderRequestInfo(baseInfo);
+            UsrRolesRequest userRoleRequest = baseInfoExtractor.fetchUserRoleRequest(baseInfo);
+            List<SaveUserPhotoRequest> userPhotoList = baseInfoExtractor
+                    .fetchUserPhotoRequest(baseInfo);
+            UsrIdentityInfoRequest usrIdentityInfoRequest = baseInfoExtractor
+                    .fetchUserIdentityInfo(baseInfo);
+
+            UsrStudentBaseInfoRequest studentBaseInfo = null;
+            UsrSchoolInfoRequest schoolInfoRequest = null;
+            UsrWorkBaseInfoRequest workerBaseInfo = null;
+            UsrWorkInfoRequest workerInfo = null;
+            if (baseInfo.getApplyDetail().getUserType() == Cash2UserType.Student.getCode()) {
+                studentBaseInfo = baseInfoExtractor.fetchStudentBaseInfo(baseInfo);
+                schoolInfoRequest = baseInfoExtractor.fetchStudentSchoolInfo(baseInfo);
+            } else {
+                workerBaseInfo = baseInfoExtractor.fetchWorkBaseInfo(baseInfo);
+                workerInfo = baseInfoExtractor.fetchWorkInfo(baseInfo);
             }
 
-        }
-        if (baseInfo.getAddInfo() != null && baseInfo.getAddInfo().getDeviceInfo() == null) {
-            log.warn("the device info is empty");
-            throw new IllegalArgumentException("invalid param");
-        }
-        //在做其他处理之前统一处理图片上传到本地服务
-        baseInfoExtractor.processImage(baseInfo);
 
-        //检查参数是否为空，格式是否正确
-        //转为未Do-It各个接口需要的参数
-        UsrRequst userInfo = baseInfoExtractor.fetchUserSignUpInfo(baseInfo);
-        OrdRequest ordRequest = baseInfoExtractor.fetchOrderRequestInfo(baseInfo);
-        UsrRolesRequest userRoleRequest = baseInfoExtractor.fetchUserRoleRequest(baseInfo);
-        List<SaveUserPhotoRequest> userPhotoList = baseInfoExtractor
-                .fetchUserPhotoRequest(baseInfo);
-        UsrIdentityInfoRequest usrIdentityInfoRequest = baseInfoExtractor
-                .fetchUserIdentityInfo(baseInfo);
+            UploadContactRequest contactList = baseInfoExtractor.fetchContactList(baseInfo);
+            UploadMsgsRequest shortMsgList = baseInfoExtractor.fetchMsgList(baseInfo);
+            UploadCallRecordsRequest callRecordList = baseInfoExtractor.fetchCallRecordList(baseInfo);
+            UploadAppsRequest installedAppRequest = baseInfoExtractor.fetchInstalledAppList(baseInfo);
 
-        UsrStudentBaseInfoRequest studentBaseInfo = null;
-        UsrSchoolInfoRequest schoolInfoRequest = null;
-        UsrWorkBaseInfoRequest workerBaseInfo = null;
-        UsrWorkInfoRequest workerInfo = null;
-        if (baseInfo.getApplyDetail().getUserType() == Cash2UserType.Student.getCode()) {
-            studentBaseInfo = baseInfoExtractor.fetchStudentBaseInfo(baseInfo);
-            schoolInfoRequest = baseInfoExtractor.fetchStudentSchoolInfo(baseInfo);
-        } else {
-            workerBaseInfo = baseInfoExtractor.fetchWorkBaseInfo(baseInfo);
-            workerInfo = baseInfoExtractor.fetchWorkInfo(baseInfo);
-        }
-
-
-        UploadContactRequest contactList = baseInfoExtractor.fetchContactList(baseInfo);
-        UploadMsgsRequest shortMsgList = baseInfoExtractor.fetchMsgList(baseInfo);
-        UploadCallRecordsRequest callRecordList = baseInfoExtractor.fetchCallRecordList(baseInfo);
-        UploadAppsRequest installedAppRequest = baseInfoExtractor.fetchInstalledAppList(baseInfo);
-
-        //判定用户是否可借[防止调用可接接口和推送基本新接口之间相隔很长时间]
-        UsrUser searchInfo = new UsrUser();
-        searchInfo.setMobileNumberDES(DESUtils.encrypt(userInfo.getMobileNumber()));
-        List<UsrUser> userList = usrService.getUserInfo(searchInfo);
-        String userUuid = null;
-        UsrUser dbUser = null;
-        boolean needUpdateUser = false;
-        if (CollectionUtils.isEmpty(userList)) {
-            //无用户注册用户
-            LoginSession loginSession = usrService.logup(userInfo);
-            userUuid = loginSession.getUserUuid();
-            //更新用户名身份证
-            needUpdateUser = true;
-        } else {
-            //有用户，更新用户信息
-            dbUser = userList.get(0);
-            if (StringUtils.isEmpty(dbUser.getIdCardNo()) || StringUtils
-                    .isEmpty(dbUser.getRealName())) {
+            //判定用户是否可借[防止调用可接接口和推送基本新接口之间相隔很长时间]
+            UsrUser searchInfo = new UsrUser();
+            searchInfo.setMobileNumberDES(DESUtils.encrypt(userInfo.getMobileNumber()));
+            List<UsrUser> userList = usrService.getUserInfo(searchInfo);
+            String userUuid = null;
+            UsrUser dbUser = null;
+            boolean needUpdateUser = false;
+            if (CollectionUtils.isEmpty(userList)) {
+                //无用户注册用户
+                LoginSession loginSession = usrService.logup(userInfo);
+                userUuid = loginSession.getUserUuid();
+                //更新用户名身份证
                 needUpdateUser = true;
             } else {
-                if (!usrIdentityInfoRequest.getName().toUpperCase().equals(dbUser.getRealName().toUpperCase())
-                      ) {
-                    throw new IllegalArgumentException("the realName and id card cannot modify");
+                //有用户，更新用户信息
+                dbUser = userList.get(0);
+                if (StringUtils.isEmpty(dbUser.getIdCardNo()) || StringUtils
+                        .isEmpty(dbUser.getRealName())) {
+                    needUpdateUser = true;
+                } else {
+                    if (!usrIdentityInfoRequest.getName().toUpperCase().equals(dbUser.getRealName().toUpperCase())
+                    ) {
+                        throw new IllegalArgumentException("the realName and id card cannot modify");
+                    }
                 }
+                userUuid = dbUser.getUuid();
+
+                //用户做个登录处理[放款的时候有Do-It用户的特殊控制]
+                userInfo.setUserUuid(userUuid);
+                usrService.addUsrLoginHistory(userInfo);
             }
-            userUuid = dbUser.getUuid();
 
-            //用户做个登录处理[放款的时候有Do-It用户的特殊控制]
-            userInfo.setUserUuid(userUuid);
-            usrService.addUsrLoginHistory(userInfo);
-        }
+            //
 
-        //
+            log.info("cashcash用户的id为" + userUuid);
 
-        log.info("cashcash用户的id为"+userUuid);
-
-        //调用下单接口
-        ordRequest.setUserUuid(userUuid);
+            //调用下单接口
+            ordRequest.setUserUuid(userUuid);
 
 
-        // 判断借款次数
-        String duefeeRate =  "0.192";
+            // 判断借款次数
+            String duefeeRate = "0.192";
 
-        //产品产品id，对应期限直接从配置表获取
-        SysProduct sysProduct = ordService
-                .getProductByAmountAndTermWithDuefeeRate(baseInfo.getOrderInfo().getApplicationAmount(),
-                        baseInfo.getOrderInfo().getApplicationTerm(),duefeeRate);
-        ordRequest.setProductUuid(sysProduct.getUuid());
-        ordRequest.setOrderType(1);
-        OrderOrderResponse orderResponse = ordService.toOrder(ordRequest, redisClient);
+            //产品产品id，对应期限直接从配置表获取
+            SysProduct sysProduct = ordService
+                    .getProductByAmountAndTermWithDuefeeRate(baseInfo.getOrderInfo().getApplicationAmount(),
+                            baseInfo.getOrderInfo().getApplicationTerm(), duefeeRate);
+            ordRequest.setProductUuid(sysProduct.getUuid());
+            ordRequest.setOrderType(1);
+            OrderOrderResponse orderResponse = ordService.toOrder(ordRequest, redisClient);
 
-        //记录cashcash订单和Do-It订单的关联关系
-        if (existOrderRelation == null) {
-            externalChannelDataService
-                    .addExternalOrderRelation(baseInfo.getOrderInfo().getOrderNo(),
-                            orderResponse.getOrderNo(), userUuid,
-                            ExternalChannelEnum.CASHCASH.name());
-        } else {
-            log.info("base info already received");
-        }
+            //记录cashcash订单和Do-It订单的关联关系
+            if (existOrderRelation == null) {
+                externalChannelDataService
+                        .addExternalOrderRelation(baseInfo.getOrderInfo().getOrderNo(),
+                                orderResponse.getOrderNo(), userUuid,
+                                ExternalChannelEnum.CASHCASH.name());
+            } else {
+                log.info("base info already received");
+            }
 
-        //选择角色
-        userRoleRequest.setOrderNo(orderResponse.getOrderNo());
-        userRoleRequest.setUserUuid(userUuid);
-        if (dbUser != null && dbUser.getUserRole() != null && dbUser.getUserRole() != 0) {
-            //角色已经选择
-            //20181129,如果我们这边已有角色，更新角色数据
-            log.info("update userRole param: {} ", JsonUtils.serialize(userRoleRequest));
-            usrBaseInfoService.updateUserRoleForCashCash(userRoleRequest);
-        } else {
+            //选择角色
             userRoleRequest.setOrderNo(orderResponse.getOrderNo());
             userRoleRequest.setUserUuid(userUuid);
-            usrBaseInfoService.rolesChoose(userRoleRequest);
-        }
+            if (dbUser != null && dbUser.getUserRole() != null && dbUser.getUserRole() != 0) {
+                //角色已经选择
+                //20181129,如果我们这边已有角色，更新角色数据
+                log.info("update userRole param: {} ", JsonUtils.serialize(userRoleRequest));
+                usrBaseInfoService.updateUserRoleForCashCash(userRoleRequest);
+            } else {
+                userRoleRequest.setOrderNo(orderResponse.getOrderNo());
+                userRoleRequest.setUserUuid(userUuid);
+                usrBaseInfoService.rolesChoose(userRoleRequest);
+            }
 
-        //保存身份图片
-        for (SaveUserPhotoRequest elem : userPhotoList) {
-            elem.setUserUuid(userUuid);
-            usrBaseInfoService.saveUserPhoto(elem);
-        }
-        //身份校验接口
+            //保存身份图片
+            for (SaveUserPhotoRequest elem : userPhotoList) {
+                elem.setUserUuid(userUuid);
+                usrBaseInfoService.saveUserPhoto(elem);
+            }
+            //身份校验接口
 
-        UsrCertificationInfo usrCertificationInfo = new UsrCertificationInfo();
-        usrCertificationInfo.setUserUuid(userUuid);
-        usrCertificationInfo.setDisabled(0);
-        usrCertificationInfo.setCertificationType(CertificationEnum.USER_IDENTITY.getType());
-        //usrCertificationInfo.setCertificationResult(CertificationResultEnum.AUTH_SUCCESS.getType());
-        List<UsrCertificationInfo> usrCertificationInfoList = this.usrCertificationInfoDao
-                .scan(usrCertificationInfo);
+            UsrCertificationInfo usrCertificationInfo = new UsrCertificationInfo();
+            usrCertificationInfo.setUserUuid(userUuid);
+            usrCertificationInfo.setDisabled(0);
+            usrCertificationInfo.setCertificationType(CertificationEnum.USER_IDENTITY.getType());
+            //usrCertificationInfo.setCertificationResult(CertificationResultEnum.AUTH_SUCCESS.getType());
+            List<UsrCertificationInfo> usrCertificationInfoList = this.usrCertificationInfoDao
+                    .scan(usrCertificationInfo);
 
-        if (CollectionUtils.isEmpty(usrCertificationInfoList)) {
-            usrIdentityInfoRequest.setOrderNo(orderResponse.getOrderNo());
-            usrIdentityInfoRequest.setUserUuid(userUuid);
-            usrBaseInfoService.advanceVerify(usrIdentityInfoRequest);
-        }
+            if (CollectionUtils.isEmpty(usrCertificationInfoList)) {
+                usrIdentityInfoRequest.setOrderNo(orderResponse.getOrderNo());
+                usrIdentityInfoRequest.setUserUuid(userUuid);
+                usrBaseInfoService.advanceVerify(usrIdentityInfoRequest);
+            }
 
-        //更新用户身份信息
-        if (needUpdateUser) {
-            usrBaseInfoService.getAndUpdateUser(usrIdentityInfoRequest);
-        }
-        //保存学生、工作人员基本信息
-        if (baseInfo.getApplyDetail().getUserType() == Cash2UserType.Student.getCode()) {
-            //学生
-            studentBaseInfo.setUserUuid(userUuid);
-            studentBaseInfo.setOrderNo(orderResponse.getOrderNo());
-            schoolInfoRequest.setUserUuid(userUuid);
-            schoolInfoRequest.setOrderNo(orderResponse.getOrderNo());
-            usrBaseInfoService.addOrUpdateStudentBaseInfo(studentBaseInfo);
-            //usrBaseInfoService.addOrUpdateStudentSchoolInfo(schoolInfoRequest);
-        } else {
-            //工作人员
-            workerBaseInfo.setUserUuid(userUuid);
-            workerBaseInfo.setOrderNo(orderResponse.getOrderNo());
-            workerInfo.setUserUuid(userUuid);
-            workerInfo.setOrderNo(orderResponse.getOrderNo());
-            usrBaseInfoService.addWorkBaseInfo(workerBaseInfo);
-            //usrBaseInfoService.addUsrWorkInfo(workerInfo);
-        }
+            //更新用户身份信息
+            if (needUpdateUser) {
+                usrBaseInfoService.getAndUpdateUser(usrIdentityInfoRequest);
+            }
+            //保存学生、工作人员基本信息
+            if (baseInfo.getApplyDetail().getUserType() == Cash2UserType.Student.getCode()) {
+                //学生
+                studentBaseInfo.setUserUuid(userUuid);
+                studentBaseInfo.setOrderNo(orderResponse.getOrderNo());
+                schoolInfoRequest.setUserUuid(userUuid);
+                schoolInfoRequest.setOrderNo(orderResponse.getOrderNo());
+                usrBaseInfoService.addOrUpdateStudentBaseInfo(studentBaseInfo);
+                //usrBaseInfoService.addOrUpdateStudentSchoolInfo(schoolInfoRequest);
+            } else {
+                //工作人员
+                workerBaseInfo.setUserUuid(userUuid);
+                workerBaseInfo.setOrderNo(orderResponse.getOrderNo());
+                workerInfo.setUserUuid(userUuid);
+                workerInfo.setOrderNo(orderResponse.getOrderNo());
+                usrBaseInfoService.addWorkBaseInfo(workerBaseInfo);
+                //usrBaseInfoService.addUsrWorkInfo(workerInfo);
+            }
 
 //        //记录联系人信息
 //        contactUser.setOrderNo(orderResponse.getOrderNo());
 //        contactUser.setUserUuid(userUuid);
 //        usrBaseInfoService.addLinkManInfo(contactUser);
-        //记录抓取的数据
-        contactList.setOrderNo(orderResponse.getOrderNo());
-        contactList.setUserUuid(userUuid);
-        installedAppRequest.setOrderNo(orderResponse.getOrderNo());
-        installedAppRequest.setUserUuid(userUuid);
-        shortMsgList.setOrderNo(orderResponse.getOrderNo());
-        shortMsgList.setUserUuid(userUuid);
-        callRecordList.setOrderNo(orderResponse.getOrderNo());
-        callRecordList.setUserUuid(userUuid);
-        uploadInfoService.uploadContacts(contactList);
-        uploadInfoService.uploadApps(installedAppRequest);
-        uploadInfoService.uploadMsgs(shortMsgList);
-        uploadInfoService.uploadCallRecords(callRecordList);
+            //记录抓取的数据
+            contactList.setOrderNo(orderResponse.getOrderNo());
+            contactList.setUserUuid(userUuid);
+            installedAppRequest.setOrderNo(orderResponse.getOrderNo());
+            installedAppRequest.setUserUuid(userUuid);
+            shortMsgList.setOrderNo(orderResponse.getOrderNo());
+            shortMsgList.setUserUuid(userUuid);
+            callRecordList.setOrderNo(orderResponse.getOrderNo());
+            callRecordList.setUserUuid(userUuid);
+            uploadInfoService.uploadContacts(contactList);
+            uploadInfoService.uploadApps(installedAppRequest);
+            uploadInfoService.uploadMsgs(shortMsgList);
+            uploadInfoService.uploadCallRecords(callRecordList);
+        } catch (Exception e) {
+            throw  e;
+        }finally {
+            redisClient.unLock(lockKey);
+        }
     }
 
     /***
@@ -332,12 +347,12 @@ public class BaseInfoService {
         ordRequest.setUserUuid(userUuid);
 
         // 判断借款次数
-        String duefeeRate  = "0.192";
+        String duefeeRate = "0.192";
 
         //产品产品id，对应期限直接从配置表获取
         SysProduct sysProduct = ordService
                 .getProductByAmountAndTermWithDuefeeRate(baseInfo.getOrderInfo().getApplicationAmount(),
-                        baseInfo.getOrderInfo().getApplicationTerm(),duefeeRate);
+                        baseInfo.getOrderInfo().getApplicationTerm(), duefeeRate);
         ordRequest.setProductUuid(sysProduct.getUuid());
         ordRequest.setOrderType(1);
         OrderOrderResponse orderResponse = ordService.toOrder(ordRequest, redisClient);

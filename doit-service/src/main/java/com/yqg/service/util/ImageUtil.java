@@ -29,7 +29,7 @@ public class ImageUtil {
 
 
     public static String encryptUrl(String path) {
-        path = DESUtils.encrypt(path);
+        path = DESUtils.encryptNew(path);
 
         try {
             return URLEncoder.encode(path, "UTF-8");
@@ -40,13 +40,6 @@ public class ImageUtil {
     }
     public static String decryptUrl(String path) {
 
-//        try {
-//            path = URLDecoder.decode(path, "UTF-8");
-//
-//            return DESUtils.decrypt(path);
-//        } catch (UnsupportedEncodingException e) {
-//            e.printStackTrace();
-//        }
-        return DESUtils.decrypt(path);
+        return DESUtils.decryptNew(path);
     }
 }

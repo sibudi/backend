@@ -19,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -160,27 +157,28 @@ public class InforbipCollectionService {
             if (CollectionUtils.isEmpty(users)) {
                 return null;
             }
-            getVoiceMessageResults(users, result);
+            result = getVoiceMessageResults(users, result);
             //申请未提交
         } else if (request.getCallPhaseType() == 4) {
             users = usrDao.sendSmsToUseWithNotVerifyOrder();
             if (CollectionUtils.isEmpty(users)) {
                 return null;
             }
-            getVoiceMessageResults(users, result);
+            result = getVoiceMessageResults(users, result);
             //降额未确认
         } else if (request.getCallPhaseType() == 5) {
             users = usrDao.sendReduceSms();
             if (CollectionUtils.isEmpty(users)) {
                 return null;
             }
-            getVoiceMessageResults(users, result);
+            result = getVoiceMessageResults(users, result);
         }
         return result;
     }
 
-    private void getVoiceMessageResults(List<UserResponse> users, List<TeleVoiceMessageResult> result) {
+    private List<TeleVoiceMessageResult> getVoiceMessageResults(List<UserResponse> users, List<TeleVoiceMessageResult> result) {
 
+        result = new ArrayList<>();
         for (UserResponse elem: users) {
             TeleVoiceMessageResult response = new TeleVoiceMessageResult();
             response.setOrderNo(elem.getOrderNo());
@@ -188,6 +186,7 @@ public class InforbipCollectionService {
             response.setUserUuid(elem.getUuid());
             result.add(response);
         }
+        return result;
     }
 
 

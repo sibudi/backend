@@ -21,6 +21,7 @@ import com.yqg.risk.dao.RiskResultDao;
 import com.yqg.risk.dao.ScoreTemplateDao;
 import com.yqg.risk.entity.OrderScore;
 import com.yqg.risk.entity.ScoreTemplate;
+import com.yqg.service.NonManualReviewService;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.user.service.UserRiskService;
 import com.yqg.service.util.RuleConstants;
@@ -45,7 +46,7 @@ public class Product600ExecutionChain extends BaseExecutionChain implements Init
 
     public static final int SCORE_MODEL_MAX_PASS_COUNT_PRODUCT_600 = 200;
 
-//    public static final int SCORE_MODEL_MAX_PASS_COUNT_PRODUCT_600_V2 = 300;
+    //    public static final int SCORE_MODEL_MAX_PASS_COUNT_PRODUCT_600_V2 = 300;
     @Autowired
     private ExecutorUtil executorUtil;
 
@@ -72,22 +73,25 @@ public class Product600ExecutionChain extends BaseExecutionChain implements Init
     @Autowired
     private RiskResultDao riskResultDao;
 
+    @Autowired
+    private NonManualReviewService nonManualReviewService;
 
 
-    @Override
-    protected void afterRejectResult(Map<String, SysAutoReviewRule> allRules, OrdOrder order) throws Exception {
-
-        //设置评分标记为:
-        orderScoreService.setRulePassFlag(order, ScoreModelEnum.PRODUCT_600, false);
-
-        orderScoreService.setRulePassFlag(order, ScoreModelEnum.PRODUCT_600_V2, false);
-
-        if (userRiskService.isSuitableFor100RMBProduct(order)) {
-            //拒绝原因disabled掉
-            ruleResultService.disabledOrdBlackWithRemark(order.getUuid(), RuleConstants.PRODUCT600TO150);
-            ordService.changeOrderTo100RMBProduct(order);
-        }
-    }
+//
+//    @Override
+//    protected void afterRejectResult(Map<String, SysAutoReviewRule> allRules, OrdOrder order) throws Exception {
+//
+//        //设置评分标记为:
+//        orderScoreService.setRulePassFlag(order, ScoreModelEnum.PRODUCT_600, false);
+//
+//        orderScoreService.setRulePassFlag(order, ScoreModelEnum.PRODUCT_600_V2, false);
+//
+//        if (userRiskService.isSuitableFor100RMBProduct(order)) {
+//            //拒绝原因disabled掉
+//            ruleResultService.disabledOrdBlackWithRemark(order.getUuid(), RuleConstants.PRODUCT600TO150);
+//            ordService.changeOrderTo100RMBProduct(order);
+//        }
+//    }
 
     @Override
     public boolean preFilter(OrdOrder order) {
@@ -97,7 +101,7 @@ public class Product600ExecutionChain extends BaseExecutionChain implements Init
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        super.initChains(null, product100ExecutionChain);
+        super.initChains(null, null);
     }
 
     @Override
@@ -105,9 +109,23 @@ public class Product600ExecutionChain extends BaseExecutionChain implements Init
         return FlowEnum.PRODUCT_600;
     }
 
+
+    protected RuleSetExecutedResult afterPassResult(Map<String, SysAutoReviewRule> allRules, OrdOrder order, List<Object> facts) throws Exception {
+
+        boolean isNonManual = nonManualReviewService.isNonManualReviewOrder(order.getUuid());
+        if (isNonManual) {
+            return BaseExecutionChain.DEFAULT_PASS_RESULT;
+        } else {
+            ruleResultService.disabledOrdBlackWithRemark(order.getUuid(), RuleConstants.REJECT_REASON_NOT_NON_MANUAL);
+            return BaseExecutionChain.DEFAULT_REJECT_RESULT;
+        }
+
+    }
+
+
     @Override
     protected RuleSetExecutedResult abTestAfterReject(OrdOrder order,
-                                                      Map<String,SysAutoReviewRule> allRules, List<Object> facts) {
+                                                      Map<String, SysAutoReviewRule> allRules, List<Object> facts) {
 
 //        RuleSetExecutedResult result = abTestWorkAddress(allRules, order);
 //        if (result.isRuleSetResult()) {
@@ -181,13 +199,13 @@ public class Product600ExecutionChain extends BaseExecutionChain implements Init
 //        return DEFAULT_REJECT_RESULT;
 //    }
 
-    private RuleSetExecutedResult abTestAfterRejectByScoreModel(Map<String,SysAutoReviewRule> allRules, OrdOrder order,
+    private RuleSetExecutedResult abTestAfterRejectByScoreModel(Map<String, SysAutoReviewRule> allRules, OrdOrder order,
                                                                 ScoreModelEnum scoreModelEnum) {
 
         boolean useScoreSwitchOpen = "true".equalsIgnoreCase(redisClient.get(RedisContants.SCORE_MODEL_SWITCH_USE_SCORE + scoreModelEnum.name()));
         if (!useScoreSwitchOpen) {
             log.info("use score switch is not open");
-            return DEFAULT_REJECT_RESULT ;
+            return DEFAULT_REJECT_RESULT;
         }
         //进行ABTest--》
         //查看评分结果，如果大于490分，以10%的概率通过200单

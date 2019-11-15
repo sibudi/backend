@@ -275,4 +275,22 @@ public class CollectionController {
         return ResponseEntitySpecBuilder
                 .success(collectionService.getScoreReport(param.getPostId(), sessionId));
     }
+
+    @ApiOperation(value = "查询所有二次质检，Author: tonggen")
+    @RequestMapping(value = "/secondQualityCheck", method = RequestMethod.POST)
+    public ResponseEntitySpec<PageData<List<CollectionOrderResponse>>> secondQualityCheck(
+            @RequestBody AssignableCollectionOrderReq request) {
+
+        return ResponseEntitySpecBuilder
+                .success(collectionService.secondQualityCheck(request));
+    }
+
+    @ApiOperation(value = "获取的最新质检记录，Author: tonggen")
+    @RequestMapping(value = "/getQualityRecordLast", method = RequestMethod.POST)
+    public ResponseEntitySpec<CollectionOrderResponse> getQualityRecordLast(
+            @RequestBody AssignableCollectionOrderReq request) {
+
+        return ResponseEntitySpecBuilder
+                .success(collectionService.getQualityRecordLast(request));
+    }
 }

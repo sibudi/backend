@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kmodule xmlns="http://jboss.org/kie/6.0.0/kmodule">
+
+  <kbase name="reBorrowing-rules" packages="rules.doit.reborrow">
+    <ksession name="RE_BORROWING" type="stateless"/>
+  </kbase>
+  <kbase name="reBorrowing-universal-rules" packages="rules.doit.reborrow.universal">
+    <ksession name="RE_BORROWING_UNIVERSAL" type="stateless"/>
+  </kbase>
+  <kbase name="reBorrowing-extend600-rules" packages="rules.doit.reborrow.extend600">
+    <ksession name="RE_BORROWING_PRD600_EXTEND" type="stateless"/>
+  </kbase>
+
+  <kbase name="reBorrowing-extend400-rules" packages="rules.doit.reborrow.extend400">
+    <ksession name="RE_BORROWING_PRD400_EXTEND" type="stateless"/>
+  </kbase>
+
+
+
+  <kbase name="flow-labeling-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="LABELING_RULE" type="stateless"/>
+  </kbase>
+  <kbase name="flow-fraud-universal-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="FRAUD_UNIVERSAL_RULE" type="stateless"/>
+  </kbase>
+  <kbase name="flow-product600-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="PRODUCT_600" type="stateless"/>
+  </kbase>
+  <kbase name="flow-product100-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="PRODUCT_100" type="stateless"/>
+  </kbase>
+  <kbase name="flow-product100-extend-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="PRODUCT_100_EXTEND" type="stateless"/>
+  </kbase>
+  <kbase name="flow-product50-extend-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="PRODUCT_50_EXTEND" type="stateless"/>
+  </kbase>
+  <kbase name="flow-product50-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="PRODUCT_50" type="stateless"/>
+  </kbase>
+  <kbase name="flow-non-manual-rules" packages="rules.doit.firstBorrowing">
+    <ksession name="NON_MANUAL_RULE" type="stateless"/>
+  </kbase>
+  <kbase name="flow-auto-call-firstBorrowing-rules" packages="rules.doit.autoCall.other">
+    <ksession name="AUTO_CALL_FIRST_BORROWING" type="stateless"/>
+  </kbase>
+  <kbase name="flow-auto-call-reBorrowing-rules" packages="rules.doit.autoCall.other">
+    <ksession name="AUTO_CALL_RE_BORROWING" type="stateless"/>
+  </kbase>
+
+
+  <kbase name="flow-auto-call-firstBorrowing-universal-rules" packages="rules.doit.autoCall.other">
+    <ksession name="AUTO_CALL_FIRST_UNIVERSAL" type="stateless"/>
+  </kbase>
+  <kbase name="flow-auto-call-firstBorrowing-product600-rules" packages="rules.doit.autoCall.other">
+    <ksession name="AUTO_CALL_FIRST_PRODUCT600" type="stateless"/>
+  </kbase>
+  <kbase name="flow-auto-call-firstBorrowing-product100-rules" packages="rules.doit.autoCall.other">
+    <ksession name="AUTO_CALL_FIRST_PRODUCT100" type="stateless"/>
+  </kbase>
+  <kbase name="flow-auto-call-firstBorrowing-non-manual-rules" packages="rules.doit.autoCall.other">
+    <ksession name="AUTO_CALL_FIRST_NON_MANUAL" type="stateless"/>
+  </kbase>
+
+  <kbase name="flow-auto-call-owner-rules" packages="rules.doit.autoCall.owner">
+    <ksession name="AUTO_CALL_OWNER" type="stateless"/>
+  </kbase>
+
+
+  <kbase name="autoCall-rules" packages="rules.doit.autoCall.other">
+    <ksession name="AUTO_CALL" type="stateless"/>
+  </kbase>
+
+  <kbase name="riskScore-rules" packages="rules.doit.riskScore">
+    <ksession name="RISK_SCORE" type="stateless"/>
+  </kbase>
+
+  <kbase name="loan-limit-api" packages="rules.doit.loanLimit.api">
+    <ksession name="LOAN_LIMIT_FIRST_RE_BORROWING" type="stateless"/>
+  </kbase>
+
+  <kbase name="loan-limit-flow" packages="rules.doit.loanLimit">
+    <ksession name="LOAN_LIMIT_FIRST_RE_BORROWING_AFTER_SUBMIT" type="stateless"/>
+  </kbase>
+
+
+  <kbase name="test-rules" packages="rules.doit.test">
+    <ksession name="TEST" type="stateless"/>
+  </kbase>
+
+
+
+
+  <kbase name="dtables" packages="dtables">
+    <ksession name="ksession-dtables"/>
+  </kbase>
+  <kbase name="process" packages="process">
+    <ksession name="ksession-process"/>
+  </kbase>
+</kmodule>

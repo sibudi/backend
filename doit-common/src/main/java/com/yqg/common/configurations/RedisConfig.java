@@ -64,7 +64,7 @@ public class RedisConfig {
         //循环注入至Set中
         for(String node : nodes){
             log.info("Read node:" + node);
-            nodeSet.add(node);
+            nodeSet.add(node.trim());
         }
         //创建连接池对象
         JedisSentinelPool jedisPool = new JedisSentinelPool(masterName,nodeSet ,redisConfig ,timeout , password, database);

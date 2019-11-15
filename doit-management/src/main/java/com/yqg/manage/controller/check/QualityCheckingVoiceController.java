@@ -39,7 +39,7 @@ public class QualityCheckingVoiceController {
     }
 
     @ApiOperation("质检语音下载")
-    @RequestMapping(value = "/manage/downloadVoiceFile/", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
+    @RequestMapping(value = "/manage/downloadVoiceFile", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
     public void downloadVoiceFile(@RequestParam String uuidList, HttpServletResponse response) throws Exception {
         this.qualityCheckingVoiceService.downloadVoiceFile(Arrays.asList(uuidList.split(",")), response);

@@ -421,7 +421,9 @@ public class ManOrderOrderService {
                 response.setShouldPayAmount(com.yqg.common.utils.StringUtils.
                         formatMoney(tempMoney
                                 .doubleValue()).replaceAll(",",".").toString());
-                BigDecimal limit = order.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+
+                //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+                BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
                 if (tempMoney.compareTo(limit) > 0 ){
                     tempMoney = limit;
                 }
@@ -457,10 +459,12 @@ public class ManOrderOrderService {
             // 应还款金额
             response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
 
-            BigDecimal limit = order.getAmountApply().multiply(BigDecimal.valueOf(1.2)).setScale(2);
+            //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+            BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
             if (shouldPayAmount.compareTo(limit) > 0 ){
                 shouldPayAmount = limit;
             }
+
             //实际应还款金额
             response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
 
@@ -1301,10 +1305,10 @@ public class ManOrderOrderService {
         if (status.equals(OrdStateEnum.LOANING_DEALING.getCode()) ||
                 status.equals(OrdStateEnum.RESOLVING_NOT_OVERDUE.getCode()) ||
                 status.equals(OrdStateEnum.RESOLVING_OVERDUE.getCode())) {
-            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_EDIT_ITEM_ERROR);
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_CANCEL_ORDER_ERROR);
         }
         if (status.equals(OrdStateEnum.LOAN_FAILD.getCode()) && !ordOrders.get(0).getRemark().equals("BANK_CARD_ERROR")) {
-            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_EDIT_ITEM_ERROR);
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_CANCEL_ORDER_ERROR);
         }
         //取消订单
         ordOrder.setDisabled(1);

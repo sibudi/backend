@@ -1,0 +1,432 @@
+package com.doit.reborrow
+
+import java.util.List;
+import java.util.Arrays;
+import com.yqg.drools.utils.RuleUtils;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.RUserInfo;
+import com.yqg.drools.model.LastLoan;
+import com.yqg.drools.model.LoanInfo;
+import com.yqg.drools.model.UserCallRecordsModel;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.drools.model.base.RuleThresholdValues;
+import com.yqg.drools.model.base.RuleConditionModel;
+
+
+global  List ruleSetResultList;
+
+rule "REBORROW_COMBINATION_001_A"
+salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  DeviceModel($totalMemory:totalMemory);
+  RUserInfo($sex:sex,$academic:academic)
+  eval(RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),
+                         $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage()))
+       && RuleUtils.equalsIgnoreCase("Sekolah Menengah Atas",$academic)
+       && RUserInfo.SexEnum.MALE.getCode()==$sex
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage(),"true","命中totalMemory<1&高中&男")
+   .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_001_B"
+salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  DeviceModel($totalMemory:totalMemory);
+  RUserInfo($sex:sex,$academic:academic)
+  eval(!(RuleUtils.lessThan(RuleUtils.valueOfStr($totalMemory),
+                         $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage()))
+       && RuleUtils.equalsIgnoreCase("Sekolah Menengah Atas",$academic)
+       && RUserInfo.SexEnum.MALE.getCode()==$sex)
+       )
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_REBORROW_MEMORY_EDUCATION_SEX.getMessage(),"false","未命中totalMemory<1&高中&男")
+   .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_COMBINATION_002_A"
+salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  LastLoan($overdueDays:overdueDays);
+  UserCallRecordsModel($recent15EveningActiveRatio:recent15EveningActiveRatio)
+  eval(RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),
+                         RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()),0)
+                         )
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent15EveningActiveRatio),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()),1))
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage(),"true","命中上一次贷款逾期天数-复借>3&近15天内夜间活跃占比-复借>=0.05")
+   .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_002_B"
+salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  LastLoan($overdueDays:overdueDays);
+  UserCallRecordsModel($recent15EveningActiveRatio:recent15EveningActiveRatio)
+  eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),
+                         RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()),0)
+                         )
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($recent15EveningActiveRatio),RuleUtils.getRuleParam($thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage()),1))
+       ))
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_REBORROW_OVERDUEDAYS_EVENING_RATIO.getMessage(),"false","未命中上一次贷款逾期天数-复借>3&近15天内夜间活跃占比-复借>=0.05")
+   .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_COMBINATION_003_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  LastLoan($overdueDays:overdueDays);
+  LoanInfo($borrowingCount:currentBorrowCount)
+  eval(RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),
+                         $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage())
+                         )
+       && $borrowingCount!=null&&$borrowingCount==2
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage(),"true","命中首借贷款逾期天数")
+   .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_003_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage()));
+  $thresholdValues:RuleThresholdValues();
+  LastLoan($overdueDays:overdueDays);
+  LoanInfo($borrowingCount:currentBorrowCount)
+  eval(!(RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),
+                         $thresholdValues.getThresholdValue(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage())
+                         )
+       && $borrowingCount!=null&&$borrowingCount==2
+       ))
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.COMB_REBORROW_FIRSTOVERDUEDAYS.getMessage(),"false","未命中首借贷款逾期天数")
+   .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_004_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage()]);
+  RUserInfo($age:age,$sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+  eval($iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+       && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+       && $sex == RUserInfo.SexEnum.MALE.getCode()
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage(),"true","IZI手机实名认证&年龄&性别-复借")
+   .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_004_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage()]);
+  RUserInfo($age:age,$sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult);
+  eval(!($iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+        && RuleUtils.lessThan(RuleUtils.valueOfStr($age),$threshData)
+        && $sex == RUserInfo.SexEnum.MALE.getCode()
+        ))
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.REBORROWING_IZI_PHONEVERIFY_AGE_MALE.getMessage(),"false","IZI手机实名认证&年龄&性别-复借")
+   .addToResultList(ruleSetResultList);
+end
+
+rule "REBORROW_COMBINATION_005_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage()]);
+  RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult, $iziPhoneAgeResult:iziPhoneAgeResult);
+  eval($iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+       && $iziPhoneAgeResult!=null && $iziPhoneAgeResult.getStatus() == RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND
+       && $sex == RUserInfo.SexEnum.MALE.getCode()
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage(),
+                               "true",
+                               "命中IZI手机在网时长&IZI手机实名认证_'NOT_MATCH'&性别-复借")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_005_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage()]);
+  RUserInfo($sex: sex, $iziPhoneVerifyResult: iziPhoneVerifyResult, $iziPhoneAgeResult:iziPhoneAgeResult);
+  eval(!($iziPhoneVerifyResult!=null && RuleUtils.equalsIgnoreCase($iziPhoneVerifyResult.getMessage(),"NOT_MATCH")
+         && $iziPhoneAgeResult!=null && $iziPhoneAgeResult.getStatus() == RUserInfo.IziPhoneAgeResult.PhoneAgeStatusEnum.PHONENUMBER_NOT_FOUND
+         && $sex == RUserInfo.SexEnum.MALE.getCode()
+         ))
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.REBORROWING_IZI_PHONEAGE_PHONEVERIFY_MALE.getMessage(),
+                                  "false",
+                                  "未命中IZI手机在网时长&IZI手机实名认证_'NOT_MATCH'&性别-复借")
+                                  .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_COMBINATION_006_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$borrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount);
+  LastLoan($overdueDays: overdueDays);
+  eval(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount),RuleUtils.getRuleParam($threshData,2))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,3))
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage(),
+                               "true",
+                               "hit first loan150 & current loan 80 & last loan overdue & borrowingCount=2")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_006_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$borrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount);
+  LastLoan($overdueDays: overdueDays);
+  eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount),RuleUtils.getRuleParam($threshData,2))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,3))
+       ))
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT.getMessage(),
+                                  "false",
+                                  "not hit first loan150 & current loan 80 & last loan overdue & borrowingCount=2 ")
+                                  .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_COMBINATION_007_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$borrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount);
+  LastLoan($overdueDays: overdueDays);
+  eval(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount),RuleUtils.getRuleParam($threshData,2))
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,3))
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage(),
+                               "true",
+                               "hit first loan150 & current loan 80 & last loan overdue>1 & borrowingCount>=3")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_007_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$borrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount);
+  LastLoan($overdueDays: overdueDays);
+  eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount),RuleUtils.getRuleParam($threshData,2))
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,3))
+       ))
+
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_CUR_AMOUNT_BORROWING_COUNT_N.getMessage(),
+                                  "false",
+                                  "not hit first loan150 & current loan 80 & last loan overdue>1 & borrowingCount>=3")
+                                  .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_008_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$borrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount);
+  eval(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,2))
+       )
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage(),
+                               "true",
+                               "hit first loan80 & current loan 80 & borrowingCount=3")
+                               .addToResultList(ruleSetResultList);
+end
+
+rule "REBORROW_COMBINATION_008_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$borrowingAmount: borrowingAmount,$currentBorrowCount: currentBorrowCount);
+  eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($borrowingAmount),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,2))
+       ));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_CUR_AMOUNT_BORROWING_COUNT.getMessage(),
+                               "false",
+                               "not hit first loan80 & current loan 80 & borrowingCount=3")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_009_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$currentBorrowCount: currentBorrowCount);
+  LastLoan($overdueDays: overdueDays);
+  eval(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,2))
+       );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage(),
+                               "true",
+                               "hit first loan80 & last loan overdue & borrowingCount=2")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_009_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage()]);
+  LoanInfo($firstBorrowingAmount: firstBorrowingAmount,$currentBorrowCount: currentBorrowCount);
+  LastLoan($overdueDays: overdueDays);
+  eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($firstBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,2))
+       ));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_FIRST_AMOUNT_LAST_OVERDUE_DAYS_BORROWING_COUNT.getMessage(),
+                               "false",
+                               "not hit first loan80 & last loan overdue & borrowingCount=2")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+
+rule "REBORROW_COMBINATION_010_A"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage()]);
+  LoanInfo($currentBorrowCount: currentBorrowCount,$currentBorrowingAmount: borrowingAmount);
+  LastLoan($overdueDays: overdueDays,$lastLoanBorrowingAmount: borrowingAmount);
+  eval(RuleUtils.equalTo(RuleUtils.valueOfStr($lastLoanBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,2))
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,3))
+       );
+then
+   RuleUtils.buildHitRuleResult(BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage(),
+                               "true",
+                               "hit last_loan_amount&current_loan_amount&last_loan_overdue_borrowing_count")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+rule "REBORROW_COMBINATION_010_B"
+  salience($thresholdValues.getRuleOrder(BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage()))
+when
+  RuleConditionModel(isSuitableForRule(BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage()));
+  $thresholdValues:RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage()]);
+  LoanInfo($currentBorrowCount: currentBorrowCount,$currentBorrowingAmount: borrowingAmount);
+  LastLoan($overdueDays: overdueDays,$lastLoanBorrowingAmount: borrowingAmount);
+  eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($lastLoanBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+       && RuleUtils.equalTo(RuleUtils.valueOfStr($currentBorrowingAmount),RuleUtils.getRuleParam($threshData,1))
+       && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,2))
+       && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,3))
+       ));
+then
+   RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.MULTI_LAST_LOAN_AMOUNT_OVERDUE_CURRENT_AMOUNT_BORROWING_COUNT.getMessage(),
+                               "false",
+                               "not hit last_loan_amount&current_loan_amount&last_loan_overdue_borrowing_count")
+                               .addToResultList(ruleSetResultList);
+end
+
+
+
+
+rule "REBORROW_COMBINATION_011_A"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage()))
+    when
+        //conditions
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage()]);
+        LastLoan($overdueDays : overdueDays, $lastLoanBorrowingAmount: borrowingAmount);
+        LoanInfo($currentBorrowCount: currentBorrowCount);
+        eval(RuleUtils.equalTo(RuleUtils.valueOfStr($lastLoanBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,2))
+        )
+    then
+        //actions
+		RuleUtils.buildHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage(),
+		                                                   "true",
+		                                                   "命中上一笔复借200RBM并且逾期").addToResultList(ruleSetResultList);
+end
+
+rule "REBORROW_COMBINATION_011_B"
+    salience($thresholdValues.getRuleOrder(BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage()))
+    when
+        //conditions
+        RuleConditionModel(isSuitableForRule(BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage()));
+        $thresholdValues: RuleThresholdValues($threshData:thresholdMap[BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage()]);
+        LastLoan($overdueDays : overdueDays, $lastLoanBorrowingAmount: borrowingAmount);
+        LoanInfo($currentBorrowCount: currentBorrowCount);
+        eval(!(RuleUtils.equalTo(RuleUtils.valueOfStr($lastLoanBorrowingAmount),RuleUtils.getRuleParam($threshData,0))
+             && RuleUtils.greatThan(RuleUtils.valueOfStr($overdueDays),RuleUtils.getRuleParam($threshData,1))
+             && RuleUtils.greatOrEqualThan(RuleUtils.valueOfStr($currentBorrowCount),RuleUtils.getRuleParam($threshData,2))
+        ))
+    then
+        //actions
+		RuleUtils.buildUnHitRuleResult(BlackListTypeEnum.LAST_LOAN_AMOUNT_OVERDUEDAYS_BORROWING_COUNT.getMessage(),
+		                                                   "false",
+		                                                   "未命中上一笔复借200RBM并且逾期").addToResultList(ruleSetResultList);
+end

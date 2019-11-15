@@ -384,70 +384,43 @@ public class CollectionSqlProvider {
     public String getAssignableQualityCheckOrderList(AssignableCollectionOrderReq request){
         StringBuffer sql = new StringBuffer();
 
-        sql.append(" SELECT "
-                        + "    o.uuid,o.orderType,"
-                        + "    o.applyTime,"
-                        + "    o.borrowingCount,"
-                        + "    o.borrowingTerm,"
-                        + "    o.amountApply,"
-                        + "    o.status,"
-                        + "    o.refundTime,"
-                        + "    o.actualRefundTime,"
-                        + "    u.realName, u.uuid as userUuid, "
-                        + "    cc.isTest,cc.sourceType,"
-                        + "    cc.orderTag, cc.promiseRepaymentTime, "
-                        + "    cc.outsourceId, cc.subOutSourceId, config.title as checkResult,config.titleInn as checkResultInn,voiceConfig.title as voiceCheckResult,voiceConfig.titleInn as voiceCheckResultInn, e.createTime as updateTime"
-                        + " from doit.ordOrder o join doit.usrUser u on u.uuid = o.userUuid and o.disabled = 0 ");
-        sql.append("LEFT JOIN (select orderNo, max(createTime) as createTime from doit.manQualityCheckRecord group by orderNo ) e ON o.uuid = e.orderNo ");
-        sql.append(" join (");
-        sql.append("select c.* from doit.collectionOrderDetail c where c.sourceType = 1 and c.disabled = 0 ");
-        boolean flag = false;
+        sql.append(" select coll.orderUUID as uuid, coll.sourceType, coll.orderTag,coll.promiseRepaymentTime,coll.outsourceId,coll.subOutSourceId,e.createTime as updateTime ");
+        sql.append(" FROM " +
+                " collectionOrderDetail coll " +
+                " LEFT JOIN ( SELECT orderNo, max( createTime ) AS createTime FROM doit.manQualityCheckRecord GROUP BY orderNo ) e ON coll.orderUUID = e.orderNo " +
+                " LEFT JOIN ( SELECT * FROM collectionOrderDetail WHERE sourceType = 1 AND disabled = 0 ) hasCheck ON hasCheck.orderUuid = coll.orderUUID ");
+        sql.append(" where coll.disabled = 0 and coll.sourceType = 0 " +
+                " and coll.orderUUID IN ( SELECT uuid FROM doit.ordOrder WHERE disabled = 0 " +
+                " AND datediff( now( ), refundTime)<=#{AssignableCollectionOrderReq.overdueDayMax} " +
+                " and datediff(now(),refundTime)>=#{AssignableCollectionOrderReq.overdueDayMin}) ");
 
         if(request.getIsAssigned() != null){
             if (request.getIsAssigned() == 1) {
                 //已分配,collectionOrderDetail表的分配ID不为0
-                flag = true;
-                sql.append(" and c.outsourceId != '0' ");
+                sql.append(" and hasCheck.outsourceId != '0' ");
             } else {
-                sql.append(" and c.outsourceId = '0' ");
+                sql.append(" and (hasCheck.outsourceId = '0' or hasCheck.id is null) ");
             }
         }
         if(request.getCheckerId()!=null){
-            flag = true;
-            sql.append(" and c.outsourceId = #{AssignableCollectionOrderReq.checkerId}");
+            sql.append(" and hasCheck.outsourceId = #{AssignableCollectionOrderReq.checkerId}");
         }
         if (request.getOutsourceId() != null && request.getOutsourceId() != 0) {
-            sql.append(" and c.orderUUid in (select orderUUid from collectionOrderDetail where disabled = 0 and sourceType = 0 and (outSourceId=#{AssignableCollectionOrderReq.outsourceId} or suboutSourceId=#{AssignableCollectionOrderReq.outsourceId})) ");
+            sql.append(" and (coll.outSourceId=#{AssignableCollectionOrderReq.outsourceId} or coll.suboutSourceId=#{AssignableCollectionOrderReq.outsourceId}) ");
         }
-        if (!flag) {
-            sql.append(" UNION all select a.* from doit.collectionOrderDetail a where a.disabled = 0 and a.sourceType = 0 and a.orderUUID not in (select orderUUid from doit.collectionOrderDetail b where b.sourceType = 1 and b.disabled = 0)");
-            if (request.getOutsourceId() != null && request.getOutsourceId() != 0) {
-                sql.append(" and (a.outSourceId=#{AssignableCollectionOrderReq.outsourceId} or a.suboutSourceId=#{AssignableCollectionOrderReq.outsourceId}) ");
-            }
-        }
-        sql.append(") cc on cc.orderUUid = o.uuid and cc.disabled = 0 ");
-        sql.append(" left join manQualityCheckConfig config on config.id = cc.checkResult and config.disabled = 0 ");
-        sql.append(" left join manQualityCheckConfig voiceConfig on voiceConfig.id = cc.voiceCheckResult and voiceConfig.disabled = 0 ");
-        sql.append(" where datediff(now(),o.refundTime)<=#{AssignableCollectionOrderReq.overdueDayMax}");
-        sql.append(" and datediff(now(),o.refundTime)>=#{AssignableCollectionOrderReq.overdueDayMin}");
-
         if (StringUtils.isNotBlank(request.getStartUpdateTime())) {
             sql.append(" and DATE_FORMAT(e.createTime,'%Y-%m-%d') >='" + request.getStartUpdateTime() + "' ");
         }
         if (StringUtils.isNotBlank(request.getEndUpdateTime())) {
             sql.append(" and DATE_FORMAT(e.createTime,'%Y-%m-%d') <='" + request.getEndUpdateTime() + "' ");
         }
-        if (request.getIsTerms() != null) {
-            if (request.getIsTerms().equals(1)) {
-                sql.append(" and o.orderType = 3 ");
-            } else if (request.getIsTerms().equals(2)) {
-                sql.append(" and o.orderType != 3 ");
-            }
-        }
-
 
         if(StringUtils.isNotEmpty(request.getUuid())){
-            sql.append(" and o.uuid = #{AssignableCollectionOrderReq.uuid} ");
+            sql.append(" and coll.orderUUID = #{AssignableCollectionOrderReq.uuid} ");
+        }
+        if (StringUtils.isNotBlank(request.getRealName())) {
+            sql.append(" and exists (select 1 from ordOrder o join usrUser u on u.uuid = o.userUuid and o.disabled = 0 " +
+                    "and u.disabled = 0 where o.uuid = coll.orderUUID and u.realName like '%" + request.getRealName() + "%') ");
         }
         logger.info("quality check lists sql is :" + sql.toString());
         return sql.toString();
@@ -585,6 +558,61 @@ public class CollectionSqlProvider {
         }
 
         logger.info("collection out list sql:" + sql.toString());
+        return sql.toString();
+    }
+
+
+    public String secondQualityCheck(AssignableCollectionOrderReq request){
+        StringBuffer sql = new StringBuffer();
+
+        sql.append("select coll.orderUUID as uuid, coll.sourceType, coll.orderTag,coll.promiseRepaymentTime,coll.outsourceId,coll.subOutSourceId, quality.createTime as updateTime, collect.updateTime as collectTimeLast, coll.outsourceId as outsourceId, coll.subOutSourceId as subOutSourceId ");
+        sql.append(" FROM " +
+                " collectionOrderDetail coll " +
+                " JOIN (select orderNo,");
+        if (request.getCheckerId() != null && request.getCheckerId() != 0) {
+            sql.append("createUser,");
+        }
+        sql.append("max(createTime) as createTime from manQualityCheckRecord where disabled = 0 and type in (0,1,2) ");
+        if (request.getCheckerId() != null && request.getCheckerId() != 0) {
+            sql.append(" and createUser = #{AssignableCollectionOrderReq.checkerId} ");
+        }
+        if (StringUtils.isNotBlank(request.getStartUpdateTime())) {
+            sql.append(" and createTime >= '" + request.getStartUpdateTime() + " 00:00:00'");
+
+        }
+        if (StringUtils.isNotBlank(request.getEndUpdateTime())) {
+            sql.append(" and createTime <= '" + request.getEndUpdateTime() + " 23:59:59'");
+        }
+        sql.append(" group by 1) quality on quality.orderNo = coll.orderUUID ");
+        sql.append(" join (select orderNo,");
+        if (request.getOutsourceId() != null && request.getOutsourceId() != 0) {
+            sql.append(" createUser,");
+        }
+        sql.append(" max(createTime) as updateTime from manCollectionRemark where disabled = 0 ");
+        if (request.getOutsourceId() != null && request.getOutsourceId() != 0) {
+            sql.append(" and createUser = #{AssignableCollectionOrderReq.outsourceId} ");
+        }
+        if (StringUtils.isNotBlank(request.getCreateBeginTime())) {
+            sql.append(" and createTime >= '" + request.getCreateBeginTime() + " 00:00:00'");
+        }
+        if (StringUtils.isNotBlank(request.getCreateEndTime())) {
+            sql.append(" and createTime <= '" + request.getCreateEndTime() + " 23:59:59'");
+        }
+        sql.append(" group by 1) collect on collect.orderNo = coll.orderUUID ");
+
+        sql.append(" where coll.disabled = 0 and coll.sourceType = 1");
+        if (StringUtils.isNotBlank(request.getRealName())) {
+            sql.append(" and coll.orderUUID in (select ord.uuid from ordOrder ord join usrUser usr on usr.uuid = ord.userUuid " +
+                    " where ord.disabled = 0 and usr.disabled = 0 and usr.realName = #{AssignableCollectionOrderReq.realName} )");
+        }
+        if (StringUtils.isNotBlank(request.getOrderNo())) {
+            sql.append(" and coll.orderUUID = #{AssignableCollectionOrderReq.orderNo}");
+        }
+        if (request.getCheckerId() != null && request.getCheckerId() != 0) {
+            sql.append(" and (coll.outsourceId = #{AssignableCollectionOrderReq.checkerId} or coll.subOutSourceId = #{AssignableCollectionOrderReq.checkerId}) ");
+        }
+
+        logger.info("secondQualityCheck lists sql is :" + sql.toString());
         return sql.toString();
     }
 }

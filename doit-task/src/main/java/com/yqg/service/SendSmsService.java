@@ -66,7 +66,7 @@ public class SendSmsService {
      * */
     public void sendSmsToSilenceUser() throws Exception{
 
-        String content = "<Do-It> Yth Nasabah Do-it! Log in ke goo.gl/xz5yw2 dan dptkan 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya! ";
+        String content = "<Do-It> Yth Nasabah Do-It! Log in ke goo.gl/xz5yw2 dan dptkan 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya! ";
 
         List<UsrUser> userList = this.usrDao.getSilenceUser();
 
@@ -134,7 +134,7 @@ public class SendSmsService {
     }
 
     public static void main(String[] args) {
-        String content = "<Do-It> Yth Nasabah Do-it! Log in ke goo.gl/RLfJ8Z dan dapatkn 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya! Semoga Anda bahagia!";
+        String content = "<Do-It> Yth Nasabah Do-It! Log in ke goo.gl/RLfJ8Z dan dapatkn 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya! Semoga Anda bahagia!";
 
         log.info(content.length()+"");
     }
@@ -193,7 +193,7 @@ public class SendSmsService {
      * */
     public void sendSmsToUangUser() throws Exception{
 
-        String content = "<Do-It> Yth Nasabah Do-it! Log in ke goo.gl/RLfJ8Z dan dptkan 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya!";
+        String content = "<Do-It> Yth Nasabah Do-It! Log in ke goo.gl/RLfJ8Z dan dptkan 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya!";
 
         List<UangMobiel> mobielList = this.uangMobielDao.getUangMobie();
 
@@ -487,6 +487,7 @@ public class SendSmsService {
     }
 
     public void sendReduceSms() throws Exception{
+
 
         List<UserResponse> userList = this.usrDao.sendReduceSms();
         log.info("sendReduceSms count is :"+userList.size());
@@ -914,7 +915,7 @@ public class SendSmsService {
      * */
     public void sendSmsToSilenceUserWithTwoWeek() throws Exception{
 
-        String content = "<Do-It> Yth Nasabah Do-it! Log in ke goo.gl/xz5yw2 dan dptkan 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya! ";
+        String content = "<Do-It> Yth Nasabah Do-It! Log in ke goo.gl/xz5yw2 dan dptkan 1 juta rupiah. Jika pinjaman Anda berhasil, Anda akn bebas verif selamanya! ";
 
         List<UsrUser> userList = this.usrDao.getSilenceUserWithTwoWeek();
 

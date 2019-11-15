@@ -82,11 +82,16 @@ public class OrdController {
     @ApiOperation("获取延期订单相关配置")
     @RequestMapping(value = "/getDelayOrderConfig", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
-    public ResponseEntity<DelayOrdResponse> getDelayOrderConfig(HttpServletRequest request, @RequestBody SaveOrderUserUuidRequest saveOrderUserUuidRequest)
+//    public ResponseEntity<DelayOrdResponse> getDelayOrderConfig(HttpServletRequest request, @RequestBody SaveOrderUserUuidRequest saveOrderUserUuidRequest)
+//            throws Exception{
+    public ResponseEntity<ExtendFormulaResponse> getDelayOrderConfig(HttpServletRequest request, @RequestBody SaveOrderUserUuidRequest saveOrderUserUuidRequest)
             throws Exception{
         log.info("获取延期订单相关配置");
 
-        return ResponseEntityBuilder.success(delayOrdService.delayOrderInfo(saveOrderUserUuidRequest));
+        //return ResponseEntityBuilder.success(delayOrdService.delayOrderInfo(saveOrderUserUuidRequest));
+
+	// New Formula for Extension
+	return ResponseEntityBuilder.success(delayOrdService.delayOrderInfoV2(saveOrderUserUuidRequest));
     }
 
     @ApiOperation("提交延期申请")

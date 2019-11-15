@@ -28,7 +28,7 @@ import javax.crypto.Cipher;
 @Component
 @Slf4j
 public class DESUtils {
-   private static String password = "";
+    private static String password = "";
 
     private static String filePath = "";
 
@@ -76,12 +76,18 @@ public class DESUtils {
         return result;
     }
 
+    public static String encryptNew(String data) {
+        byte[] encrypt = encrypt(data.getBytes(), getPassword());
+        String result = Base64.encodeBase64String(encrypt);
+        return result;
+    }
     /**
      * ?????
      * @param data
      * @return
      */
     public static String decrypt(String data) {
+
         byte[] encrypt = new byte[0];
         try {
             encrypt = decrypt(Base64.decodeBase64(data), getPassword());
@@ -92,6 +98,16 @@ public class DESUtils {
         return result;
     }
 
+    public static String decryptNew(String data) {
+        byte[] encrypt = new byte[0];
+        try {
+            encrypt = decrypt(Base64.decodeBase64(data), getPassword());
+        } catch (Exception e) {
+            log.error("decrypt error, data=" + data, e);
+        }
+        String result = new String(encrypt);
+        return result;
+    }
     /**
      * ??
      *
@@ -144,3 +160,4 @@ public class DESUtils {
         return cipher.doFinal(src);
     }
 }
+

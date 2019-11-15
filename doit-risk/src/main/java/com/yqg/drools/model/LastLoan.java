@@ -17,4 +17,10 @@ public class LastLoan {
 	private Long overdueDays = 0L;
 
 	private BigDecimal borrowingAmount;
+
+	private Boolean hitIncreaseLoanLimit200RMB;
+
+
+	private Long intervalDays; // the diffDays for current loan and last loan
+
 }

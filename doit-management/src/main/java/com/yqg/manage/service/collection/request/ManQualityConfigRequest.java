@@ -22,5 +22,5 @@ public class ManQualityConfigRequest {
 
     private Integer pageSize = 10;
 
-    private Integer type = 0; //0 备注质检 1 语音质检
+    private Integer type; //0 备注质检 1 语音质检
 }

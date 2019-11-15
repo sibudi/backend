@@ -501,5 +501,6 @@ public interface UsrBlackListDao extends BaseMapper<UsrBlackList> {
     Integer mobileIsUnSettledOverdue7UserWithBorrowingCountN(@Param("formatMobileList") List<String> formatMobileList,
                                                     @Param("borrowingCount") int borrowingCount);
 
-
+    @Select("select * from usrBlackList limit 1;")
+    List<UsrBlackList> getAllBlackList();
 }

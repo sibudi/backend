@@ -10,7 +10,6 @@
 *.jar
 *.lst
 *.properties
-*.xml
 *.original
 
 ######################
@@ -54,6 +53,7 @@ flyway/jars/*.jar
 *.*~
 *~
 .merge_file*
+bootstrap-prod.yml
 
 ######################
 # Gradle Wrapper

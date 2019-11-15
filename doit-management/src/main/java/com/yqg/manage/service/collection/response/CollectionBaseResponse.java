@@ -30,4 +30,6 @@ public class CollectionBaseResponse {
 
     @ApiModelProperty(value = "订单号")
     private String uuid;
+
+    private Integer id;
 }

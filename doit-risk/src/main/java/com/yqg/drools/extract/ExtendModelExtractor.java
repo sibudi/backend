@@ -30,7 +30,10 @@ public class ExtendModelExtractor {
 
     public Optional<ExtendModel> extractModel(OrdOrder order) {
         ExtendModel model = new ExtendModel();
-        model.setHit600NonManualRules(false);
+        model.setHit600NonManualRules(nonManualReviewService.isNonManualReviewOrder(order.getUuid()));
+
+        //命中免核并且排除如下3条
+        model.setHit600NonManualRulesForPrd100(false);
         boolean nonManual = nonManualReviewService.isNonManualReviewOrder(order.getUuid());
         if (nonManual) {
             boolean hitSpecifiedRule = false;
@@ -40,13 +43,11 @@ public class ExtendModelExtractor {
                         ruleResultList.stream().filter(elem -> "true".equals(elem.getRuleRealValue()) && IGNORE_NON_MANUAL_RULES.contains(elem.getRuleDetailType())).findFirst().isPresent();
             }
             if (hitSpecifiedRule) {
-                model.setHit600NonManualRules(false);
+                model.setHit600NonManualRulesForPrd100(false);
             } else {
-                model.setHit600NonManualRules(true);
+                model.setHit600NonManualRulesForPrd100(true);
             }
         }
-
-
         return Optional.of(model);
     }
 }

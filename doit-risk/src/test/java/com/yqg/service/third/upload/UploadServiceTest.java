@@ -31,14 +31,14 @@ public class UploadServiceTest {
     @Autowired
     private CheetahUploadService cheetahUploadService;
 
-    @Test
+    //@Test
     public void uploadFile() throws URISyntaxException, IOException {
-//        String fileUrl = "http://t2.hddhhn.com/uploads/tu/201612/6/4hgqkszdmpd.jpg";
-//        Optional<UploadResultInfo> aNull = uploadService.downloadFileAndUpload(fileUrl, "");
-//        System.out.println(aNull.get());
+        String fileUrl = "http://t2.hddhhn.com/uploads/tu/201612/6/4hgqkszdmpd.jpg";
+        Optional<UploadResultInfo> aNull = uploadService.downloadFileAndUpload(fileUrl, "");
+        System.out.println(aNull.get());
     }
 
-    @Test
+    //@Test
     public void uploadImages() throws URISyntaxException, IOException {
         String fileName = "4hgqkszdmpd.jpg";
         String fileUrl = "http://t2.hddhhn.com/uploads/tu/201612/6/4hgqkszdmpd.jpg";
