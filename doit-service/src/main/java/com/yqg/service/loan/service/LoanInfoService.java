@@ -771,12 +771,9 @@ public class LoanInfoService {
                 record.setTransactionId(response.getTransactionId());
             }
 
-            // 查询还款码 获取用户当时的还款信息
-            OrdPaymentCode scan = new OrdPaymentCode();
-            scan.setOrderNo(orderNo);
-            scan.setPaymentCode(response.getPaymentCode());
-
-            List<OrdPaymentCode> codeList =  this.ordPaymentCodeDao.scan(scan);
+            // bug fix budi 20191119: memperbaiki isi dari tbl ordRepayAmoutRecord 
+            // agar mengambil record yg created date-nya paling akhir.
+            List<OrdPaymentCode> codeList = this.ordPaymentCodeDao.getOrderPaymentCodeByOrderNoDesc(orderNo, response.getPaymentCode());
             if (!CollectionUtils.isEmpty(codeList)){
                 OrdPaymentCode paymentCode = codeList.get(0);
                 if (!StringUtils.isEmpty(paymentCode.getActualRepayAmout())){
@@ -822,7 +819,7 @@ public class LoanInfoService {
 
 
             }else {
-                log.error("未查询到paymentCode");
+                log.error("paymentCode not found");
                 throw new ServiceException(ExceptionEnum.ORDER_REPAYMENT_CODE_NOT_FOUND);
             }
             this.ordRepayAmoutRecordDao.insert(record);
