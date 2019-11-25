@@ -822,7 +822,7 @@ public class LoanInfoService {
 
 
             }else {
-                log.error("未查询到paymentCode");
+                log.error("paymentCode not found");
                 throw new ServiceException(ExceptionEnum.ORDER_REPAYMENT_CODE_NOT_FOUND);
             }
             this.ordRepayAmoutRecordDao.insert(record);
