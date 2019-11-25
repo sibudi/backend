@@ -241,3 +241,5 @@ spring:
     check-template-location: false
   freemarker:
     checkTemplateLocation: false
+
+endpoints.enabled: false

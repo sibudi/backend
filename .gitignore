@@ -37,6 +37,11 @@
 target/
 
 ######################
+# Contain sensitive information, do not push
+######################
+sonarqube.token 
+
+######################
 # Gradle
 ######################
 .gradle/

@@ -222,3 +222,5 @@ spring:
     checkTemplateLocation: false
 manager:
   ourPayPath: http://api.uat.doitglotech.cloud/
+
+endpoints.enabled: false

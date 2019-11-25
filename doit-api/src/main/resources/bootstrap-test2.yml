@@ -270,3 +270,5 @@ tongdun:
   partnerKey: invalid_key
   appName: DoIt2_and
   checkBeforeCreditUrl: https://apitest.tongdun.net/aurora/apply/v1
+
+endpoints.enabled: false

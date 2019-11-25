@@ -28,3 +28,5 @@ rsa:
   file:
     privateKey: /SECRET/rsa-pri-test.cer
     publicKey: /SECRET/rsa-pub-test.cer
+
+endpoints.enabled: false
