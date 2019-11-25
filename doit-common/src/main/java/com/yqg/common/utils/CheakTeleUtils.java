@@ -75,6 +75,42 @@ public class CheakTeleUtils {
             return "";
         }
     }
+    public static String telephoneNumberValidForQuiros(String phone) {
+        if(StringUtils.isNotEmpty(phone)&&phone.startsWith("00")){
+            phone = phone.substring(2);
+        }
+        String str1 = "628";
+        String str2 = "+628";
+        String str3 = "08";
+        String strHomePhone1 = "62";
+        String strHomePhone2 = "0";
+        String strHomePhone3 = "+62";
+        String reg = "^628";
+        String reg1 = "^08";
+        String reg2 ="^62";
+        String reg3 = "^0";
+
+        phone = phone.replaceAll("\\s", "").replaceAll("-", "");
+        if (phone.startsWith(str1)) {
+            phone = phone.replaceAll(reg, "8");
+        } else if (phone.startsWith(str2)) {
+            phone = phone.replaceAll("\\+628", "8");
+        } else if (phone.startsWith(str3)) {
+            phone = phone.replaceAll(reg1, "8");
+        } else if (phone.startsWith(strHomePhone1)){
+            phone = phone.replaceAll(reg2, "");
+        } else if (phone.startsWith(strHomePhone2)){
+            phone = phone.replaceAll(reg3, "");}
+        else if (phone.startsWith(strHomePhone3)){
+            phone = phone.replaceAll("\\+62", "");}
+//        phone = phone.replaceAll("\\+62","0").replaceAll("\\s","").replaceAll("-","");
+            phone = "0"+phone;
+        if (phone.length() >= 9 && phone.length() <= 13 && phone.startsWith("0")) {
+            return phone;
+        } else {
+            return "";
+        }
+    }
 
     public static String fetchNumbers(String numbers){
         if(StringUtils.isEmpty(numbers)){

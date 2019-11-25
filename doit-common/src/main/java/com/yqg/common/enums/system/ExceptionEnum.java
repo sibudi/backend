@@ -73,6 +73,7 @@ public enum ExceptionEnum {
     SYSTEM_APP_NEED_UPDATE(2040,"Mohon perbaharui app Do-it Anda di Google Play."),//客户端版本过低，请更新应用
     SYSTEM_UPGRADE(2041,"Maaf dengan adanya peningkatan versi. Terima kasih"),//抱歉，我们的系统正在升级，请至googleplay下载我们的APP。 谢谢
 
+   
 
     ORDER_PRODUCT_CONFIG_IS_NULL(3014,"konfigurasi produk tidak terdaftar"),//产品配置不存在
     ORDER_NOT_FOUND(3018,"permohonan tidak terdaftar"),//订单不存在
@@ -85,6 +86,12 @@ public enum ExceptionEnum {
     ORDER_REPAYMENT_CODE_NOT_FOUND(3035,"Kode pembayaran nasabah tidak ditemukan"),//未找到还款码
     ORDER_CAN_NOT_COMMIT(3036,"Nasabah Yth, saat ini aplikasi kami sedang dalam perbaikan. Maaf untuk ketidaknyamanannya."),//亲爱的Do-It客户 对不起，我们的系统正在维护和升级。 谢谢
 
+    //OVO_TRANSACTION_FAILED(4001,"Transaksi Gagal"),
+    OVO_INVALID_NUMBER(14,"Nomor HP/OVO ID yang anda masukkan tidak ditemukan dalam sistem. Cek kembali nomor yang anda masukkan."),
+    OVO_TRANSACTION_DECLINE(17,"Transaksi telah dibatalkan oleh pengguna melalui aplikasi OVO."),
+    OVO_TRANSACTION_FAILED(40,"Gagal melakukan pembayaran. Silahkan melakukan pembayaran ulang."),
+    OVO_PENDING_REVERSAL(68,"Gagal melakukan pembayaran. Transaksi ini melewati batas waktu penyelesaian pembayaran (timed out). Silahkan cek aplikasi Do-it atau dana OVO Anda dalam 10 menit."),
+    
     MANAGE_SESSION_UN_LOGIN(9999,"pengguna tidak sedang masuk ke akun"),//用户未登陆
     MANAGE_LOGIN_ERROR(10000,"percobaan masuk pengguna gagal"),//用户登陆失败
     MANAGE_ADD_USER_ERROR(10001,"Gagal mengubah data nasabah"),//编辑用户失败

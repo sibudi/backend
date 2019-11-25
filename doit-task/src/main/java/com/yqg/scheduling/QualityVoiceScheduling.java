@@ -23,21 +23,21 @@ public class QualityVoiceScheduling {
      *
      */
 
-    @Scheduled(cron = "0 */1 * * * ?")
+    //@Scheduled(cron = "0 */1 * * * ?")
     public void updateQualityVoiceRecord() throws Exception {
         log.info("update Quality0 voice Record start ========");
         qualityCheckingVoiceService.updateQualityVoiceRecord(0);
         log.info("update quality0 voice record end ========");
     }
 
-    @Scheduled(cron = "0 */1 * * * ?")
+    //@Scheduled(cron = "0 */1 * * * ?")
     public void updateQualityVoiceRecord1() throws Exception {
         log.info("update Quality1 voice Record start ========");
         qualityCheckingVoiceService.updateQualityVoiceRecord(1);
         log.info("update quality1 voice record end ========");
     }
 
-    @Scheduled(cron = "0 */1 * * * ?")
+    //@Scheduled(cron = "0 */1 * * * ?")
     public void updateQualityVoiceRecord2() throws Exception {
         log.info("update Quality2 voice Record start ========");
         qualityCheckingVoiceService.updateQualityVoiceRecord(2);

@@ -1,26 +1,41 @@
 package com.yqg.controller.system;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MediaType;
+
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.models.BaseRequest;
 import com.yqg.common.models.ResponseEntity;
 import com.yqg.common.models.builders.ResponseEntityBuilder;
 import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.JsonUtils;
-import com.yqg.service.system.request.*;
-import com.yqg.service.system.response.*;
+import com.yqg.service.system.request.DictionaryRequest;
+import com.yqg.service.system.request.SysPaymentChannelRequest;
+import com.yqg.service.system.request.SysSchoolListRequest;
+import com.yqg.service.system.response.SysAppH5Response;
+import com.yqg.service.system.response.SysBankBasicInfoResponse;
+import com.yqg.service.system.response.SysCheakAppsResponse;
+import com.yqg.service.system.response.SysPaymentChannelResponse;
+import com.yqg.service.system.response.SysPaymentChannelTypeResponse;
+import com.yqg.service.system.response.SysSchoolListResponse;
+import com.yqg.service.system.response.SysShareDataResponse;
 import com.yqg.service.system.service.SysPaymentChannelService;
 import com.yqg.service.system.service.SystemService;
-import io.swagger.annotations.ApiOperation;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MediaType;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -79,6 +94,17 @@ public class SystemController {
 //        log.info("request body {}", JsonUtils.serialize(channelRequest));
         log.info("获取支付通道列表");
         return ResponseEntityBuilder.success( sysPaymentChannelService.getSysPaymentChennelList(channelRequest));
+    }
+
+    @ApiOperation("获取支付通道列表")
+    @RequestMapping(value = "/getPaymentChannelTypeList", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<List<SysPaymentChannelTypeResponse>> getPaymentChannelTypeList(HttpServletRequest request, @RequestBody SysPaymentChannelRequest channelRequest)
+            throws Exception {
+//        UserSessionUtil.filter(request,this.redisClient,channelRequest);
+//        log.info("request body {}", JsonUtils.serialize(channelRequest));
+        log.info("获取支付通道列表");
+        return ResponseEntityBuilder.success( sysPaymentChannelService.getSysPaymentChannelTypeList(channelRequest));
     }
 
     @ApiOperation("是否开启APP上传，仅供iOS客户端使用")

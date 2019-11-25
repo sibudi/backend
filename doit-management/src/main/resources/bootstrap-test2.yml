@@ -118,6 +118,11 @@ collection:
   amountApply: 100000,200000,400000,600000,800000,1000000,1200000,1500000
 
 third:
+  quiros:
+    grantType: client_credentials
+    clientId: 1
+    clientSecret: NgXX1SxaocPjmy8dNNKxTcCl6q85iLMHlfQaJVjV
+    baseUrl: http://110.35.84.4:8888/api/v1
   upload:
     uploadHost: http://api.uat.doitglotech.cloud
     uploadFilePath: /uploadManageFile

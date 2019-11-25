@@ -298,7 +298,12 @@ public class RedisContants {
     public static final String INFORBIP_OLD_ENDPOINT = "INFORBIP_OLD_ENDPOINT"; //https://api.infobip.com
 
     public static final String ORDER_COLLECTION_CHECK_QUALITY = "order:collection:check:lock:";
-
+        
+    
+    public static final String BANK_SWITCH = "paymentSwitch:bankSwitch";
+    public static final String OVO_SWITCH = "paymentSwitch:ovoSwitch";
+    public static final String OVO_SWITCH_TIME_FROM = "paymentSwitch:ovoTimeFrom";
+    public static final String OVO_SWITCH_TIME_TO = "paymentSwitch:ovoTimeTo";
 
 
 }
