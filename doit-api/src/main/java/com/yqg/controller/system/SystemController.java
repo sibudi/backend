@@ -16,6 +16,7 @@ import com.yqg.common.utils.JsonUtils;
 import com.yqg.service.system.request.DictionaryRequest;
 import com.yqg.service.system.request.SysPaymentChannelRequest;
 import com.yqg.service.system.request.SysSchoolListRequest;
+import com.yqg.service.system.response.SysAiqqonIsLiveResponse;
 import com.yqg.service.system.response.SysAppH5Response;
 import com.yqg.service.system.response.SysBankBasicInfoResponse;
 import com.yqg.service.system.response.SysCheakAppsResponse;
@@ -154,4 +155,10 @@ public class SystemController {
         return ResponseEntityBuilder.success(this.systemService.getSchoolNameWithKey(schoolListRequest.getNameStr()));
     }
 
+    @ApiOperation("Aiqqon")
+    @RequestMapping(value = "/getAiqqonStatus",method = RequestMethod.POST,produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<SysAiqqonIsLiveResponse> getAiqqonStatus(HttpServletRequest httpRequest, @RequestBody BaseRequest BaseRequest) throws Exception{
+        return ResponseEntityBuilder.success(this.systemService.getAiqqonStatus());
+    }
 }
