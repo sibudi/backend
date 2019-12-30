@@ -266,7 +266,10 @@ public class RedisContants {
     public  static final String INVOKE_ASLI_SWITCH ="invoke:ali:swtich";//invoke asli switch
     public  static final String INVOKE_DIGI_SIGN_SWITCH ="invoke:digiSign:switch";//invoke digiSign switch
     public  static final String RE_BORROWING_DIGI_SIGN_START_TIME ="reBorrowing:digi:sign:startTime";//reBorrowing:digi:sign:startTime
-
+    //budi: add constant for digisign percentage
+    public static final String DIGITAL_SIGN_BUCKET = "digital:sign:bucket";
+    public static final String DIGITAL_SIGN_PERCENTAGE = "digital:sign:percentage";
+    
     public static final String DIGITAL_SIGN_STATUS_CHECK_INTERVAL ="digital:sign:status:checkInterval";//等待状态前端查询频率
 
     public static final String DIGITAL_SIGN_SELFIE_SCORE_LIMIT ="digital:sign:selfieScore:limit";//自拍照分数限制
