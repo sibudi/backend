@@ -23,7 +23,7 @@ public class RepayRequest extends BaseRequest {
      *   20180531 目前只有DOKU还款
      *   但是新增的p2p渠道还款中 BNI需要通过BNI银行还款 其他银行还是使用DOKU
      * */
-    @ApiModelProperty(value = "还款类型 1 bluePay  2 xendit 3 CIMB 4 DOKU 5 BNI")
+    @ApiModelProperty(value = "还款类型 1 bluePay  2 xendit 3 CIMB 4 DOKU 5 BNI 6 Ovo")
     @JsonProperty
     private String repaymentType;
 
@@ -34,4 +34,6 @@ public class RepayRequest extends BaseRequest {
     private String type;  // 1 正常还款   2 展期还款    3 分期账单还款
 
     private String principal;  //  还款本金
+
+    private String ovoAccount; //Ovo account
 }

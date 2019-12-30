@@ -19,8 +19,12 @@ public class OkHttpClientConfig {
     public OkHttpClient okHttpClient(){
         return new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(90, TimeUnit.SECONDS)
+                .readTimeout(90, TimeUnit.SECONDS)
                 .build();
+                // .connectTimeout(30, TimeUnit.SECONDS)
+                // .writeTimeout(30, TimeUnit.SECONDS)
+                // .readTimeout(60, TimeUnit.SECONDS)
+                // .build();
     }
 }

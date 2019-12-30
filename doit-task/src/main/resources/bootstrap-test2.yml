@@ -113,6 +113,11 @@ upload:
   #path:  http://10.24.30.72:8082
   imagePath: http://api.uat.doitglotech.cloud/manage/showStreamOnBrowser?path= #:8082/manage/showStreamOnBrowser?path=
 third:
+  quiros:
+    grantType: client_credentials
+    clientId: 1
+    clientSecret: NgXX1SxaocPjmy8dNNKxTcCl6q85iLMHlfQaJVjV
+    baseUrl: http://110.35.84.4:8888/api/v1
   upload:
     uploadHost: http://api.uat.doitglotech.cloud
     uploadFilePath: /uploadFile/uploadManageFile
@@ -241,3 +246,5 @@ spring:
     check-template-location: false
   freemarker:
     checkTemplateLocation: false
+
+endpoints.enabled: false

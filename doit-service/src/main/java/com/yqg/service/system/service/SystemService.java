@@ -57,6 +57,9 @@ public class SystemService {
     @Autowired
     private UploadService uploadService;
 
+    @Autowired
+    private RedisClient redisClient;
+
     @Value("${upload.path}")
     private  String path;
 //    @Value("${downlaod.writerPath}")
@@ -385,5 +388,23 @@ public class SystemService {
 //
 //    }
 
+
+
+
+public SysAiqqonIsLiveResponse getAiqqonStatus(){
+    SysAiqqonIsLiveResponse response = new SysAiqqonIsLiveResponse();
+    String result = redisClient.get(RedisContants.AIQQON_SWITCH);
+    if(result.equals("1")){
+    response.setIsOn(result);
+    } else {
+    response.setIsOn("0");
+    }
+    return response;
+    }
 }
+    
+
+
+
+
 

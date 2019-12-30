@@ -1,6 +1,14 @@
 package com.yqg.service.pay;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
+import java.net.SocketTimeoutException;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import com.yqg.common.enums.order.OrdBillStatusEnum;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.enums.order.OrderTypeEnum;
@@ -13,7 +21,11 @@ import com.yqg.common.utils.StringUtils;
 import com.yqg.order.dao.OrdBillDao;
 import com.yqg.order.dao.OrdDelayRecordDao;
 import com.yqg.order.dao.OrdPaymentCodeDao;
-import com.yqg.order.entity.*;
+import com.yqg.order.entity.CouponRecord;
+import com.yqg.order.entity.OrdBill;
+import com.yqg.order.entity.OrdDelayRecord;
+import com.yqg.order.entity.OrdOrder;
+import com.yqg.order.entity.OrdPaymentCode;
 import com.yqg.service.order.OrdBillService;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.p2p.request.UserRepayRequest;
@@ -26,25 +38,21 @@ import com.yqg.service.system.service.SysThirdLogsService;
 import com.yqg.service.user.service.UsrService;
 import com.yqg.system.dao.SysPaymentChannelDao;
 import com.yqg.system.dao.SysProductDao;
-import com.yqg.system.entity.SysPaymentChannel;
 import com.yqg.system.entity.SysProduct;
 import com.yqg.user.entity.UsrUser;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Created by wanghuaizhou on 2017/12/29.
@@ -77,6 +85,10 @@ public class RepayService {
     // ??????url
     @Value("${pay.commitRepayUrl}")
     private String COMMIT_REPAY_URL;
+
+    @Value("${pay.ovoCommitRepayUrl}")
+    private String OVO_COMMIT_REPAY_URL;
+
     @Value("${pay.token}")
     private String PAY_TOKEN;
 
@@ -153,9 +165,19 @@ public class RepayService {
 
         if (!StringUtils.isEmpty(responseStr)){
             repayResponse = JsonUtils.deserialize(responseStr,RepayResponse.class);
-            if (!repayResponse.getCode().equals("0")){
-                throw new ServiceException(ExceptionEnum.USER_BASE_PARAMS_ILLEGAL);
+            if (!(repayResponse.getCode().equals("0") || repayResponse.getCode().equals("00"))){
+                
+                if(repayResponse.getCode().equals("14")){
+                    throw new ServiceException(ExceptionEnum.OVO_INVALID_NUMBER);
+                }else if(repayResponse.getCode().equals("17")){
+                    throw new ServiceException(ExceptionEnum.OVO_TRANSACTION_DECLINE);
+                }else if(repayResponse.getCode().equals("68")){
+                    throw new ServiceException(ExceptionEnum.OVO_PENDING_REVERSAL);
+                }else {
+                    throw new ServiceException(ExceptionEnum.OVO_TRANSACTION_FAILED);
+                }
             }
+
         }else {
             throw new ServiceException(ExceptionEnum.USER_BASE_PARAMS_ILLEGAL);
         }
@@ -174,6 +196,9 @@ public class RepayService {
         }else if(paymentType.equals("5")){
             // BNI
             return  commitRepay(repayRequest, object, "BNI");
+        }else if(paymentType.equals("6")){
+            // BNI
+            return  commitRepay(repayRequest, object, "OVO");
         }else {
             log.info("the input repayment type(payment channel) is valid ");
             throw new ServiceException(ExceptionEnum.PAYMENT_CHANNEL_NOT_VALID);
@@ -232,6 +257,9 @@ public class RepayService {
             }else if (repayRequest.getRepaymentChannel().equals("16")){
                 // DOKU渠道的CIMB
                 depositMethod = "CIMB";
+            }else if (repayRequest.getRepaymentChannel().equals("17")){
+                // Ovo
+                depositMethod = "OVO";
             }else {
                 depositMethod = "OTHERS";
             }
@@ -278,23 +306,32 @@ public class RepayService {
             }
 
             // 非BLUEPAY还款 不需要 paymentCode 和 transactionId 参数
-            requestBody = new FormBody.Builder()
-                    .add("externalId",repayRequest.getOrderNo())  // ???
-                    .add("depositAmount",paymentCount)  // ????
-                    .add("depositChannel",paymentType) // ????
-                    .add("depositMethod",depositMethod) // ?????alfamart,BRI.mandiri,BNI,otherBanks?
-                    .add("currency","IDR")
-                    .add("depositType","PAYDAYLOAN")
-                    .add("customerName",userName)
-                    .build();
+            if(!paymentType.equals("OVO")){
+                requestBody = new FormBody.Builder()
+                .add("externalId",repayRequest.getOrderNo())  // ???
+                .add("depositAmount",paymentCount)  // ????
+                .add("depositChannel",paymentType) // ????
+                .add("depositMethod",depositMethod) // ?????alfamart,BRI.mandiri,BNI,otherBanks?
+                .add("currency","IDR")
+                .add("depositType","PAYDAYLOAN")
+                .add("customerName",userName)
+                .build();
 
-            contents.put("externalId",repayRequest.getOrderNo());  // ???
-            contents.put("depositAmount",paymentCount);  // ????
-            contents.put("depositChannel",paymentType); // ????
-            contents.put("depositMethod",depositMethod); // ?????alfamart,BRI.mandiri,BNI,otherBanks?
-            contents.put("currency","IDR"); // ??
-            contents.put("depositType","PAYDAYLOAN");   //????
-            contents.put("customerName",userName);   //????
+                contents.put("externalId",repayRequest.getOrderNo());  // ???
+                contents.put("depositAmount",paymentCount);  // ????
+                contents.put("depositChannel",paymentType); // ????
+                contents.put("depositMethod",depositMethod); // ?????alfamart,BRI.mandiri,BNI,otherBanks?
+                contents.put("currency","IDR"); // ??
+                contents.put("depositType","PAYDAYLOAN");   //????
+                contents.put("customerName",userName);   //????
+            }
+            else{
+                requestBody = new FormBody.Builder().add("externalId",repayRequest.getOrderNo())  // ???
+                .add("Amount",paymentCount)  // ????
+                .add("ovoId",repayRequest.getOvoAccount()) // ????
+                .add("remark","PAYDAYLOAN")
+                .build();
+            }
 
             log.info("用户还款金额"+paymentCount);
 
@@ -309,6 +346,8 @@ public class RepayService {
                 codeType = "4";
             }else if(paymentType.equals("BNI")){
                 codeType = "5";
+            }else if(paymentType.equals("OVO")){
+                codeType = "6";
             }
 
             //p2p还款
@@ -348,8 +387,9 @@ public class RepayService {
                 return respStr;
             }
 
+            String commitRepayURL = (paymentType.equals("OVO")) ? OVO_COMMIT_REPAY_URL : COMMIT_REPAY_URL;
             Request request = new Request.Builder()
-                    .url(COMMIT_REPAY_URL)
+                    .url(commitRepayURL)
                     .post(requestBody)
                     .header("X-AUTH-TOKEN", PAY_TOKEN)
                     .build();
@@ -357,6 +397,14 @@ public class RepayService {
             // ???????SysThirdLogs
             this.sysThirdLogsService.addSysThirdLogs(repayRequest.getOrderNo(),repayRequest.getUserUuid(), SysThirdLogsEnum.COMMIT_REPAY.getCode(),0,JsonUtils.serialize(contents),null);
 
+            // new builder 
+            httpClient.newBuilder()
+                    .connectTimeout(30,TimeUnit.SECONDS)
+                    .readTimeout(75,TimeUnit.SECONDS)
+                    .writeTimeout(75,TimeUnit.SECONDS)
+                    .build();
+            
+            
             Response response = httpClient.newCall(request).execute();
 
             if(response.isSuccessful())
@@ -381,6 +429,9 @@ public class RepayService {
                 }
                 sysThirdLogsService.addSysThirdLogs(repayRequest.getOrderNo(),repayRequest.getUserUuid(), SysThirdLogsEnum.COMMIT_REPAY.getCode(),0,null,response.body().string());
             }
+
+        } catch(SocketTimeoutException e){
+            throw new ServiceException(ExceptionEnum.SYSTEM_TIMEOUT);
         }catch (Exception e){
             log.error("提交还款异常",e);
         }
@@ -759,7 +810,10 @@ public class RepayService {
             }
 
             //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
-            BigDecimal limit = bill.getBillAmout().subtract(bill.getBillAmout().multiply(BigDecimal.valueOf(0.006542)).multiply(BigDecimal.valueOf(30))).multiply(BigDecimal.valueOf(2)).setScale(2);
+
+            //BigDecimal limit = bill.getBillAmout().subtract(bill.getBillAmout().multiply(BigDecimal.valueOf(0.006542)).multiply(BigDecimal.valueOf(30))).multiply(BigDecimal.valueOf(2)).setScale(2);
+            BigDecimal limit = bill.getBillAmout().multiply(BigDecimal.valueOf(2));
+            log.info("Limit:"+ limit);
             if (shouldPayAmount.compareTo(limit) > 0 ){
                 shouldPayAmount = limit;
             }

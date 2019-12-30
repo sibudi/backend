@@ -1,5 +1,10 @@
 server:
   port: 8080
+  connection-timeout: 90000
+  # servlet:
+  #   session:
+  #     timeout: 900000
+
   
 mysql:
   datasource:
@@ -94,12 +99,15 @@ count:
 HttpUrl:
   #smsUrl: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
   smsUrl: http://invalid_url.doitglotech.co.id/sms/send #:8899/sms/send
+  smsUrlV2: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
   #smsUrlTwilio: http://api.uat.doitglotech.cloudsms/login/code #:8899/sms/login/code
   #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
   #smsUrlInforbip: http://api.uat.doitglotech.cloud/infobip/send/pin #:8899/infobip/send/pin
   #smsUrlInforbipVerify: http://api.uat.doitglotech.cloud/infobip/verify/pin #:8899/infobip/verify/pin
   smsUrlInforbip: http://invalid_url.doitglotech.co.id/infobip/send/pin #:8899/infobip/send/pin
+  smsUrlInforbipV2: http://api.uat.doitglotech.cloud/infobip/send/pin #:8899/infobip/send/pin
   smsUrlInforbipVerify: http://invalid_url.doitglotech.co.id/infobip/verify/pin #:8899/infobip/verify/pin
+  smsUrlInforbipVerifyV2: http://api.uat.doitglotech.cloud/infobip/verify/pin #:8899/infobip/verify/pin
 SmsChannelType:
   type: ZENZIVA
 third:
@@ -173,8 +181,8 @@ third:
     whatsAppDetailUrl: https://api.izi.credit/v1/iswadetail
   asli:
     name: glotech_poc
-    #token: 9d63e8ed-3075-4208-88af-58621818e63f
-    token: invalidToken
+    token: 9d63e8ed-3075-4208-88af-58621818e63f
+    #token: invalidToken
     identityUrl: /verify_text
     selfieUrl: /verify_selfie
     verifyProfessionalPlus: /verify_profesional_plus
@@ -256,6 +264,7 @@ jxl:
   jxlIdentityUrl: http://10.24.30.69:8866/spider/jxl/ktp
 pay:
   commitRepayUrl: http://api.uat.doitglotech.cloud/repayment/deposit #:8888/repayment/deposit
+  ovoCommitRepayUrl: http://10.24.30.69:8888/ovo/repayment/deposit
   inactiveOrderUrl: http://api.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
   token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
 mobox:
@@ -270,3 +279,5 @@ tongdun:
   partnerKey: invalid_key
   appName: DoIt2_and
   checkBeforeCreditUrl: https://apitest.tongdun.net/aurora/apply/v1
+
+endpoints.enabled: false

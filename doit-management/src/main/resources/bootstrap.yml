@@ -1,5 +1,5 @@
 spring:
     profiles:
-        active: test2
+        active: dev
 log:
     path: test

@@ -179,8 +179,8 @@ third:
     whatsAppDetailUrl: https://api.izi.credit/v1/iswadetail
   asli:
     name: glotech_poc
-    #token: 9d63e8ed-3075-4208-88af-58621818e63f
-    token: invalidToken
+    token: 92395c97-3bf0-48d7-8097-5b9920d6e0fa
+    #token: invalidToken
     identityUrl: /verify_text
     selfieUrl: /verify_selfie
     verifyProfessionalPlus: /verify_profesional_plus
@@ -252,3 +252,5 @@ tongdun:
 spring:
   freemarker:
     checkTemplateLocation: false
+
+endpoints.enabled: false

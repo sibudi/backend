@@ -141,3 +141,5 @@ risk:
 spring:
   freemarker:
     checkTemplateLocation: false
+
+endpoints.enabled: false

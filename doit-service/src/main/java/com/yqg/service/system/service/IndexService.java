@@ -125,7 +125,7 @@ public class IndexService {
     private SysProductChannelDao sysProductChannelDao;
 
     private BigDecimal defaultOverDueRate1 = BigDecimal.valueOf(0.01);
-    private BigDecimal defaultOverDueRate2 = BigDecimal.valueOf(0.02);
+    private BigDecimal defaultOverDueRate2 = BigDecimal.valueOf(0.01);
 
     /**
      *   首先判断用户是否在分期白名单表中

@@ -17,6 +17,9 @@ import com.yqg.service.order.response.ExtendFormulaResponse;
 import com.yqg.service.pay.RepayService;
 import com.yqg.service.pay.request.DelayOrderRequest;
 import com.yqg.service.system.service.SysParamService;
+import com.yqg.system.dao.SysProductDao;
+import com.yqg.system.entity.SysProduct;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +47,9 @@ public class DelayOrdService {
     private OrdDao ordDao;
     @Autowired
     private OrdDelayRecordDao ordDelayRecordDao;
+
+    @Autowired
+    private SysProductDao sysProductDao;
 
     /**
      *  1，展期时需收取一定的展期服务费；
@@ -200,6 +206,7 @@ public class DelayOrdService {
                 BigDecimal realPenaltyFee =  getRealPenaltyFee(order.getAmountApply()
                         ,order.getInterest()
                         ,new BigDecimal(this.repayService.calculateOverDueFee(order)),penaltyFee);
+                // BigDecimal realPenaltyFee = getRealPenaltyFee(order);
                 update.setPenaltyFee(realPenaltyFee+"");
 
                 update.setOverDueFee(this.repayService.calculateOverDueFee(order));
@@ -216,6 +223,7 @@ public class DelayOrdService {
                 record.setInterest(order.getInterest());
 
                 BigDecimal penaltyFee = new BigDecimal(this.repayService.calculatePenaltyFee(order));
+                
                 BigDecimal realPenaltyFee =  getRealPenaltyFee(order.getAmountApply()
                         ,order.getInterest()
                         ,new BigDecimal(this.repayService.calculateOverDueFee(order)),penaltyFee);
@@ -248,69 +256,58 @@ public class DelayOrdService {
         ExtendFormulaResponse response = new ExtendFormulaResponse();
 
         response.setName("Total yang harus Dibayarkan");
-        response.setMainFormula("fun(payAmount) = feeExtension + lateFee + operationalFee + payAmount");
+        response.setMainFormula("fun(payAmount) =if(feeExtension + lateFee + operationalFee + payAmount>("+order.getAmountApply()+"-"+order.getServiceFee()+")*2,("+order.getAmountApply()+"-"+order.getServiceFee()+")*2, feeExtension + lateFee + operationalFee + payAmount)") ;
         String sysParamValue = this.sysParamService.getSysParamValue(SysParamContants.DELAYORDER_OF_GRANULARITY);
-        if (StringUtils.isEmpty(sysParamValue)){
+        if (StringUtils.isEmpty(sysParamValue)) {
             sysParamValue = "50000";
         }
         response.setGranulaNum(Float.parseFloat(sysParamValue));
 
         ArrayList<Integer> dateList = new ArrayList<>();
         dateList.add(30);
-        List<Map<String,String>> confList = new ArrayList<>();
+        List<Map<String, String>> confList = new ArrayList<>();
 
-        for(int j=0; j<dateList.size();j++){
+        for (int j = 0; j < dateList.size(); j++) {
             int date = dateList.get(j);
-            Map<String,String> confMap = new HashMap<>();
-            confMap.put("day",String.valueOf(date));
-            confMap.put("nextRepayDay", DateUtils.DateToString(DateUtils.addDate(new Date(),date)));
+            Map<String, String> confMap = new HashMap<>();
+            confMap.put("day", String.valueOf(date));
+            confMap.put("nextRepayDay", DateUtils.DateToString(DateUtils.addDate(new Date(), date)));
             confList.add(confMap);
         }
 
         response.setConfig(confList);
-
-
-
-
 
         ChildFormulaResponse lateFee = new ChildFormulaResponse();
 
         try {
             List<ChildFormulaResponse> childFormulaList = new ArrayList<>();
 
-
             ChildFormulaResponse feeExtension = new ChildFormulaResponse();
             feeExtension.setNama("Biaya Pembagian Pelunasan");
             feeExtension.setVar("feeExtension");
-            feeExtension.setFormula("fun(payAmount) = 0.0064 * 30 * ("+ order.getAmountApply()+" - payAmount)");
+            feeExtension.setFormula("fun(payAmount) = 0.0064 * 30 * (" + order.getAmountApply() + " - payAmount)");
 
-
-            int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(order.getRefundTime(), "yyyy-MM-dd"), DateUtils.formDate(new Date(), "yyyy-MM-dd"));
+            int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(order.getRefundTime(), "yyyy-MM-dd"),
+                    DateUtils.formDate(new Date(), "yyyy-MM-dd"));
             lateFee.setNama("Denda Keterlambatan");
             lateFee.setVar("lateFee");
-            lateFee.setFormula("fun(payAmount) = if( 0.01 *"+ overdueDay +" * "+ order.getAmountApply()+" > payAmount * 2, payAmount * 2 , 0.01 * "+ overdueDay +" *"+ order.getAmountApply() +")");
-
+            lateFee.setFormula("fun(payamount) = 0.01 *"+ overdueDay + " *" + order.getAmountApply());
 
             ChildFormulaResponse operationalFee = new ChildFormulaResponse();
             operationalFee.setNama("Biaya Operasional");
             operationalFee.setVar("operationalFee");
-            operationalFee.setFormula("fun(payAmount) = if("+ order.getAmountApply()+">2000000, 60000 , if("+ order.getAmountApply()+">500000, 40000, 20000))");
-
+            operationalFee.setFormula("fun(payAmount) = if(" + order.getAmountApply() + ">2000000, 60000 , if("
+                    + order.getAmountApply() + ">500000, 40000, 20000))");
 
             childFormulaList.add(feeExtension);
             childFormulaList.add(lateFee);
             childFormulaList.add(operationalFee);
-
-
-
 
             response.setChildFormula(childFormulaList);
 
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-
 
         return response;
     }
