@@ -54,4 +54,11 @@ public class DigitalSignTaskScheduler {
         }
         log.info("task finished...");
     }
+
+    @Scheduled(cron = "0 1 0 1/1 * ?")
+    public void doDigitalSignReloadBucket() {
+        log.info("Digital Sign reload bucket begin");
+        contractSignService.doDigitalSignReloadBucket();
+        log.info("Digital Sign reload bucket end");
+    }
 }

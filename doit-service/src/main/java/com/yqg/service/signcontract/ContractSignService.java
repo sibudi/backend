@@ -10,6 +10,7 @@ import com.yqg.externalChannel.entity.ExternalOrderRelation;
 import com.yqg.mongo.entity.DigiSignRequestMongo;
 import com.yqg.order.entity.OrdDeviceInfo;
 import com.yqg.order.entity.OrdOrder;
+import com.yqg.order.dao.*;
 import com.yqg.service.externalChannel.service.ExternalChannelDataService;
 import com.yqg.service.externalChannel.utils.CustomHttpResponse;
 import com.yqg.service.order.OrdDeviceInfoService;
@@ -68,6 +69,8 @@ public class ContractSignService {
     private SmsServiceUtil smsServiceUtil;
     @Autowired
     private UsrService usrService;
+    @Autowired
+    private OrdDao orderDao;
 
     @Autowired
     private ExecutorService executorService;
@@ -427,10 +430,42 @@ public class ContractSignService {
                 if(StringUtils.isEmpty(startTime)){
                     startTime = "2019-07-12";
                 }
-                return firstOrderApplyTime.compareTo(DateUtils.stringToDate(startTime, DateUtils.FMT_YYYY_MM_DD)) >= 0;
+                if(firstOrderApplyTime.compareTo(DateUtils.stringToDate(startTime, DateUtils.FMT_YYYY_MM_DD)) >= 0) {
+                    // budi: check digisign bucket for today
+                    int bucket = Integer.parseInt(redisClient.get(RedisContants.DIGITAL_SIGN_BUCKET));
+                    if( bucket <= 0) {
+                        log.info("Digisign bucket is already empty.");
+                        return false;
+                    }
+                    bucket -= 1;
+                    redisClient.set(RedisContants.DIGITAL_SIGN_BUCKET, String.valueOf(bucket));
+
+                    return true;
+                }
+
+                return false;
             }
         }
+
+        // budi: check digisign bucket for today
+        int bucket = Integer.parseInt(redisClient.get(RedisContants.DIGITAL_SIGN_BUCKET));
+        if( bucket <= 0) {
+            log.info("Digisign bucket is already empty.");
+            return false;
+        }
+        bucket -= 1;
+        redisClient.set(RedisContants.DIGITAL_SIGN_BUCKET, String.valueOf(bucket));
+
         return true;
+    }
+
+    //budi: only the first x% from yesterday order do digital sign
+    public void doDigitalSignReloadBucket() {
+        int yesterdayOrder = orderDao.countOfYesterdayOrder();
+        int percentage = Integer.parseInt(redisClient.get(RedisContants.DIGITAL_SIGN_PERCENTAGE));
+        int bucket = (yesterdayOrder * percentage/100) + 1; //x% dari jumlah order h-1 dibulatkan ke atas
+
+        redisClient.set(RedisContants.DIGITAL_SIGN_BUCKET, String.valueOf(bucket));
     }
 
     public static void main(String[] args) {

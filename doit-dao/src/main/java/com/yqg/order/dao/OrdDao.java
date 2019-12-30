@@ -34,6 +34,10 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
             "desc;")
     List<OrdOrder> hasProcessingOrder(@Param("userUuid") String userUuid);
 
+    //budi: digisign percentage
+    @Select("select count(*) from ordOrder where orderType in (0, 3) and CAST(lendingTime as date) = subdate(current_date, 1);")
+    int countOfYesterdayOrder();
+
     //  是否放过款
     @Select("SELECT * FROM ordOrder where  userUuid = #{userUuid} and status in(5,6,7,8,10,11) and disabled = 0")
     List<OrdOrder> hasLoan(@Param("userUuid") String userUuid);
