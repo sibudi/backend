@@ -48,11 +48,14 @@ public class RiskScoreExecutor {
         //执行评分
         try {
             Long startTime = System.currentTimeMillis();
+            //Janhsen: create score model from the facts based on previous fetch rule
             Optional<ScoreModel> scoreModel = riskScoreExtractor.extractModel(order, facts);
 
             if (scoreModel.isPresent()) {
                 List<Object> scoreFacts = new ArrayList<>();
                 scoreFacts.add(scoreModel.get());
+
+                //Janhsen: Get risk score template based on doit.ScoreTemplate
                 RiskScoreCondition condition = buildScoreModelCondition(modelEnum);
                 scoreFacts.add(condition);
                 log.info("start calculate score. model: {} ", modelEnum);

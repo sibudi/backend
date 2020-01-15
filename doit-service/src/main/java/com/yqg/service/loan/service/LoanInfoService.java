@@ -28,6 +28,7 @@ import com.yqg.service.p2p.service.P2PService;
 import com.yqg.service.p2p.utils.P2PMD5Util;
 import com.yqg.service.pay.RepayService;
 import com.yqg.service.system.service.CouponService;
+import com.yqg.service.system.service.IndexService;
 import com.yqg.service.system.service.SmsRemindService;
 import com.yqg.service.system.service.StagingProductWhiteListService;
 import com.yqg.service.third.sms.SmsServiceUtil;
@@ -145,6 +146,8 @@ public class LoanInfoService {
         }
         try {
             OrdOrder currentDbOrder = ordService.getOrderByOrderNo(order.getUuid());
+            SysProduct product = this.sysProductDao.getProductInfo(order.getProductUuid());
+
             if(currentDbOrder.getStatus()==OrdStateEnum.RESOLVING_NOT_OVERDUE.getCode()||currentDbOrder.getStatus()==OrdStateEnum.RESOLVING_OVERDUE.getCode()){
                 log.info("the loan status already update. orderNo: {}",order.getUuid());
                 return;
@@ -179,7 +182,6 @@ public class LoanInfoService {
             // 生成分期账单
             if (order.getOrderType().equals(OrderTypeEnum.STAGING.getCode())){
                 try {
-                    SysProduct product = this.sysProductDao.getProductInfo(order.getProductUuid());
                     int term = product.getBorrowingTerm();
                     Date nowDate = new Date();
                     List<OrdBill> billList = new ArrayList<>();
@@ -196,7 +198,7 @@ public class LoanInfoService {
                         bill.setOverdueFee(product.getOverdueFee());
                         bill.setOverdueRate(product.getOverdueRate1());
                         bill.setProductUuid(product.getUuid());
-                        Date  refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                        Date  refundTime =  DateUtils.getRefundDate(product.getProductType(),i, nowDate);
                         bill.setRefundTime(refundTime);
                         //  如果是分期订单 则设置其应还款时间为 第一笔账单的应还款时间
                         if (i == 1){
@@ -703,18 +705,26 @@ public class LoanInfoService {
             SysProduct product = this.sysProductDao.getProductInfo(ordOrder.getProductUuid());
             int term = product.getBorrowingTerm();
             Date lastDate = new Date();
+
+            // int totalNum = 0; //DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
+            // BigDecimal serviceFee = BigDecimal.ZERO; //product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
             // 还款计划   期数  应还款时间  还款金额
             for (int i = 1; i <= term; i++) {
-                Date  refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                // Date  refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                Date  refundTime = DateUtils.getRefundDate(product.getProductType(), i, nowDate); 
+
+                // totalNum = DateUtils.differentDaysByMillisecond(nowDate,refundTime)+1;
+                // serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
+                
                 if (i == term){
                     lastDate = refundTime;
                 }
             }
 
             int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
-            log.info("当前时间:"+DateUtils.DateToString(nowDate)+"   最后还款时间:"+DateUtils.DateToString(lastDate) + "   总借款天数:" + totalNum);
+            BigDecimal serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
 
-            BigDecimal serviceFee =  product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
+            log.info("当前时间:"+DateUtils.DateToString(nowDate)+"   最后还款时间:"+DateUtils.DateToString(lastDate) + "   总借款天数:" + totalNum);
             log.info("分期订单实际打款 服务费为"+serviceFee);
 
             // 更新总还款天数 和 服务费

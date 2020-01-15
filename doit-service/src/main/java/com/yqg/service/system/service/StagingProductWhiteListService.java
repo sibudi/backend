@@ -35,4 +35,8 @@ public class StagingProductWhiteListService {
     public void updateWhiteList(StagingProductWhiteList update){
         this.stagingProductWhiteListDao.update(update);
     }
+
+    public void insertWhiteList(StagingProductWhiteList productWhiteList){
+        this.stagingProductWhiteListDao.insert(productWhiteList);
+    }
 }

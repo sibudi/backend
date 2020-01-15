@@ -1,6 +1,7 @@
 package com.yqg.service.h5;
 
 import com.yqg.common.constants.RedisContants;
+import com.yqg.common.enums.order.ChannelTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.BadRequestException;
 import com.yqg.common.exceptions.ServiceException;
@@ -12,8 +13,14 @@ import com.yqg.service.h5.request.SmsH5Request;
 import com.yqg.service.h5.request.UserRegisterH5Request;
 import com.yqg.service.h5.response.ImageCodeModelSpec;
 import com.yqg.service.h5.response.SmsH5Response;
+import com.yqg.service.system.service.IndexService;
+import com.yqg.service.system.service.StagingProductWhiteListService;
+import com.yqg.service.system.service.SysProductChannelService;
 import com.yqg.service.third.sms.SmsServiceUtil;
 import com.yqg.service.user.service.UsrService;
+import com.yqg.system.entity.StagingProductWhiteList;
+import com.yqg.system.entity.SysPaymentChannel;
+import com.yqg.system.entity.SysProductChannel;
 import com.yqg.service.user.service.SmsService;
 import com.yqg.user.dao.UsrDao;
 import com.yqg.user.entity.UsrUser;
@@ -30,6 +37,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by Didit Dwianto on 2018/1/9.
@@ -46,6 +54,12 @@ public class UsrH5Service {
 
     @Autowired
     private UsrService usrService;
+
+    @Autowired
+    private StagingProductWhiteListService stagingProductWhiteListService;
+
+    @Autowired
+    private SysProductChannelService productChannelService;
 
     @Value("${count.smsCount}")
     private String smsCount;
@@ -110,10 +124,10 @@ public class UsrH5Service {
 
                 smsServiceUtil.sendSmsByInforbip(mobileNumber);
                 response.setSmsKey("this is send by Inforbip,don't have smsKey");
-            }else if (nowSmsCount == 2){
+            // }else if (nowSmsCount == 2){
 
-                smsServiceUtil.sendSmsByTwilio("1",mobileNumber);
-                response.setSmsKey("this is send by Twilio,don't have smsKey");
+            //     smsServiceUtil.sendSmsByTwilio("1",mobileNumber);
+            //     response.setSmsKey("this is send by Twilio,don't have smsKey");
             }else {
 
                 String smsCode= SmsCodeUtils.sendSmsCode();
@@ -179,13 +193,47 @@ public class UsrH5Service {
     // ??
     public LoginSession register(UserRegisterH5Request h5Request)
             throws Exception {
-        //1.???????
-        this.smsService.checkh5SmsCode(h5Request.getMobile(), h5Request.getCode());
+        //remove check otp because register no need otp, they will login to app anyway
+        //this.smsService.checkh5SmsCode(h5Request.getMobile(), h5Request.getCode());
+        if(StringUtils.isEmpty(h5Request.getImgCode()) ||
+                StringUtils.isEmpty(h5Request.getImgKey()) ||
+                StringUtils.isEmpty(h5Request.getMobile())){
+
+            log.error("???????,??????");
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_RANDOMIMAGE_CHECK_ERROR);
+        }
+        this.checkImgCode(h5Request.getImgCode(),h5Request.getImgKey());
+
         //2.??ip
         this.usrService.checkIpTodayIsSubmith5(h5Request.getIPAdress());
-        //3.??
-        return this.registerForH5(h5Request);
 
+        //3. register user with isinvited = 1
+        LoginSession session = this.registerForH5(h5Request);
+
+        //4. check if kudo user and user source 84: 1.2 mio installment, if yes then add to stagingproductwhitelist
+        this.registerForStagingProductWhitelist(session, h5Request);
+
+        return session;
+
+    }
+
+
+    private void registerForStagingProductWhitelist(LoginSession session, UserRegisterH5Request h5Request) throws Exception {
+        if(Integer.toString(ChannelTypeEnum.KUDO_INSTALLMENT_1200K.getCode()).equals(h5Request.getChannel())){
+            //because automatically invited as installment user then need to insert table stagingproductwhitelist
+
+            StagingProductWhiteList productWhiteList = new StagingProductWhiteList();
+            productWhiteList.setUuid(UUID.randomUUID().toString());
+            productWhiteList.setUserUuid(session.getUserUuid());
+            
+            String productUuid = productChannelService.getProductUuid(Integer.parseInt(h5Request.getChannel()));
+            productWhiteList.setProductUuid(productUuid);
+            productWhiteList.setBeachId("PQ_" + (new java.text.SimpleDateFormat("yyyyMMdd_HHmmss")).format(new java.util.Date()));
+            productWhiteList.setRuleName("KUDO 1.2mio with every 2 weeks repayment");
+
+            stagingProductWhiteListService.insertWhiteList(productWhiteList);
+
+        }
     }
 
     /**
@@ -219,6 +267,7 @@ public class UsrH5Service {
         //?????
         user.setUserSource(Integer.valueOf(request.getChannel()));
 
+        user.setIsInvited(1); //need is Invited so that not go to BD message
         if (this.usrDao.insert(user) < 1) {
             throw new BadRequestException();
         }
@@ -238,5 +287,4 @@ public class UsrH5Service {
         UserSessionUtil.generateAndSetSessionIdForH5(this.redisClient, loginSession);
         return loginSession;
     }
-
 }

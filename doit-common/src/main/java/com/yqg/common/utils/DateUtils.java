@@ -521,4 +521,27 @@ public class DateUtils {
         return betweenDates;
     }
 
+    public static Date getRefundDate(Integer productType, Integer term, Date nowDate){
+        if(productType >= 300){
+            //yearly
+            return DateUtils.addDate(DateUtils.addDate(nowDate, term * (productType - 300) * 365),-1);
+        }
+        else if(productType >= 200){
+            //weekly
+            return DateUtils.addDate(DateUtils.addDate(nowDate,term * (productType - 200) * 7),-1);
+        }
+        else if(productType >= 100){
+            //monthly
+            return DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,term * (productType - 100)),-1);
+        }
+        else if(productType == 1){
+            //monthly
+            return DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,term),-1);
+        }
+        else{
+            //daily
+            return DateUtils.addDate(DateUtils.addDate(nowDate,term),-1);
+        }
+    }
+
 }

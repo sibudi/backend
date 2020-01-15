@@ -56,8 +56,8 @@ public class UserH5Controller {
         return ResponseEntitySpecBuilder.success(this.usrH5Service.sendH5SmsCode(smsH5Request));
     }
 
-    @ApiOperation("注册接口")
-    @RequestMapping(value = "/register", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ApiOperation("H5 registration")
+    @RequestMapping(value = "/register/partner", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
     public ResponseEntitySpec<Object> register(HttpServletRequest request, @RequestBody UserRegisterH5Request h5Request) throws Exception {
 

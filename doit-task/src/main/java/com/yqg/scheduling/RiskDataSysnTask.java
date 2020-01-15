@@ -34,7 +34,7 @@ public class RiskDataSysnTask {
     /***
      * 每天凌晨0点13分对数据表数据清理
      */
-    @Scheduled(cron = "19 13 0 * * ?")
+    //@Scheduled(cron = "19 13 0 * * ?")
     public void splitOrderRiskRecordTable() {
         try {
             riskDataSynService.splitTable();
@@ -47,7 +47,7 @@ public class RiskDataSysnTask {
     /**
      *    每天凌晨12点20分 更改P2P的单数限制
      * */
-    @Scheduled(cron = "0 20 0 * * ?")
+    //@Scheduled(cron = "0 20 0 * * ?")
     public void updateP2pOrderCount() {
         log.info("updateP2pOrderCount begin");
         this.repairOrderDataService.updateP2pOrderCount();
@@ -58,7 +58,7 @@ public class RiskDataSysnTask {
     /**
      *    每天凌晨12点20分 更改P2P的单数限制
      * */
-    @Scheduled(cron = "0 20 0 * * ?")
+    // @Scheduled(cron = "0 20 0 * * ?")
     public void updateDayLoanAmount() {
         log.info("updateDayLoanAmount begin");
         this.repairOrderDataService.updateDayLoanAmount();

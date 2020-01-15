@@ -15,6 +15,9 @@ import com.yqg.service.system.service.SysAutoReviewRuleService;
 import com.yqg.service.third.advance.AdvanceService;
 import com.yqg.service.third.advance.response.BlacklistCheckResponse;
 import com.yqg.service.third.advance.response.MultiPlatformResponse;
+import com.yqg.service.third.izi.IziService;
+import com.yqg.service.third.izi.response.IziResponse.IziBlackListResponse;
+import com.yqg.service.third.izi.response.IziResponse.IziMultiInquiriesV1Response;
 import com.yqg.service.user.service.UsrService;
 import com.yqg.service.util.RuleConstants;
 import com.yqg.system.entity.SysAutoReviewRule;
@@ -33,6 +36,8 @@ public class RiskReviewService {
 
     @Autowired
     private AdvanceService advanceService;
+    @Autowired
+    private IziService iziService;
     @Autowired
     private UsrService usrService;
 
@@ -64,26 +69,52 @@ public class RiskReviewService {
         }
         try {
             UsrUser user = usrService.getUserByUuid(order.getUserUuid());
-            BlacklistCheckResponse response = advanceService.checkBlacklist(order, user.getRealName(), user.getIdCardNo(),
-                    DESUtils.decrypt(user.getMobileNumberDES()));
-            if (response != null && response.isHitReject()) {
-                saveRejectRules(order, BlackListTypeEnum.ADVANCE_BLACKLIST);
-                return true;
+            if(advanceService.isAdvanceSwitchOn()){
+                BlacklistCheckResponse response = advanceService.checkBlacklist(order, user.getRealName(), user.getIdCardNo(),
+                DESUtils.decrypt(user.getMobileNumberDES()));
+
+                if (response != null && response.isHitReject()) {
+                    saveRejectRules(order, BlackListTypeEnum.ADVANCE_BLACKLIST);
+                    return true;
+                }
             }
+            else{
+                IziBlackListResponse response = iziService.checkBlacklist(user.getRealName(), user.getIdCardNo(), 
+                    DESUtils.decrypt(user.getMobileNumberDES()), order);
+                
+                if (response != null && !"OK".equalsIgnoreCase(response.getStatus()) && !"REJECT".equalsIgnoreCase(response.getMessage()))  {
+                    saveRejectRules(order, BlackListTypeEnum.ADVANCE_BLACKLIST);
+                    return true;
+                }
+            }
+            
             //检查600模型分数
             OrderScore orderScore = orderModelScoreService.getLatestScoreWithModel(order.getUuid(), "PRODUCT_600");
             if (orderScore == null || orderScore.getTotalScore() == null) {
                 return false;
             }
+            
             if (orderScore.getTotalScore().compareTo(new BigDecimal("505")) > 0) {
                 return false;
             }
-            MultiPlatformResponse multiPlatformResponse = advanceService.checkMultiPlatform(order, user.getIdCardNo());
-            if (multiPlatformResponse != null && multiPlatformResponse.isHitReject(user)) {
-                //reject
-                saveRejectRules(order, BlackListTypeEnum.ADVANCE_MULTI_PLATFORM);
-                return true;
+
+            if(advanceService.isAdvanceSwitchOn()){
+                MultiPlatformResponse multiPlatformResponse = advanceService.checkMultiPlatform(order, user.getIdCardNo());
+                if (multiPlatformResponse != null && multiPlatformResponse.isHitReject(user)) {
+                    //reject
+                    saveRejectRules(order, BlackListTypeEnum.ADVANCE_MULTI_PLATFORM);
+                    return true;
+                }
             }
+            else{
+                IziMultiInquiriesV1Response iziMultiInquiriesV1 = iziService.checkKtpMultiInquiriesV1(user.getIdCardNo(), order);
+                if (iziMultiInquiriesV1 != null && iziMultiInquiriesV1.isHitReject(user)) {
+
+                    saveRejectRules(order, BlackListTypeEnum.ADVANCE_MULTI_PLATFORM);
+                    return true;
+                }
+            }
+            
             return false;
         } catch (Exception e) {
             log.error("check advance blacklist and multi-platform error, orderNo: " + order.getUuid(), e);

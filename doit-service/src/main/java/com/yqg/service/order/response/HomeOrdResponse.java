@@ -8,7 +8,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.*;
 
 /**
  * ???????1
@@ -47,4 +47,6 @@ public class HomeOrdResponse implements Serializable {
     private String userScore; //用户评分
 
     private String isNeedQA; //是否需要填写问卷 0 未填写过 需要 1 填写过 不需要
+
+    private List<Map<String,String>> confList;
 }

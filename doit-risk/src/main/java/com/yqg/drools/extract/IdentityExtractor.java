@@ -26,6 +26,7 @@ import com.yqg.mongo.entity.OrderThirdDataMongo;
 import com.yqg.mongo.entity.UserIziVerifyResultMongo;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.order.OrdThirdDataService;
+import com.yqg.service.third.advance.AdvanceService;
 import com.yqg.service.third.izi.IziService;
 import com.yqg.service.third.izi.IziWhatsAppService;
 import com.yqg.service.third.izi.response.IziResponse;
@@ -81,6 +82,8 @@ public class IdentityExtractor implements BaseExtractor<RUserInfo> {
     private UsrFaceVerifyResultDao usrFaceVerifyResultDao;
     @Autowired
     private IziWhatsAppService iziWhatsAppService;
+    @Autowired
+    private AdvanceService advanceService;
 
     @Override
     public boolean filter(RuleSetEnum ruleSet) {
@@ -101,10 +104,11 @@ public class IdentityExtractor implements BaseExtractor<RUserInfo> {
         }
 
 
-        //advance实名认证
-        IdentityVerifyResult identityVerifyResult = yiTuVerificationService
-                .verifyIdentity(user.getRealName(), user.getIdCardNo(), order);
-        userInfo.setAdvanceVerifyResult(identityVerifyResult);
+        if(advanceService.isAdvanceSwitchOn()){
+            //advance实名认证
+            IdentityVerifyResult identityVerifyResult = yiTuVerificationService.verifyIdentity(user.getRealName(), user.getIdCardNo(), order);
+            userInfo.setAdvanceVerifyResult(identityVerifyResult);
+        }
 
         userInfo.setUserRole(user.getUserRole());
 
@@ -356,7 +360,7 @@ public class IdentityExtractor implements BaseExtractor<RUserInfo> {
 
             userInfo.setIziPhoneVerifyResult(IziPhoneVerifyResult.parseResultFromResponse(phoneVerifyResponse));
 
-            if (userInfo.getAdvanceVerifyResult().isAdvanceFailed()) {
+            if (userInfo.getAdvanceVerifyResult() == null || userInfo.getAdvanceVerifyResult().isAdvanceFailed()) {
                 userVerifyResultService.initVerifyResult(order.getUuid(), order.getUserUuid(), UsrVerifyResult.VerifyTypeEnum.IZI_PHONE);
                 IziPhoneVerifyResult phoneVerifyResult = userInfo.getIziPhoneVerifyResult();
                 IdentityVerifyResult iziVerifyResult = null;

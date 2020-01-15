@@ -175,7 +175,7 @@ public class RiskService {
                     //reject all
                     SysAutoReviewRule rejectAll = codeEntityMap.get(BlackListTypeEnum.REJECT_ALL.getMessage());
 
-                    boolean isKudoChannel = user.getUserSource() != null && Arrays.asList("81", "82", "83").contains(user.getUserSource().toString());
+                    boolean isKudoChannel = user.getUserSource() != null && Arrays.asList("81", "82", "83", "84").contains(user.getUserSource().toString());
 
                     if (rejectAll != null && rejectAll.getRuleResult() == 2 && !isKudoChannel) {
                         log.info("reject all first borrowing .");
@@ -209,7 +209,7 @@ public class RiskService {
                 // 异常情况发送短信
                 sendSmsCodeFun();
                 //记录异常表
-                riskErrorLogService.addRiskError(order.getUuid(), RiskErrorLog.RiskErrorTypeEnum.SYSTEM_ERROR);
+                riskErrorLogService.addRiskError(order.getUuid(), RiskErrorLog.RiskErrorTypeEnum.SYSTEM_ERROR, e.getMessage());
             }
             log.error(order.getUuid() + "订单审核=========结束");
             long endTime = System.currentTimeMillis();
@@ -281,7 +281,7 @@ public class RiskService {
         ordOrder.setStatus(OrdStateEnum.MACHINE_CHECK_NOT_ALLOW.getCode());
         ordOrder.setUpdateTime(new Date());
         this.ordService.addOrderHistory(ordOrder);
-        log.info("订单号：" + ordOrder.getUuid() +"被拒绝，拒绝天数" + sysAutoReviewRule.getRuleRejectDay());
+        log.info("订单号：" + ordOrder.getUuid() +"被拒绝，拒绝天数" + (sysAutoReviewRule != null ? sysAutoReviewRule.getRuleRejectDay() : ""));
 
         // ????
         SaveOrderUserUuidRequest saveMongo = new SaveOrderUserUuidRequest();

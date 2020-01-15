@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.*;
 
@@ -181,6 +182,9 @@ public class IndexService {
             list = orderDao.hasStagingOrder(baseRequest.getUserUuid());
         }
 
+        List<Map<String,String>> confList = new ArrayList<>();
+        Map<String,String> confMap = new HashMap<>();
+
         if(CollectionUtils.isEmpty(list)){
             JSONObject config = boxConfigData(baseRequest,type);
             config.put("showState", ShowStatusEnum.INIT_STAGE.getCode());
@@ -209,6 +213,13 @@ public class IndexService {
                     loadingResponse.setShowState(ShowStatusEnum.REVIEWING_STAGE.getCode());
                     loadingResponse.setOrderStatus(ordService.boxShowOrderStatus(status).get(KEY));
                     loadingResponse.setOrderStatusMsg(ordService.boxShowOrderStatus(status).get(VALUE));
+                    
+                    confMap.put("date", "");
+                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                    confList.add(confMap);
+                    loadingResponse.setConfList(confList);
+
                     return loadingResponse;
                 }
                 case 19: //等待用户确认
@@ -220,6 +231,13 @@ public class IndexService {
                     backNoOverResponse.setShouldPayAmount(StringUtils.formatMoney(shouldPay.doubleValue()).replaceAll(",", "."));
                     backNoOverResponse.setShouldPayTime(DateUtils.DateToString5(refundDate));
                     backNoOverResponse.setShowState(ShowStatusEnum.LOAN_CONFIRMING_STAGE.getCode());
+
+                    confMap.put("date", "");
+                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                    confList.add(confMap);
+                    backNoOverResponse.setConfList(confList);
+
                     return backNoOverResponse;
                 }
                 case 20: {
@@ -232,6 +250,13 @@ public class IndexService {
                     backNoOverResponse.setShouldPayTime(DateUtils.DateToString5(refundDate));
                     backNoOverResponse.setShowState(ShowStatusEnum.DIGI_SIGN_STAGE.getCode());
                     backNoOverResponse.setSignInfo(contractSignService.getUserCurrentSignData(baseRequest.getUserUuid(),orderObj.getUuid()));
+                    
+                    confMap.put("date", "");
+                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                    confList.add(confMap);
+                    backNoOverResponse.setConfList(confList);
+
                     return backNoOverResponse;
                 }
                 case 5:
@@ -258,11 +283,24 @@ public class IndexService {
                             }
                         }
                     }
+
+                    confMap.put("date", "");
+                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                    confList.add(confMap);
+                    loadingResponse.setConfList(confList);
+                    
                     return loadingResponse;
                 }
                 case 7:// 待还款（未逾期）
                     HomeOrdWithTimeResponse backNoOverResponse = notPayOrderAndNotOverDue(orderObj,status,type);
                     this.getCollectorInfo(backNoOverResponse, orderObj.getUuid());
+
+                    confMap.put("date", "");
+                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                    confList.add(confMap);
+                    backNoOverResponse.setConfList(confList);
                     return backNoOverResponse;
                 case 8:// 待还款（已逾期）
                     // ????= ????-?????
@@ -273,6 +311,12 @@ public class IndexService {
                         }
                         HomeOrdWithTimeResponse backOverResponse = notPayOrderAndOverDue(orderObj, status, dayNum,type);
                         this.getCollectorInfo(backOverResponse, orderObj.getUuid());
+
+                        confMap.put("date", "");
+                        confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                        confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                        confList.add(confMap);
+                        backOverResponse.setConfList(confList);
                         return backOverResponse;
                     } catch (ParseException e) {
                         e.printStackTrace();
@@ -291,6 +335,12 @@ public class IndexService {
                         }else {
                             backResponse = notPayOrderAndOverDue(orderObj,status,dayNum,type);
                         }
+
+                        confMap.put("date", "");
+                        confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                        confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                        confList.add(confMap);
+                        backResponse.setConfList(confList);
                     } catch (ParseException e) {
                         e.printStackTrace();
                     } catch (Exception e) {
@@ -312,6 +362,13 @@ public class IndexService {
                         loadingResponse.setShowState(ShowStatusEnum.REVIEWING_STAGE.getCode());
                         loadingResponse.setOrderStatus(ordService.boxShowOrderStatus(status).get(KEY));
                         loadingResponse.setOrderStatusMsg(ordService.boxShowOrderStatus(status).get(VALUE));
+
+                        confMap.put("date", "");
+                        confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                        confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                        confList.add(confMap);
+                        loadingResponse.setConfList(confList);
+
                         return loadingResponse;
                     }
 
@@ -336,6 +393,13 @@ public class IndexService {
 
                     // 订单类型
                     loadingResponse.setOrderType(String.valueOf(type));
+
+                    confMap.put("date", "");
+                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
+                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
+                    confList.add(confMap);
+                    loadingResponse.setConfList(confList);
+
                     return loadingResponse;
                 }
             }
@@ -516,7 +580,7 @@ public class IndexService {
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
         
-        if (orderObj.getOrderType().equals("0")||orderObj.getOrderType().equals("2")){
+        if (orderObj.getOrderType().equals("0") || orderObj.getOrderType().equals("2")){
             SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(orderObj.getProductUuid());
             // ??<=3??overdueRate1?>3??overdueRate2
             if(dayNum <= 3L){
@@ -551,14 +615,27 @@ public class IndexService {
                         .add(orderObj.getAmountApply().multiply(defaultOverDueRate1).multiply(BigDecimal.valueOf(3)))
                         .add(orderObj.getAmountApply().multiply(defaultOverDueRate2).multiply(BigDecimal.valueOf(dayNum - 3)));
             }
-        }
+        }else if (orderObj.getOrderType().equals(OrderTypeEnum.STAGING.getCode())){
+            SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(orderObj.getProductUuid());
+            // ??<=3??overdueRate1?>3??overdueRate2
+            BigDecimal billAmount = orderObj.getAmountApply().divide(
+                BigDecimal.valueOf(orderObj.getBorrowingTerm()), 2, RoundingMode.HALF_UP);
+            if(dayNum <= 3L){
+                // ????? = ????+  ????? + ?? + ????????*??????*??????
+                shouldPayAmount = billAmount
+                    .add(orderObj.getInterest().divide(BigDecimal.valueOf(orderObj.getBorrowingTerm()), 2, RoundingMode.HALF_UP))
+                    .add(sysProd.getOverdueFee())
+                    .add(billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(dayNum)));
+            }else{
 
-        //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
-        BigDecimal limit = orderObj.getAmountApply().subtract(orderObj.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
-        if (shouldPayAmount.compareTo(limit) > 0 ){
-            shouldPayAmount = limit;
+                shouldPayAmount =billAmount
+                        .add(orderObj.getInterest().divide(BigDecimal.valueOf(orderObj.getBorrowingTerm()),2,RoundingMode.HALF_UP))
+                        .add(sysProd.getOverdueFee())
+                        .add(billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
+                        .add(billAmount.multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(dayNum - 3)));
+            }
         }
-
+        
         String sysParamValue = this.sysParamService.getSysParamValue(SysParamContants.DELAYORDER_OF_NUMBER);
         // 订单是否有未使用的优惠券
         CouponRecord record = getCouponWithOrderNo(orderObj.getUuid());
@@ -596,9 +673,31 @@ public class IndexService {
         // 用户评分
         backOverResponse.setUserScore(orderModelScoreService.getScoreByOrderNo(orderObj.getUserUuid())+"");
 
+        //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+        BigDecimal limit = BigDecimal.ZERO;
+        if(orderObj.getOrderType().equals(OrderTypeEnum.STAGING.getCode())){
+            limit = orderObj.getAmountApply().divide(BigDecimal.valueOf(orderObj.getBorrowingTerm()), 2,RoundingMode.HALF_UP)
+                .subtract(orderObj.getServiceFee().divide(BigDecimal.valueOf(orderObj.getBorrowingTerm()), 2,RoundingMode.HALF_UP))
+                .multiply(BigDecimal.valueOf(2)).setScale(2);
+        }
+        else{
+            limit = orderObj.getAmountApply().subtract(orderObj.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
+        }
+
+        if (shouldPayAmount.compareTo(limit) > 0 ){
+            shouldPayAmount = limit;
+            backOverResponse.setShouldPayAmount(StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
+        }
+
         // 添加还款计划
         backOverResponse = getOrderBills(orderObj,backOverResponse);
 
+        //re-set shouldPayAmount because getOrderBill has change shouldPayAmount        
+        if (shouldPayAmount.compareTo(limit) > 0 ){
+            shouldPayAmount = limit;
+            backOverResponse.setShouldPayAmount(StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
+        }
+        
         // 优惠券
         if (record != null){
             // 订单存在未使用的优惠券
@@ -620,6 +719,18 @@ public class IndexService {
             // 查询分期账单
             if (order.getOrderType().equals(OrderTypeEnum.STAGING.getCode())){
 
+                 //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+                BigDecimal limit = BigDecimal.ZERO;
+                if(order.getOrderType().equals(OrderTypeEnum.STAGING.getCode())){
+                    limit = order.getAmountApply().divide(BigDecimal.valueOf(order.getBorrowingTerm()), 2, RoundingMode.UP)
+                        .subtract(order.getServiceFee().divide(BigDecimal.valueOf(order.getBorrowingTerm()), 0, RoundingMode.UP))
+                        .multiply(BigDecimal.valueOf(2)).setScale(2);
+                }
+                else{
+                    limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
+                }
+
+                
                 List<OrdBill> bills = this.ordBillDao.billsWithUserUuidAndOrderNo(order.getUserUuid(),order.getUuid());
                 if (!CollectionUtils.isEmpty(bills)){
                     List<OrdBillResponse> list = new ArrayList<>();
@@ -639,12 +750,19 @@ public class IndexService {
                         if (bill.getStatus().equals(OrdBillStatusEnum.RESOLVING.getCode())){
                             shouldPayAmount = bill.getBillAmout().add(bill.getInterest());
                             // 每期应还款总金额 或者 已还款总金额
+
+                            if (shouldPayAmount.compareTo(limit) > 0 ){
+                                shouldPayAmount = limit;
+                            }
                             response.setTotalAmount(shouldPayAmount.toString().replace(".00",""));
 
                         }else if (bill.getStatus().equals(OrdBillStatusEnum.RESOLVING_OVERDUE.getCode())){
                             int dayNum = (int) DateUtils.daysBetween(DateUtils.formDate(bill.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(new Date(),"yyyy-MM-dd"));
                             shouldPayAmount = bill.getBillAmout().add(bill.getInterest()).add(bill.getOverdueFee()).add(bill.getBillAmout().multiply(bill.getOverdueRate()).multiply(BigDecimal.valueOf(dayNum))).setScale(2);
                             // 每期应还款总金额 或者 已还款总金额
+                            if (shouldPayAmount.compareTo(limit) > 0 ){
+                                shouldPayAmount = limit;
+                            }
                             response.setTotalAmount(shouldPayAmount.toString().replace(".00",""));
                         }else {
                             // 查询还款记录
@@ -677,7 +795,13 @@ public class IndexService {
                             // 账单逾期 计算服务费和滞纳金
                             response.setOverdueFee(bill.getOverdueFee().toString().replace(".00",""));
                             int overdueDay = DateUtils.daysBetween(DateUtils.formDate(bill.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(new Date(),"yyyy-MM-dd"));
-                            response.setPenalty(this.repayService.calculatePenaltyFeeByRepayDaysForBills(bill,overdueDay).toString().replace(".00",""));
+                            BigDecimal penalty = this.repayService.calculatePenaltyFeeByRepayDaysForBills(bill,overdueDay);
+                            BigDecimal totalBill = penalty.add(bill.getBillAmout()).add(bill.getOverdueFee());
+                            if (totalBill.compareTo(limit) > 0 ){
+                                penalty = limit.add(bill.getOverdueFee().multiply(BigDecimal.valueOf(-1))).add(bill.getBillAmout().multiply(BigDecimal.valueOf(-1)));
+                            }
+
+                            response.setPenalty(penalty.toString().replace(".00",""));
                         }
                         remainAmout = remainAmout.add(shouldPayAmount).setScale(2);
                         list.add(response);
@@ -736,8 +860,13 @@ public class IndexService {
             List<Map<String,String>>  repayPlans = new ArrayList<>();
             Date nowDate = new Date();
             Date lastDate = new Date();
+            // int totalNum = 0;
+            // BigDecimal serviceFee = BigDecimal.ZERO;
             for (int i = 1; i <= term; i++) {
-                Date  refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                Date  refundTime =  DateUtils.getRefundDate(product.getProductType(),i, nowDate); //DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                // totalNum = DateUtils.differentDaysByMillisecond(nowDate,refundTime)+1;
+                // serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
+                
                 log.info("第"+i+"期还款时间为"+DateUtils.DateToString(refundTime));
                 if (i == term){
                     lastDate = refundTime;
@@ -949,68 +1078,120 @@ public class IndexService {
                         //如果是降额用户  则只能再借40w产品   可能有提额用户 level = -4 则可借 40w和80w
                         list = sysProductDao.getProductWithProductLevelAndUserLevel(-3,level,duefeeRate);
                     }
-                }else {
-
+                }
+                else {
                     if (level == 0){
                         // 没有降额和提额过 并且不再分期白名单中 判断渠道
-                      List<String> productUuidList = this.sysProductChannelDao.getProductChannel(user.getUserSource());
-                      if (!CollectionUtils.isEmpty(productUuidList)){
-                          SysProduct product = this.sysProductDao.getProductInfo(productUuidList.get(0));
-                          if (product != null) {
+                        List<String> productUuidList = this.sysProductChannelDao.getProductChannel(user.getUserSource());
+                        if (!CollectionUtils.isEmpty(productUuidList)){
+                            SysProduct product = this.sysProductDao.getProductInfo(productUuidList.get(0));
+                            if (product != null) {
 
-                              list.add(product);
-                              if (product.getProductType() == 1){
+                                list.add(product);
+                                if (product.getProductType() == 1){
 
-                                  int term = product.getBorrowingTerm();
+                                int term = product.getBorrowingTerm();
                                   // 还款计划   期数  应还款时间  还款金额
-                                  List<Map<String,String>>  repayPlans = new ArrayList<>();
-                                  Date nowDate = new Date();
-                                  Date lastDate = new Date();
-                                  for (int i = 1; i <= term; i++) {
-                                      Map<String,String> plan = new HashMap<>();
-                                      plan.put("billTerm",i+"");
-                                      plan.put("billAmount",product.getTermAmount().toString().replace(".00",""));
-                                      Date  refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
-                                      log.info("第"+i+"期还款时间为"+DateUtils.DateToString(refundTime));
-                                      plan.put("refundTime",DateUtils.DateToString(refundTime));
-                                      if (i == term){
-                                          lastDate = refundTime;
-                                      }
-                                      repayPlans.add(plan);
-                                  }
-                                  result.put("billsList",repayPlans);
+                                List<Map<String,String>>  repayPlans = new ArrayList<>();
+                                Date lastDate = new Date();
+                                Date nowDate = new Date();
+                                // BigDecimal serviceFee = BigDecimal.ZERO;
+                                for (int i = 1; i <= term; i++) {
+                                    Map<String,String> plan = new HashMap<>();
+                                    plan.put("billTerm",i+"");
+                                    plan.put("billAmount",product.getTermAmount().toString().replace(".00",""));
+                                    Date refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                                    log.info("第"+i+"期还款时间为"+DateUtils.DateToString(refundTime));
+                                    plan.put("refundTime",DateUtils.DateToString(refundTime));
+                                    // serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
+                                    // log.info("Sum of service fee for installment order for term: "+ i + " service fee" + serviceFee);
+                                    if (i == term){
+                                        lastDate = refundTime;
+                                    }
+                                    repayPlans.add(plan);
+                                }
+                                result.put("billsList",repayPlans);
 
-                                  int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
-                                  log.info("当前时间:"+DateUtils.DateToString(nowDate)+"   最后还款时间:"+DateUtils.DateToString(lastDate) + "   总借款天数:" + totalNum);
+                                int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
+                                log.info("当前时间:"+DateUtils.DateToString(nowDate)+"   最后还款时间:"+DateUtils.DateToString(lastDate) + "   总借款天数:" + totalNum);
 
-                                  BigDecimal serviceFee =  product.getBorrowingAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
-                                  log.info("分期订单实际 服务费为"+serviceFee);
+                                BigDecimal serviceFee =  product.getBorrowingAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
+                                log.info("分期订单实际 服务费为"+serviceFee);
 
-                                  result.put("totalTerm",totalNum);
-                                  result.put("actualAmount",product.getBorrowingAmount().subtract(serviceFee).setScale(2).toString().replace(".00",""));
-                                  // 每月还款金额
-                                  result.put("termAmount",product.getTermAmount().toString().replace(".00",""));
+                                result.put("totalTerm",totalNum);
+                                result.put("actualAmount",product.getBorrowingAmount().subtract(serviceFee).setScale(2).toString().replace(".00",""));
+                                // 每月还款金额
+                                result.put("termAmount",product.getTermAmount().toString().replace(".00",""));
 
-                                  //  用于公式计算  kudo的分期产品  公式里面需要用 本金
-                                  if (product.getUuid().equals("1004") || product.getUuid().equals("1005")){
-                                      result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
-                                  }else {
-                                      result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
-                                  }
-                              }
-                          }else {
-                               //  可能配置表中的产品 在产品表中被disable掉了
-                              list = sysProductDao.getProductWithProductLevelAndUserLevel(2,level,duefeeRate);
-                          }
+                                //  用于公式计算  kudo的分期产品  公式里面需要用 本金
+                                if (product.getUuid().equals("1004") || product.getUuid().equals("1005")){
+                                    result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
+                                }else {
+                                    result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
+                                }
+                            }
+                            //   else if (product.getProductType() >= 100){
+                            //     BigDecimal serviceFee = BigDecimal.ZERO;
+                            //     int totalNum = 0; //DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
+
+                            //     int term = product.getBorrowingTerm();
+                            //     List<Map<String,String>>  repayPlans = new ArrayList<>();
+                            //     Date nowDate = new Date();
+                            //     // Date lastDate = new Date();
+                            //     for (int i = 1; i <= term; i++) {
+                            //         Map<String,String> plan = new HashMap<>();
+                            //         plan.put("billTerm",i+"");
+                            //         plan.put("billAmount",product.getTermAmount().toString().replace(".00",""));
+                            //         Date refundTime =  DateUtils.addDate(DateUtils.addDate(nowDate,14 * (term+1-i)),-1);
+                            //         log.info("Bill term of "+i+" Due Date: "+DateUtils.DateToString(refundTime));
+                            //         plan.put("refundTime",DateUtils.DateToString(refundTime));
+                                    
+                            //         totalNum = DateUtils.differentDaysByMillisecond(nowDate,refundTime)+1;
+                            //         log.info("Today is :"+DateUtils.DateToString(nowDate)+" with last date:"+DateUtils.DateToString(refundTime) + " borrowing days:" + totalNum);
+                            //         serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
+                            //         log.info("Sum of service fee for installment order for term: "+ i + " service fee" + serviceFee);
+
+                            //         // if (i == term){
+                            //         //     lastDate = refundTime;
+                            //         // }
+
+                            //         repayPlans.add(plan);
+                            //     }
+                            //     result.put("billsList",repayPlans);
+
+                            //     //int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
+
+                            //     //BigDecimal serviceFee =  product.getBorrowingAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
+                                
+                            //     Date lastDate = DateUtils.addDate(DateUtils.addDate(nowDate,14 * term),-1);
+                            //     result.put("totalTerm", DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1);
+                            //     result.put("actualAmount",product.getBorrowingAmount().subtract(serviceFee).setScale(2).toString().replace(".00",""));
+                            //     // 每月还款金额
+                            //     result.put("termAmount",product.getTermAmount().toString().replace(".00",""));
+
+                            //     //  用于公式计算  kudo的分期产品  公式里面需要用 本金
+                            //     if (product.getUuid().equals("1006")){
+                            //         result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
+                            //     }else {
+                            //         result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
+                            //     }
+                            //   }
+                        }
+                        else {
+                            //  可能配置表中的产品 在产品表中被disable掉了
+                            list = sysProductDao.getProductWithProductLevelAndUserLevel(2,level,duefeeRate);
+                        }
 
                       }else {
                           // 产品配置表中没数据  走默认配置
                           list = sysProductDao.getProductWithProductLevelAndUserLevel(2,level,duefeeRate);
                       }
 
-                    } else  if (level < 0){
+                    }
+                    else  if (level < 0){
                         list = sysProductDao.getProductWithProductLevel(level,duefeeRate);
-                    }else {
+                    }
+                    else {
                         // 如果不是降额  则可以借120w产品
                         list = sysProductDao.getProductWithProductLevelAndUserLevel(2,level,duefeeRate);
                     }
@@ -1027,15 +1208,19 @@ public class IndexService {
                 int term = product.getBorrowingTerm();
                 // 还款计划   期数  应还款时间  还款金额
                 List<Map<String,String>>  repayPlans = new ArrayList<>();
+                int totalNum = 0;
                 Date nowDate = new Date();
                 Date lastDate = new Date();
+                // BigDecimal serviceFee = BigDecimal.ZERO;
                 for (int i = 1; i <= term; i++) {
                     Map<String,String> plan = new HashMap<>();
                     plan.put("billTerm",i+"");
                     plan.put("billAmount",product.getTermAmount().toString().replace(".00",""));
-                    Date  refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                    Date  refundTime = DateUtils.getRefundDate(product.getProductType(), i, nowDate); // DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
                     log.info("第"+i+"期还款时间为"+DateUtils.DateToString(refundTime));
                     plan.put("refundTime",DateUtils.DateToString(refundTime));
+                    // totalNum = DateUtils.differentDaysByMillisecond(nowDate,refundTime)+1;
+                    // serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
                     if (i == term){
                         lastDate = refundTime;
                     }
@@ -1043,7 +1228,7 @@ public class IndexService {
                 }
                 result.put("billsList",repayPlans);
 
-                int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
+                totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
                 log.info("当前时间:"+DateUtils.DateToString(nowDate)+"   最后还款时间:"+DateUtils.DateToString(lastDate) + "   总借款天数:" + totalNum);
 
                 BigDecimal serviceFee =  product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
@@ -1071,6 +1256,8 @@ public class IndexService {
         return result;
     }
 
+
+    
 
     // 检查用户是否填写过调查问卷
     public String checkUserHasQuestionnaire(String userUuid){
@@ -1113,7 +1300,10 @@ public class IndexService {
             // ??
             BigDecimal borrowingAmount = item.getBorrowingAmount();
             confMap.put(MONEY,StringUtils.formatMoney(borrowingAmount.doubleValue()).replaceAll(",","."));// ????
-            confMap.put(DATE,item.getBorrowingTerm().toString()); // ????
+            confMap.put(DATE,item.getBorrowingTerm().toString());
+            // check product type object for detail explanation of product type
+            confMap.put("Tenor", getProductTenor(item.getProductCode()));
+            confMap.put("Period", getProductPeriod(item.getProductCode()));
             confMap.put(ARRIVED,StringUtils.formatMoney(borrowingAmount.subtract(item.getDueFee()).doubleValue()).replaceAll(",",".")); // ????
             confMap.put(DUEFEE,StringUtils.formatMoney(item.getDueFee().doubleValue()).replaceAll(",",".")); // ???
             confMap.put(MATURE,StringUtils.formatMoney(borrowingAmount.add(item.getInterest()).doubleValue()).replaceAll(",",".")); // ??????
@@ -1193,6 +1383,52 @@ public class IndexService {
         });
         set = new LinkedHashSet<String>(setList);//??????LinkedHashSet
         return set;
+    }
+
+    public String getProductTenor(String productUuid){
+        
+        SysProduct product = new SysProduct();
+        product.setDisabled(0);
+        product.setUuid(productUuid);
+        SysProduct result = sysProductDao.getProductInfo(productUuid);        
+        if(result.getProductType() >= 300){
+            return Integer.toString((result.getProductType() - 300) * result.getBorrowingTerm())+  " Tahun";
+        }
+        else if(result.getProductType() >= 200){
+            return Integer.toString((result.getProductType() - 200)  * result.getBorrowingTerm()) + " Minggu";
+        }
+        else if(result.getProductType() >= 100){
+            return Integer.toString((result.getProductType() - 100)  * result.getBorrowingTerm()) + " Bulan";
+        }
+        else if(result.getProductType() == 1){
+            return Integer.toString(result.getBorrowingTerm()) + " Bulan";
+        }
+        else{
+            return  Integer.toString(result.getBorrowingTerm()) + " Hari"; 
+        }
+    }
+
+    public String getProductPeriod(String productUuid){
+        
+        SysProduct product = new SysProduct();
+        product.setDisabled(0);
+        product.setUuid(productUuid);
+        SysProduct result = sysProductDao.getProductInfo(productUuid);        
+        if(result.getProductType() >= 300){
+            return Integer.toString((result.getProductType() - 300))+  " Tahun";
+        }
+        else if(result.getProductType() >= 200){
+            return Integer.toString((result.getProductType() - 200)) + " Minggu";
+        }
+        else if(result.getProductType() >= 100){
+            return Integer.toString((result.getProductType() - 100)) + " Bulan";
+        }
+        else if(result.getProductType() == 1){
+            return "Bulan";
+        }
+        else{
+            return  Integer.toString(result.getBorrowingTerm()) + " Hari"; 
+        }
     }
 
 }

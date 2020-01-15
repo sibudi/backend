@@ -27,4 +27,10 @@ public class UserRegisterH5Request extends BaseRequest{
     @ApiModelProperty("")
     @JsonProperty
     private String channel;
+    @JsonProperty
+    private Integer partnerid;
+    @JsonProperty
+    private String imgCode;
+    @JsonProperty
+    private String imgKey;
 }

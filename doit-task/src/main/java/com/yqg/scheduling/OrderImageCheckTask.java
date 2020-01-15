@@ -27,7 +27,7 @@ public class OrderImageCheckTask {
      * 每隔5分钟检查cashcash订单图片问题
      * 因网络问题偶尔CashCash的图片无法下载(timeout),需要扫描附件表定时重新获取图片
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
+    // @Scheduled(cron = "0 0/5 * * * ?")
     public void checkImage() {
         try {
             List<UsrAttachmentInfo> errorList = imagePathService.getErrorImagePathListForCashCash();

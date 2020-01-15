@@ -1,6 +1,7 @@
 package com.yqg.drools.service;
 
 import com.yqg.service.RuleExecuteSourceThreadLocal;
+import com.yqg.service.third.advance.AdvanceService;
 import com.yqg.common.enums.user.CertificationEnum;
 import com.yqg.common.utils.StringUtils;
 import com.yqg.drools.model.RUserInfo.IdentityVerifyResult;
@@ -44,7 +45,8 @@ public class YiTuVerificationService {
     private UserVerifyResultService userVerifyResultService;
     @Autowired
     private UserService userService;
-
+    @Autowired
+    private AdvanceService advanceService;
 
 
 
@@ -71,9 +73,9 @@ public class YiTuVerificationService {
                 }else if (identityCertificationInfo.getRemark().equals("JXL")) {
                     log.info("{}:聚信立实名认证已经认证成功", order.getUserUuid());
                     return new IdentityVerifyResult(IdentityVerifyResultType.JUXINLI_MATCH_SUCCESS, "聚信立实名认证已经认证成功");
-                } else if("XENDIT".equals(identityCertificationInfo.getRemark())){
-                    log.info("{}: xendit实名认证已经认证成功", order.getUserUuid());
-                    return new IdentityVerifyResult(IdentityVerifyResultType.XENDIT_REALNAME_VERIFY_ALREADY_SUCCESS, "xendit已经实名验证通过");
+                // } else if("XENDIT".equals(identityCertificationInfo.getRemark())){
+                //     log.info("{}: xendit实名认证已经认证成功", order.getUserUuid());
+                //     return new IdentityVerifyResult(IdentityVerifyResultType.XENDIT_REALNAME_VERIFY_ALREADY_SUCCESS, "xendit已经实名验证通过");
                 }else {
                     log.info("{}:用户之前实名认证已经认证成功", order.getUserUuid());
                     return new IdentityVerifyResult(IdentityVerifyResultType.FORWARD_MATCH_SUCCESS, "用户之前实名认证已经认证成功");
@@ -95,25 +97,24 @@ public class YiTuVerificationService {
             log.info("izi验证已经成功");
             return new IdentityVerifyResult(IdentityVerifyResultType.IZI_PHONE_IDCARD_VERIFY_ALREADY_SUCCESS, "izi验证已经成功");
         }
+        
+        if(advanceService.isAdvanceSwitchOn()){
+            // 走advance实名认证
+            //记录认证初始化
+            String executeSource = RuleExecuteSourceThreadLocal.getSource();
+            IdentityVerifyResult yituResult = null;
+            userVerifyResultService.initVerifyResult(order.getUuid(), order.getUserUuid(), VerifyTypeEnum.ADVANCE);
 
-        // 走advance实名认证
-        //记录认证初始化
-        String executeSource = RuleExecuteSourceThreadLocal.getSource();
+            yituResult = realNameVerificationService.advanceVerification(realName, idCardNo, order);
+            boolean isAdvanceVerifySuccess = isAdvanceRealNameVerifySuccess(yituResult);
 
-
-        IdentityVerifyResult yituResult = null;
-
-        userVerifyResultService.initVerifyResult(order.getUuid(), order.getUserUuid(), VerifyTypeEnum.ADVANCE);
-
-        yituResult = realNameVerificationService.advanceVerification(realName, idCardNo, order);
-        boolean isAdvanceVerifySuccess = isAdvanceRealNameVerifySuccess(yituResult);
-
-        userVerifyResultService.updateVerifyResult(order.getUuid(), order.getUserUuid(), yituResult.getDesc(),
-                isAdvanceVerifySuccess ? VerifyResultEnum.SUCCESS : VerifyResultEnum.FAILED, VerifyTypeEnum.ADVANCE);
-        return yituResult;
-
-
-
+            userVerifyResultService.updateVerifyResult(order.getUuid(), order.getUserUuid(), yituResult.getDesc(),
+                    isAdvanceVerifySuccess ? VerifyResultEnum.SUCCESS : VerifyResultEnum.FAILED, VerifyTypeEnum.ADVANCE);
+            return yituResult;
+        }
+        else{
+            return new IdentityVerifyResult(IdentityVerifyResultType.IZI_PHONE_IDCARD_VERIFY_FAILED, "izi验证已经成功");
+        }
     }
 
 

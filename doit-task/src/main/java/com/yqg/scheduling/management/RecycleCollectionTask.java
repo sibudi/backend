@@ -17,7 +17,7 @@ public class RecycleCollectionTask {
     /**
      * 自动回收催收未还款订单(用户为id 为207，cuishouheimingdan的账号不回收）
      */
-    @Scheduled(cron = "0 12 0 * * ?")
+    //@Scheduled(cron = "0 12 0 * * ?")
     public void recycleCollectionOrder() {
         String managerUrl = url;
         managerUrl += "recycleCollectionOrder/managerTask";
@@ -26,7 +26,7 @@ public class RecycleCollectionTask {
     }
 
     //自动回收质检订单(用户为id 为207，cuishouheimingdan的账号不回收）
-    @Scheduled(cron = "0 10 0 * * ?")
+    //@Scheduled(cron = "0 10 0 * * ?")
     public void recycleQualityOrder() {
         String managerUrl = url;
         managerUrl += "recycleQualityOrder/managerTask";
@@ -34,7 +34,7 @@ public class RecycleCollectionTask {
         HttpTools.post(managerUrl, null, jsonObject.toString(), 60000, 20000);
     }
 
-    @Scheduled(cron = "0 10 0 * * ?")
+    //@Scheduled(cron = "0 10 0 * * ?")
     public void schedulingReceiverRestAndWork() {
         String managerUrl = url;
         managerUrl += "schedulingReceiverRestAndWork/managerTask";

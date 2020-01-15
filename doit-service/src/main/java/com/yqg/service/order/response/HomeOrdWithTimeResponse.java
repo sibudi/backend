@@ -5,7 +5,7 @@ import com.yqg.service.signcontract.response.SignInfoResponse;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -96,5 +96,7 @@ public class HomeOrdWithTimeResponse {
     private String couponNum; //优惠券金额
 
     private String isNeedQA; //是否需要填写问卷 0 未填写过 需要 1 填写过 不需要
+
+    private List<Map<String,String>> confList;
 
 }

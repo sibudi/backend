@@ -12,5 +12,7 @@ public class InfobipRequestMessage {
     private String from;
     private String[] to;
     private String audioFileUrl;
-//    private String language = "id-ID";
+    private String language;
+    private String text;
+    private InfobipVoiceRequestMessage voice;
 }

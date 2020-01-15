@@ -34,7 +34,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.RISK_MAIL_RECEIVERS_KEYINDEX);// risk_Mail_RECEIVERS_keyIndex
         if (receivers == null || receivers.equals("")){
-            receivers = "weizhaohuan@yinyichina.cn,liqipeng@yinyichina.cn,zhengqiaoling@yinyichina.cn,yexiaomei@yinyichina.cn,wanghuaizhou@yinyichina.cn,yaoweibin@yinyichina.cn,zhoupeixin@yinyichina.cn,sarah.zhao@yinyichina.cn,huzhenhuan@yinyichina.cn,kadi.kusuma@do-it.id";
+            receivers = "notification.risk@do-it.id";
         }
         String sb = riskMailSenderService.getDayKeyHtmlContext();
         String theme = "Do-It风控每日关键指标";
@@ -49,7 +49,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.REMINDER_MAIL_KEYINDEX);//Do-It风控每日关键指标（内部）
         if (receivers == null || receivers.equals("")){
-            receivers = "weizhaohuan@yinyichina.cn,liqipeng@yinyichina.cn,yexiaomei@yinyichina.cn,zhengqiaoling@yinyichina.cn,zhangshanshan@yinyichina.cn,zhoupeixin@yinyichina.cn,wanghuaizhou@yinyichina.cn,chenpeng@yinyichina.cn,wangjian@yinyichina.cn,liquanxia@yinyichina.cn,jc.renyu@gmail.com,sarah.zhao@yinyichina.cn,kadi.kusuma@do-it.id,kadi.kusuma@do-it.id,huzhenhuan@yinyichina.cn";
+            receivers = "notification.risk@do-it.id";
         }
 
         String sb = riskMailSenderService.getOverDuaHtmlContext();
@@ -79,7 +79,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.REMINDER_MAIL_RISKINMAIL);// Do-It风控每日关键指标（内部）
         if (receivers == null || receivers.equals("")){
-            receivers = "weizhaohuan@yinyichina.cn,liqipeng@yinyichina.cn,yexiaomei@yinyichina.cn,zhengqiaoling@yinyichina.cn,zhangshanshan@yinyichina.cn,zhoupeixin@yinyichina.cn,wanghuaizhou@yinyichina.cn,sarah.zhao@yinyichina.cn";
+            receivers = "notification.risk@do-it.id";
         }
         try{
             String sb = riskMailSenderService.riskInMailSender();
@@ -98,7 +98,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.REMINDER_MAIL_CALLOUT_MAIL);// Do-It风控每日关键指标（内部）
         if (receivers == null || receivers.equals("")){
-            receivers = "weizhaohuan@yinyichina.cn,liqipeng@yinyichina.cn,yexiaomei@yinyichina.cn,zhengqiaoling@yinyichina.cn,zhangshanshan@yinyichina.cn,zhoupeixin@yinyichina.cn,wanghuaizhou@yinyichina.cn,sarah.zhao@yinyichina.cn";
+            receivers = "notification.risk@do-it.id";
         }
 
         String sb = riskMailSenderService.riskInMailSenderWithCall();
@@ -113,7 +113,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.DAY_OVERDUE_RATE);// Do-It风控每日关键指标（内部）
         if (receivers == null || receivers.equals("")){
-            receivers = "yexiaomei@yinyichina.cn,wanghuaizhou@yinyichina.cn,chenpeng@yinyichina.cn,liquanxia@yinyichina.cn,wangjian@yinyichina.cn,yaoweibin@yinyichina.cn,huzhenhuan@yinyichina.cn";
+            receivers = "notification.overdue@do-it.id";
         }
         //注意项目路径问题，读取附件的路径 以及附件命名
         String dir = riskMailSenderService.doitDayOverdueRate();
@@ -163,7 +163,7 @@ public class RiskMailService {
         String receivers = sysParamService.getSysParamValue(SysParamContants.REVIEWER_DAY);// 审核人员每日审核状况
         log.info("审核人员每日审核状况邮件 发送名单"+receivers);
         if (receivers == null || receivers.equals("")){
-            receivers = "zhengqiaoling@yinyichina.cn,zhangshanshan@yinyichina.cn,zhoupeixin@yinyichina.cn,wanghuaizhou@yinyichina.cn,jonathan@do-it.id,airlangga@do-it.id,dolly.hasbiar@do-it.id";
+            receivers = "notification.verif@do-it.id";
         }
 
         String sb = riskMailSenderService.doitDayReview();
@@ -179,7 +179,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.REVIEWER_DAY);// 审核人员每日审核状况
         if (receivers == null || receivers.equals("")){
-            receivers = "zhengqiaoling@yinyichina.cn,zhangshanshan@yinyichina.cn,zhoupeixin@yinyichina.cn,wanghuaizhou@yinyichina.cn,jonathan@do-it.id,airlangga@do-it.id";
+            receivers = "notification.verif@do-it.id";
         }
 
         String sb = riskMailSenderService.doitDayReviewWeek();
@@ -195,7 +195,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.OPERATION_DAY);// 运营日报发送名单
         if (receivers == null || receivers.equals("")){
-            receivers = "yexiaomei@yinyichina.cn,wanghuaizhou@yinyichina.cn,yaoweibin@yinyichina.cn,huzhenhuan@yinyichina.cn,wangjian@yinyichina.cn,liangdezhao@yinyichina.cn";
+            receivers = "notification.daily@do-it.id";
         }
 
         String sb = riskMailSenderService.doitDayOperation();
@@ -212,7 +212,7 @@ public class RiskMailService {
         String receivers = sysParamService.getSysParamValue(SysParamContants.COLLECTION_HOUR);// 运营日报发送名单
         log.info("催收时报发送名单"+receivers);
         if (receivers == null || receivers.equals("")){
-            receivers = "yexiaomei@yinyichina.cn,wanghuaizhou@yinyichina.cn,yaoweibin@yinyichina.cn,huzhenhuan@yinyichina.cn,wangjian@yinyichina.cn,liquanxia@yinyichina.cn,chenpeng@yinyichina.cn";
+            receivers = "notification.daily@do-it.id";
         }
 
         String sb = riskMailSenderService.doitCollectionMail();
@@ -228,7 +228,7 @@ public class RiskMailService {
         long start = System.currentTimeMillis();
         String receivers = sysParamService.getSysParamValue(SysParamContants.COLLECTION_HOUR_QI);// 运营日报发送名单
         if (receivers == null || receivers.equals("")){
-            receivers = "yexiaomei@yinyichina.cn,yaoweibin@yinyichina.cn,huzhenhuan@yinyichina.cn,wangjian@yinyichina.cn,liquanxia@yinyichina.cn,chenpeng@yinyichina.cn ,mike.electa@do-it.id,kadi.kusuma@do-it.id,jc@do-it.id,rinawaty.purba16@gmail.com";
+            receivers = "notification.daily@do-it.id";
         }
         String sb = riskMailSenderService.doitCollectionQIMail();
         String theme = "Do-It 催收质检";

@@ -43,4 +43,8 @@ public class IziConfig {
 
     //whatsapp详情
     private String whatsAppDetailUrl;
+
+    private String blackListUrl;
+
+    private String ktpMultiInquiriesV1Url;
 }

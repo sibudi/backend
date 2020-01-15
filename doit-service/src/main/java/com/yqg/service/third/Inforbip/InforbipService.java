@@ -10,6 +10,7 @@ import com.yqg.common.utils.StringUtils;
 import com.yqg.service.third.Inforbip.Enum.CallReusltEnum;
 import com.yqg.service.third.Inforbip.Request.InfobipRequestMessage;
 import com.yqg.service.third.Inforbip.Request.InfobipRequestMessages;
+import com.yqg.service.third.Inforbip.Request.InfobipVoiceRequestMessage;
 import com.yqg.service.third.Inforbip.Request.InforbipRequest;
 import com.yqg.service.third.Inforbip.Response.GetReportResponse;
 import com.yqg.service.third.Inforbip.Response.InforbipResponse;
@@ -367,8 +368,10 @@ public class InforbipService {
                 .add("from",this.inforbipConfig.getFromTel())   //
                 .add("to",mobieNumber[0])
 //                .add("text","this is a test")
-                .add("language","id-ID")
-                .add("audioFileUrl","http://h5.do-it.id/Test.mp3")
+                .add("language","id")
+                .add("text", "Terima kasih telah mendaftar duit")
+                .add("voice", "\"name\": \"Andika\", \"gender\": \"male\"")
+                //.add("audioFileUrl","http://h5.do-it.id/Test.mp3")
                 .build();
 
         log.info("request number: {}",mobieNumber);
@@ -409,9 +412,17 @@ public class InforbipService {
 
         // 拼接请求参数
         InfobipRequestMessage message =new InfobipRequestMessage();
-        message.setAudioFileUrl(fileUrl);
+        // message.setAudioFileUrl(fileUrl);
         message.setFrom(this.inforbipConfig.getFromTel());
-        message.setTo(mobieNumbers);
+        message.setTo(mobieNumbers); //mobieNumbers
+        message.setLanguage("id");
+        message.setText("Terima kasih telah mendaftar duit");
+
+        InfobipVoiceRequestMessage voice = new InfobipVoiceRequestMessage();
+        voice.setName("Andika");
+        voice.setGender("male");
+        message.setVoice(voice);
+
         InfobipRequestMessages messages = new InfobipRequestMessages();
         List<InfobipRequestMessage> messageList = new ArrayList<>();
         messageList.add(message);
