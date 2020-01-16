@@ -463,7 +463,7 @@ public class ContractSignService {
     public void doDigitalSignReloadBucket() {
         int yesterdayOrder = orderDao.countOfYesterdayOrder();
         int percentage = Integer.parseInt(redisClient.get(RedisContants.DIGITAL_SIGN_PERCENTAGE));
-        int bucket = (yesterdayOrder * percentage/100) + 1; //x% dari jumlah order h-1 dibulatkan ke atas
+        int bucket = ((yesterdayOrder == 0 ? 1 : yesterdayOrder) * percentage/100) + 1; //x% dari jumlah order h-1 dibulatkan ke atas
 
         redisClient.set(RedisContants.DIGITAL_SIGN_BUCKET, String.valueOf(bucket));
     }

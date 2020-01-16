@@ -43,6 +43,7 @@ public class SysProduct extends BaseEntity implements Serializable{
     //每期还款金额  只有分期产品才有此字段  此时borrowingTerm 单位为月
     private BigDecimal termAmount;
 
+    //below 100 is monthly, greater 100 is daily, greater 200 is weekly, greater 300 is yearly
     private Integer productType;
 
     private BigDecimal dayRate;
@@ -53,4 +54,5 @@ public class SysProduct extends BaseEntity implements Serializable{
     private String rate4;
     private String rate5;
     private String rate6;
+    
 }

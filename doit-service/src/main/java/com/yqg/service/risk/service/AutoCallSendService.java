@@ -36,8 +36,8 @@ public class AutoCallSendService {
     private OrdService ordService;
     @Autowired
     private UserBackupLinkmanService userBackupLinkmanService;
-    @Autowired
-    private TwilioService twilioService;
+    // @Autowired
+    // private TwilioService twilioService;
 
 
     public void sendOwnerCall(OrdOrder order) {
@@ -78,48 +78,48 @@ public class AutoCallSendService {
     public List<CallResult> getTelCallList(String orderNo, TeleCallResult.CallNodeEnum callNode) {
         List<TeleCallResult> inforbipResultList = inforbipService.getTelCallList(orderNo, callNode);//inforbip结果
 
-        List<TwilioCallResult> dbTwilioResultList = twilioService.listTwilioCallResultByOrderNo(orderNo);//twilio 结果
+        //List<TwilioCallResult> dbTwilioResultList = twilioService.listTwilioCallResultByOrderNo(orderNo);//twilio 结果
 
-        List<TeleCallResult> twilioResultList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(dbTwilioResultList)) {
-            twilioResultList =
-                    dbTwilioResultList.stream()
-                            .filter(elem -> elem.getCallNode() == TeleCallResult.CallNodeEnum.BETWEEN_FIRST_REVIEW_AND_SECOND_REVIEW.getCode()
-                                    || elem.getCallNode() == TeleCallResult.CallNodeEnum.BETWEEN_MACHINE_CHECK_AND_FIRST_REVIEW.getCode())
-                            .map(elem -> {
-                                TeleCallResult result = new TeleCallResult();
-                                result.setCreateTime(elem.getCreateTime());
-                                result.setId(elem.getId());
-                                result.setCallType(elem.getCallType());
-                                result.setCallNode(elem.getCallNode());
-                                result.setOrderNo(elem.getOrderNo());
-                                result.setUserUuid(elem.getUserUuid());
-                                result.setTellNumber(StringUtil.isNotEmpty(elem.getPhoneNumber()) && elem.getPhoneNumber().startsWith("+6") ?
-                                        elem.getPhoneNumber().substring(1) : elem.getPhoneNumber());
-                                //'外呼的结果:queued,ringing,in-progress,completed,busy,failed,no-answer,
-                                if (StringUtil.isNotEmpty(elem.getCallResult()) && Arrays.asList("completed", "busy", "failed", "no-answer", "canceled").contains(elem.getCallResult())) {
-                                    //外呼报告已经获得到了
-                                    result.setCallState(TeleCallResult.CallStatusEnum.CALL_FINISHED.getCode());
-                                } else if (elem.getCallState() == 3) {
-                                    result.setCallState(TeleCallResult.CallStatusEnum.CALL_ERROR.getCode());
-                                } else {
-                                    result.setCallState(TeleCallResult.CallStatusEnum.CALL_SEND.getCode());
-                                }
-                                result.setErrorId("completed".equalsIgnoreCase(elem.getCallResult()) ? 5000 : 0);
+        // List<TeleCallResult> twilioResultList = new ArrayList<>();
+        // if (!CollectionUtils.isEmpty(dbTwilioResultList)) {
+        //     twilioResultList =
+        //             dbTwilioResultList.stream()
+        //                     .filter(elem -> elem.getCallNode() == TeleCallResult.CallNodeEnum.BETWEEN_FIRST_REVIEW_AND_SECOND_REVIEW.getCode()
+        //                             || elem.getCallNode() == TeleCallResult.CallNodeEnum.BETWEEN_MACHINE_CHECK_AND_FIRST_REVIEW.getCode())
+        //                     .map(elem -> {
+        //                         TeleCallResult result = new TeleCallResult();
+        //                         result.setCreateTime(elem.getCreateTime());
+        //                         result.setId(elem.getId());
+        //                         result.setCallType(elem.getCallType());
+        //                         result.setCallNode(elem.getCallNode());
+        //                         result.setOrderNo(elem.getOrderNo());
+        //                         result.setUserUuid(elem.getUserUuid());
+        //                         result.setTellNumber(StringUtil.isNotEmpty(elem.getPhoneNumber()) && elem.getPhoneNumber().startsWith("+6") ?
+        //                                 elem.getPhoneNumber().substring(1) : elem.getPhoneNumber());
+        //                         //'外呼的结果:queued,ringing,in-progress,completed,busy,failed,no-answer,
+        //                         if (StringUtil.isNotEmpty(elem.getCallResult()) && Arrays.asList("completed", "busy", "failed", "no-answer", "canceled").contains(elem.getCallResult())) {
+        //                             //外呼报告已经获得到了
+        //                             result.setCallState(TeleCallResult.CallStatusEnum.CALL_FINISHED.getCode());
+        //                         } else if (elem.getCallState() == 3) {
+        //                             result.setCallState(TeleCallResult.CallStatusEnum.CALL_ERROR.getCode());
+        //                         } else {
+        //                             result.setCallState(TeleCallResult.CallStatusEnum.CALL_SEND.getCode());
+        //                         }
+        //                         result.setErrorId("completed".equalsIgnoreCase(elem.getCallResult()) ? 5000 : 0);
 
-                                if ("completed".equalsIgnoreCase(elem.getCallResult())) {
-                                    result.setCallResultType(TeleCallResult.CallResultTypeEnum.VALID.getCode());
-                                } else if (Arrays.asList("failed", "no-canceled").contains(elem.getCallResult())) {
-                                    result.setCallResultType(TeleCallResult.CallResultTypeEnum.INVALID.getCode());
-                                } else if (Arrays.asList("busy", "no-answer").contains(elem.getCallResult())) {
-                                    result.setCallResultType(TeleCallResult.CallResultTypeEnum.VALID.getCode());
-                                } else {
-                                    result.setCallResultType(0);
-                                }
-                                return result;
-                            }).collect(Collectors.toList());
+        //                         if ("completed".equalsIgnoreCase(elem.getCallResult())) {
+        //                             result.setCallResultType(TeleCallResult.CallResultTypeEnum.VALID.getCode());
+        //                         } else if (Arrays.asList("failed", "no-canceled").contains(elem.getCallResult())) {
+        //                             result.setCallResultType(TeleCallResult.CallResultTypeEnum.INVALID.getCode());
+        //                         } else if (Arrays.asList("busy", "no-answer").contains(elem.getCallResult())) {
+        //                             result.setCallResultType(TeleCallResult.CallResultTypeEnum.VALID.getCode());
+        //                         } else {
+        //                             result.setCallResultType(0);
+        //                         }
+        //                         return result;
+        //                     }).collect(Collectors.toList());
 
-        }
+        // }
 
         List<CallResult> resultList = new ArrayList<>();
         if (!CollectionUtils.isEmpty(inforbipResultList)) {
@@ -137,11 +137,11 @@ public class AutoCallSendService {
             inforbipList.forEach(elem -> elem.setCallChannel(CallResult.CallResultEnum.INFORBIP));
             resultList.addAll(inforbipList);
         }
-        if (!CollectionUtils.isEmpty(twilioResultList)) {
-            List<CallResult> twilioList = JsonUtils.toList(JsonUtils.serialize(twilioResultList), CallResult.class);
-            twilioList.forEach(elem -> elem.setCallChannel(CallResult.CallResultEnum.TWILIO));
-            resultList.addAll(twilioList);
-        }
+        // if (!CollectionUtils.isEmpty(twilioResultList)) {
+        //     List<CallResult> twilioList = JsonUtils.toList(JsonUtils.serialize(twilioResultList), CallResult.class);
+        //     twilioList.forEach(elem -> elem.setCallChannel(CallResult.CallResultEnum.TWILIO));
+        //     resultList.addAll(twilioList);
+        // }
 
         resultList = filterEmergencyCallResult(resultList, orderNo);
 

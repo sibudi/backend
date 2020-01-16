@@ -106,7 +106,7 @@ public class SmsServiceUtil {
 
     //?????
     public void sendTypeSmsCode(String smsType, String mobileNumber,String content) throws Exception {
-        sendTypeSmsCodeWithType(smsType,mobileNumber,content,channelType);
+        sendTypeSmsCodeWithTypeV2(smsType,mobileNumber,content,channelType);
     }
 
     //?????

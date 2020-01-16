@@ -1043,19 +1043,29 @@ public class OrdService {
     @Transactional(rollbackFor = Exception.class)
     public void changeOrderStatus(OrdOrder order ,OrdStateEnum toStatus){
         log.info("start to change order status, order: {} ,toStatus: {}", order.getUuid(), toStatus.name());
+
+        //Janhsen: skip first check then put status machine not allow
+        OrdStateEnum status = toStatus;
+        if(toStatus.equals(OrdStateEnum.FIRST_CHECK)) {
+            status = OrdStateEnum.MACHINE_CHECK_NOT_ALLOW;
+        }
+
         OrdOrder currentDbOrder = getOrderByOrderNo(order.getUuid());
-        Integer affectRow = orderDao.updateOrderInfoWithOldStatus(currentDbOrder.getUuid(), toStatus.getCode(), currentDbOrder.getMarkStatus(),
+        Integer affectRow = orderDao.updateOrderInfoWithOldStatus(currentDbOrder.getUuid(), status.getCode(), currentDbOrder.getMarkStatus(),
                 currentDbOrder.getStatus());
 
         if (affectRow == null || affectRow != 1) {
             log.info("update order: {} conflict or error", order.getUuid());
             return;
         }
-
-        if(!toStatus.equals(OrdStateEnum.MACHINE_CHECK_NOT_ALLOW)){
+        
+        if(!toStatus.equals(OrdStateEnum.MACHINE_CHECK_NOT_ALLOW)) {
             OrdOrder updateEntity = new OrdOrder();
             updateEntity.setUuid(order.getUuid());
             updateEntity.setApprovedAmount(calculateLoanAmount(currentDbOrder));
+            if(toStatus.equals(OrdStateEnum.FIRST_CHECK)) {
+                updateEntity.setRemark(order.getRemark() + " | " + "Change first check to machine not allow");
+            }
             //更新approvedAmount
             this.updateOrder(updateEntity);
         }

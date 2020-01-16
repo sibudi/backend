@@ -48,20 +48,25 @@ public class AdvanceService {
      */
     public String identityCheck(Map<String, String> params) {
 
-        OpenApiClient client = new OpenApiClient(advanceConfig.getApiHost(),
-                advanceConfig.getAccessKey(), advanceConfig.getSecretKey());
-        //计时开始
-        Long startTime = System.currentTimeMillis();
+        
         // 调用接口
         String response = null;
-        try {
-            response = client
-                    .request(advanceConfig.getIdentityCheckApi(), JSON.toJSONString(params));
-        } catch (Exception e) {
-            log.error("request to advance exception , param：" + JSON.toJSONString(params), e);
+        if(advanceConfig.isSwitchOn()){
+            OpenApiClient client = new OpenApiClient(advanceConfig.getApiHost(),
+                advanceConfig.getAccessKey(), advanceConfig.getSecretKey());
+        
+            //计时开始
+            Long startTime = System.currentTimeMillis();
+
+            try {
+                response = client
+                        .request(advanceConfig.getIdentityCheckApi(), JSON.toJSONString(params));
+            } catch (Exception e) {
+                log.error("request to advance exception , param：" + JSON.toJSONString(params), e);
+            }
+            log.info("实名认证耗时:{} ms, response: {} ,param: {}", System.currentTimeMillis() - startTime,
+                    response, JSON.toJSONString(params));
         }
-        log.info("实名认证耗时:{} ms, response: {} ,param: {}", System.currentTimeMillis() - startTime,
-                response, JSON.toJSONString(params));
         return response;
     }
 
@@ -73,30 +78,36 @@ public class AdvanceService {
      * @param phoneNumber
      */
     public BlacklistCheckResponse checkBlacklist(OrdOrder order ,String realName, String idNumber, String phoneNumber) {
-        OpenApiClient client = new OpenApiClient(advanceConfig.getApiHost(),
+
+        if(advanceConfig.isSwitchOn()){
+            OpenApiClient client = new OpenApiClient(advanceConfig.getApiHost(),
                 advanceConfig.getAccessKey(), advanceConfig.getSecretKey());
-        Map<String, String> phoneNumberMap = new HashMap<>();
-        phoneNumberMap.put("countryCode", "+62");
-        phoneNumberMap.put("areaCode", "");
-        phoneNumberMap.put("number", phoneNumber);
+            Map<String, String> phoneNumberMap = new HashMap<>();
+            phoneNumberMap.put("countryCode", "+62");
+            phoneNumberMap.put("areaCode", "");
+            phoneNumberMap.put("number", phoneNumber);
 
-        Map<String, Object> blacklistCheck = new HashMap<>();
-        blacklistCheck.put("name", realName);
-        blacklistCheck.put("idNumber", idNumber);
-        blacklistCheck.put("phoneNumber", phoneNumberMap);
+            Map<String, Object> blacklistCheck = new HashMap<>();
+            blacklistCheck.put("name", realName);
+            blacklistCheck.put("idNumber", idNumber);
+            blacklistCheck.put("phoneNumber", phoneNumberMap);
 
-        String reqStr = JsonUtils.serialize(blacklistCheck);
-        String response = client.request(advanceConfig.getBlacklistCheck(), reqStr);
-        log.info("the response of blacklist check with param: {} , response {}",reqStr,response);
+            String reqStr = JsonUtils.serialize(blacklistCheck);
+            String response = client.request(advanceConfig.getBlacklistCheck(), reqStr);
+            log.info("the response of blacklist check with param: {} , response {}",reqStr,response);
 
-        advanceRepository.saveData(order,response,advanceConfig.getBlacklistCheck());
+            advanceRepository.saveData(order,response,advanceConfig.getBlacklistCheck());
 
-        if (StringUtils.isEmpty(response)) {
+            if (StringUtils.isEmpty(response)) {
+                return null;
+            }
+            BlacklistCheckResponse respData = JsonUtils.deserialize(response, BlacklistCheckResponse.class);
+            saveBlacklistData(order, respData);
+            return respData;
+        }
+        else{
             return null;
         }
-        BlacklistCheckResponse respData = JsonUtils.deserialize(response, BlacklistCheckResponse.class);
-        saveBlacklistData(order, respData);
-        return respData;
     }
 
 
@@ -106,21 +117,26 @@ public class AdvanceService {
      * @return
      */
     public MultiPlatformResponse checkMultiPlatform(OrdOrder order,String idNumber) {
-        Map<String, String> params = new HashMap<>();
-        params.put("idNumber", idNumber);
-        OpenApiClient client = new OpenApiClient(advanceConfig.getApiHost(),
-                advanceConfig.getAccessKey(), advanceConfig.getSecretKey());
-        String reqStr = JsonUtils.serialize(params);
-        String response = client.request(advanceConfig.getMultiPlatform(), reqStr);
-        log.info("the response of multi-platform check with param: {} , response {}",idNumber,response);
+        if(advanceConfig.isSwitchOn()){
+            Map<String, String> params = new HashMap<>();
+            params.put("idNumber", idNumber);
+            OpenApiClient client = new OpenApiClient(advanceConfig.getApiHost(),
+                    advanceConfig.getAccessKey(), advanceConfig.getSecretKey());
+            String reqStr = JsonUtils.serialize(params);
+            String response = client.request(advanceConfig.getMultiPlatform(), reqStr);
+            log.info("the response of multi-platform check with param: {} , response {}",idNumber,response);
 
-        advanceRepository.saveData(order,response,advanceConfig.getMultiPlatform());
-        if (StringUtils.isEmpty(response)) {
+            advanceRepository.saveData(order,response,advanceConfig.getMultiPlatform());
+            if (StringUtils.isEmpty(response)) {
+                return null;
+            }
+            MultiPlatformResponse respData = JsonUtils.deserialize(response, MultiPlatformResponse.class);
+            saveMultiPlatformData(order, respData);
+            return respData;
+        }
+        else{
             return null;
         }
-        MultiPlatformResponse respData = JsonUtils.deserialize(response, MultiPlatformResponse.class);
-        saveMultiPlatformData(order, respData);
-        return respData;
     }
 
 
@@ -194,6 +210,15 @@ public class AdvanceService {
         advanceBlacklistDetailDao.insertBatch(saveList);
     }
 
+    public boolean isAdvanceSwitchOn(){
+        boolean isSwitchOn = false;
+        try {
+            isSwitchOn = advanceConfig.isSwitchOn();
+        } catch (Exception e) {
+            log.info("No configuration for advance ai, please add switchOn: true/false, message: {}", e.getMessage());
+        }
+        return isSwitchOn;
+    }
 
     private Integer getQueryCountFromList(List<StatisticCustomerInfoDetail> detailList,String type){
        Optional<StatisticCustomerInfoDetail> detail =

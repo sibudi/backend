@@ -1,6 +1,7 @@
 package com.yqg.service.pay;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.SocketTimeoutException;
 import java.text.ParseException;
 import java.util.Date;
@@ -812,7 +813,9 @@ public class RepayService {
             //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
 
             //BigDecimal limit = bill.getBillAmout().subtract(bill.getBillAmout().multiply(BigDecimal.valueOf(0.006542)).multiply(BigDecimal.valueOf(30))).multiply(BigDecimal.valueOf(2)).setScale(2);
-            BigDecimal limit = bill.getBillAmout().multiply(BigDecimal.valueOf(2));
+            
+            OrdOrder order = ordService.getOrderByOrderNo(bill.getOrderNo());
+            BigDecimal limit = bill.getBillAmout().subtract(order.getServiceFee().divide(BigDecimal.valueOf(order.getBorrowingTerm()), 0, RoundingMode.UP)).multiply(BigDecimal.valueOf(2));
             log.info("Limit:"+ limit);
             if (shouldPayAmount.compareTo(limit) > 0 ){
                 shouldPayAmount = limit;

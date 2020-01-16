@@ -10,8 +10,12 @@ import com.yqg.mongo.entity.UserIziVerifyResultMongo;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.third.izi.config.IziConfig;
 import com.yqg.service.third.izi.response.IziResponse;
+import com.yqg.service.third.izi.response.IziResponse.IziBlackListResponse;
+import com.yqg.service.third.izi.response.IziResponse.IziMultiInquiriesV1Response;
 import com.yqg.user.dao.UsrIziVerifyResultDao;
 import com.yqg.user.entity.UsrIziVerifyResult;
+import com.yqg.user.entity.UsrUser;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -148,12 +152,12 @@ public class IziService {
         data.put("id", idNum); // 必选，字符串，需要验证号码对应的身份证
 
         //如果入参和原来一样且返回的非NOT_FOUND则不需要重新调用,直接用原来的结果
-        UserIziVerifyResultMongo iziLog = getLatestIziResponseFromMongoByUserUuid(userUuid, IziService.IziInvokeType.PHONE_VERIFY.getType());
-        if (iziLog != null && StringUtils.isNotEmpty(iziLog.getRequestParam())
-                && JsonUtils.serialize(data).equals(iziLog.getRequestParam()) && !"NOT_FOUND".equals(iziLog.getIziVerifyResult())) {
-            log.info("get data from mongo: {}", iziLog.getIziVerifyResponse());
-            return JsonUtils.deserialize(iziLog.getIziVerifyResponse(), IziResponse.class);
-        }
+        // UserIziVerifyResultMongo iziLog = getLatestIziResponseFromMongoByUserUuid(userUuid, IziService.IziInvokeType.PHONE_VERIFY.getType());
+        // if (iziLog != null && StringUtils.isNotEmpty(iziLog.getRequestParam())
+        //         && JsonUtils.serialize(data).equals(iziLog.getRequestParam()) && !"NOT_FOUND".equals(iziLog.getIziVerifyResult())) {
+        //     log.info("get data from mongo: {}", iziLog.getIziVerifyResponse());
+        //     return JsonUtils.deserialize(iziLog.getIziVerifyResponse(), IziResponse.class);
+        // }
 
         Client api = new Client(this.iziConfig.getAccessKey(), this.iziConfig.getSecretKey());
         api.setConnectionTimeoutInMillis(30000);
@@ -198,6 +202,48 @@ public class IziService {
 
     }
 
+    public IziBlackListResponse checkBlacklist(String name, String idCardNo, String phoneNumberWithoutPrefix, OrdOrder order){
+        Client api = new Client(this.iziConfig.getAccessKey(), this.iziConfig.getSecretKey());
+        Map<String, String> data = new HashMap<>();
+        data.put("name", name);
+        data.put("id", idCardNo);
+        data.put("phone", "+62" + phoneNumberWithoutPrefix);
+        String response = api.Request(this.iziConfig.getBlackListUrl(), data);
+
+        log.info("the izi Blacklist response of orderNo: {} is: {}", order.getUuid(), response);
+        if (StringUtils.isEmpty(response)) {
+            log.info("the response of izi Blacklist is empty, orderNo: {}", order.getUuid());
+            return null;
+        } else {
+            IziBlackListResponse iziResponse = JsonUtils.deserialize(response, IziBlackListResponse.class);
+
+            IziRequestLog requestLog = new IziRequestLog(order.getUuid(),order.getUserUuid(),IziInvokeType.BLACKLIST,
+                iziResponse.getStatus(), response, JsonUtils.serialize(data));
+            saveIziVerifyResult(requestLog);
+
+            return iziResponse;
+        }
+    }
+
+    public IziMultiInquiriesV1Response checkKtpMultiInquiriesV1(String idCardNo, OrdOrder order){
+        Client api = new Client(this.iziConfig.getAccessKey(), this.iziConfig.getSecretKey());
+        Map<String, String> data = new HashMap<>();
+        data.put("id", idCardNo);
+        String response = api.Request(this.iziConfig.getKtpMultiInquiriesV1Url(), data);
+
+        log.info("the izi KtpMultiInquiriesV1 response of orderNo: {} is: {}", order.getUuid(), response);
+        if (StringUtils.isEmpty(response)) {
+            log.info("the response of izi KtpMultiInquiriesV1 is empty, orderNo: {}", order.getUuid());
+            return null;
+        } else {
+            IziMultiInquiriesV1Response iziResponse = JsonUtils.deserialize(response, IziMultiInquiriesV1Response.class);
+
+            IziRequestLog requestLog = new IziRequestLog(order.getUuid(),order.getUserUuid(),IziInvokeType.IZI_MULTIINQUIRIESV1,
+                iziResponse.getStatus(), response, JsonUtils.serialize(data));
+            saveIziVerifyResult(requestLog);
+            return iziResponse;
+        }
+    }
 
     public void saveIziWhatsApp(String orderNo, String userUuid, String number, IziWhatsappDetail iziWhatsappDetail,
                                 String numberType) {
@@ -402,6 +448,8 @@ public class IziService {
         REALNAME_IDENTITY_CHECK("3"),
         IZI_WHATSAPP("4"),
         WHATS_APP_DETAIL("5"),
+        BLACKLIST("6"),
+        IZI_MULTIINQUIRIESV1("7")
         ;
         private IziInvokeType(String type){
             this.type = type;

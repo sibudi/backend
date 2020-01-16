@@ -239,17 +239,19 @@ public class AutoCallExtractor implements BaseExtractor<AutoCallModel> {
         if(CollectionUtils.isEmpty(inforbipListFor5603)){
             return 0L;
         }
-        List<CallResult> twilioListForType2 =  callResultList.stream().filter(elem -> elem.getCallType() == TeleCallResult.CallTypeEnum.EMERGENCY_LINKMAN.getCode())
-                .filter(elem -> elem.isCallFinished()).filter(elem->elem.getCallResultType()!=null&& elem.getCallResultType()==2)
-                .filter(elem->elem.getCallChannel().equals(CallResult.CallResultEnum.TWILIO)).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(twilioListForType2)){
-            return 0L;
-        }
+        // List<CallResult> twilioListForType2 =  callResultList.stream().filter(elem -> elem.getCallType() == TeleCallResult.CallTypeEnum.EMERGENCY_LINKMAN.getCode())
+        //         .filter(elem -> elem.isCallFinished()).filter(elem->elem.getCallResultType()!=null&& elem.getCallResultType()==2)
+        //         .filter(elem->elem.getCallChannel().equals(CallResult.CallResultEnum.TWILIO)).collect(Collectors.toList());
+        // if(CollectionUtils.isEmpty(twilioListForType2)){
+        //     return 0L;
+        // }
+
         //inforbip 中6503的号码在twilio中的数量
         List<String> numbers = inforbipListFor5603.stream().map(elem->elem.getTellNumber()).collect(Collectors.toList());
-        List<String> twilioNumbers = twilioListForType2.stream().map(elem->elem.getTellNumber()).collect(Collectors.toList());
+        // List<String> twilioNumbers = twilioListForType2.stream().map(elem->elem.getTellNumber()).collect(Collectors.toList());
 
-        return numbers.stream().filter(elem->twilioNumbers.contains(elem)).count();
+        //return numbers.stream().filter(elem->twilioNumbers.contains(elem)).count();
+        return numbers.stream().count();
     }
 
     public static void main(String[] args) {

@@ -14,7 +14,7 @@ public class ManageMessageTask {
     private String url;
 
     // 每隔半小时检查复审备注提醒消息,并发送
-    @Scheduled(cron = "0 */1 * * * ?")
+    // @Scheduled(cron = "0 */1 * * * ?")
     public void sendTeleReviewAlertMessage() {
         String managerUrl = url;
         managerUrl += "sendTeleReviewAlertMessage/managerTask";
@@ -23,7 +23,7 @@ public class ManageMessageTask {
     }
 
     //将数据App内的数据分析保存到Mysql
-    @Scheduled(cron = "0 45 23 * * ?")
+    // @Scheduled(cron = "0 45 23 * * ?")
     public void saveLoanData2Mysql() {
         String managerUrl = url;
         managerUrl += "saveLoanData2Mysql/managerTask";
@@ -31,7 +31,7 @@ public class ManageMessageTask {
         HttpTools.post(managerUrl, null, jsonObject.toString(), 60000, 20000);
     }
 
-    @Scheduled(cron = "0 0/12 * * * ?")
+    // @Scheduled(cron = "0 0/12 * * * ?")
     public void saveAppData2Redis() {
         String managerUrl = url;
         managerUrl += "saveAppData2Redis/managerTask";
@@ -39,7 +39,7 @@ public class ManageMessageTask {
         HttpTools.post(managerUrl, null, jsonObject.toString(), 60000, 20000);
     }
 
-    @Scheduled(cron = "0 40 1 * * ?")
+    // @Scheduled(cron = "0 40 1 * * ?")
     public void updateOverDueDailyData() {
         String managerUrl = url;
         managerUrl += "updateOverDueDailyData/managerTask";
@@ -47,7 +47,7 @@ public class ManageMessageTask {
         HttpTools.post(managerUrl, null, jsonObject.toString(), 60000, 20000);
     }
 
-    @Scheduled(cron = "0 0/60 * * * ?")
+    // @Scheduled(cron = "0 0/60 * * * ?")
     public void updateRepayDailyData() {
         String managerUrl = url;
         managerUrl += "updateRepayDailyData/managerTask";
@@ -55,7 +55,7 @@ public class ManageMessageTask {
         HttpTools.post(managerUrl, null, jsonObject.toString(), 60000, 20000);
     }
 
-    @Scheduled(cron = "0 45 14 23 7 ?")
+    // @Scheduled(cron = "0 45 14 23 7 ?")
     public void dataAPPInit() {
         String managerUrl = url;
         managerUrl += "dataAPPInit/managerTask";

@@ -196,6 +196,8 @@ public class SmsTemplateService {
                 type = "link:";
             } else if (index == 5) {
                 type = "comPhone:";
+            } else if (index == 6) {
+                type = "homeAddr:";
             }
             List<String> strs = sysParamDao.getCollectionSmsSwitch("users:contact:" + type + sysParam.getSysKey());
             ContactSwitchResponse response = new ContactSwitchResponse();

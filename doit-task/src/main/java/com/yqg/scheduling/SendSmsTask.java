@@ -25,7 +25,7 @@ public class SendSmsTask {
     /**
      * @throws Exception
      */
-    @Scheduled(cron = "0 15 10 */5 * ?")
+    // @Scheduled(cron = "0 15 10 */5 * ?")
     public void sendToLoanSuccessUserWithinFiveDay() throws Exception{
         log.info("sendToLoanSuccessUserWithinFiveDay begin");
         sendSmsService.sendToLoanSuccessUserWithinFiveDay();
@@ -36,7 +36,7 @@ public class SendSmsTask {
      * send silence user (the day is 3)
      * @throws Exception
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?")
     public void sendSmsToSilenceUser() throws Exception{
 
         if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":silientSMS")) {
@@ -50,7 +50,7 @@ public class SendSmsTask {
     /**  send not verify
      * @throws Exception
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?")
     public void sendSmsToUserNotVerifyOrder() throws Exception{
 
         if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":notSubmitSMS")) {
@@ -63,7 +63,7 @@ public class SendSmsTask {
     /**  send 降额未确认放款
      * @throws Exception
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?")
     public void sendReduceSms() throws Exception{
 
         if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":reduceSMS")) {
@@ -77,7 +77,7 @@ public class SendSmsTask {
     /**  每周五早上十点定时发送  20w已还款用户 没有再复借
      * @throws Exception
      */
-    @Scheduled(cron = "0 0 10 ? * 6")
+    // @Scheduled(cron = "0 0 10 ? * 6")
     public void sendSmsToUserNotReLoanAfter20W() throws Exception{
         log.info("sendSmsToUserNotReLoanAfter20W begin");
         sendSmsService.sendSmsToUserNotReLoanAfter20W();
@@ -707,7 +707,7 @@ public class SendSmsTask {
 //        log.info("sendSmsOn20190126 end");
 //    }
 
-    @Scheduled(cron = "0 52 14 15 2 ?")
+    // @Scheduled(cron = "0 52 14 15 2 ?")
     public void sendSmsToSilenceUserWithTwoWeek() throws Exception{
         log.info("sendSmsToSilenceUserWithTwoWeek begin");
         sendSmsService.sendSmsToSilenceUserWithTwoWeek();
@@ -718,7 +718,7 @@ public class SendSmsTask {
     /**  运营短信 拉新   2w
      * @throws Exception
      */
-    @Scheduled(cron = "0 20 11 18 2 ?")
+    // @Scheduled(cron = "0 20 11 18 2 ?")
     public void sendSmsOn20190218() throws Exception{
         log.info("sendSmsOn20190218 begin");
         sendSmsService.sendSmsOn20190218();

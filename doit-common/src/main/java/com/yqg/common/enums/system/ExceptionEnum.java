@@ -10,7 +10,7 @@ import java.text.MessageFormat;
 public enum ExceptionEnum {
     SESSION_UN_LOGIN(1000, "Belum masuk"),//未登录
     USER_NOT_FOUND(1001, "Pengguna tidak terdaftar, silahkan login kembali"),//用户不存在
-    USER_IS_EXIST(1002, "Pengguna sudah ada"),//用户已存在
+    USER_IS_EXIST(1002, "Pengguna sudah terdaftar"),//用户已存在
     USER_LOGIN_ERROR(1003, "Login gagal"),//登录失败
     USER_LOGOUT_ERROR(1004, "Keluar gagal"),//退出失败
     USER_PASSWORD_ERROR(1005, "Kata sandi salah"),//密码不正确

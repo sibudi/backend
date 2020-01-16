@@ -123,6 +123,7 @@ public class BaseExecutionChain {
     public RuleSetExecutedResult execute(OrdOrder order, Map<String, SysAutoReviewRule> allRules, List<Object> facts) throws Exception {
         log.info("current flow to be executed: {}",getFLowType());
         //common condition
+        //Janhsen: check if order in manual blacklist 
         if(hasRejectRules(order.getUuid())){
             return null;
         }

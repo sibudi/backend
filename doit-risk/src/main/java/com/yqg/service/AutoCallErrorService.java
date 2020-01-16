@@ -103,18 +103,18 @@ public class AutoCallErrorService {
     private void sendWithRandomChannel(List<InforbipRequest> toSendList) {
         //第一次重发用twillio，第二次重发用inforbip，第三次重发用twillio，以此类推
         List<InforbipRequest> inforbipRequests = new ArrayList<>();
-        List<InforbipRequest> twillioCallResult = new ArrayList<>();
+        // List<InforbipRequest> twillioCallResult = new ArrayList<>();
         for (InforbipRequest request : toSendList) {
             //
-            Integer count = teleCallResultDao.getRetryTimes(request.getOrderNo(), request.getMobileNumber());
-            count = (count == null ? 1 : count);
-            if (count % 2 == 1) {
+            // Integer count = teleCallResultDao.getRetryTimes(request.getOrderNo(), request.getMobileNumber());
+            // count = (count == null ? 1 : count);
+            // if (count % 2 == 1) {
                 //inforbip
                 inforbipRequests.add(request);
-            } else {
-                //twilio
-                twillioCallResult.add(request);
-            }
+            // } else {
+            //     //twilio
+            //     twillioCallResult.add(request);
+            // }
 
         }
         if (CollectionUtils.isEmpty(inforbipRequests)) {
@@ -123,24 +123,24 @@ public class AutoCallErrorService {
             log.info("error resend numbers- with inforbip: {}", JsonUtils.serialize(inforbipRequests));
             inforbipService.sendVoiceMessage(inforbipRequests);
         }
-        if (CollectionUtils.isEmpty(twillioCallResult)) {
-            log.info("no twillio reqeust numbers...");
-        } else {
-            log.info("error resend numbers- with twillio: {}", JsonUtils.serialize(twillioCallResult));
-            for (InforbipRequest twillioReq : twillioCallResult) {
-                try {
-                    TeleCallResult callInfo = new TeleCallResult();
-                    callInfo.setTellNumber(twillioReq.getMobileNumber());
-                    callInfo.setCallType(twillioReq.getCallType());
-                    callInfo.setCallNode(twillioReq.getCallNode());
-                    callInfo.setOrderNo(twillioReq.getOrderNo());
-                    callInfo.setUserUuid(twillioReq.getUserUuid());
-                    inforbipService.sendTwilioCall(callInfo);
-                } catch (Exception e) {
-                    log.error("twillio call error with param: {}", JsonUtils.serialize(twillioReq), e);
-                }
-            }
-        }
+        // if (CollectionUtils.isEmpty(twillioCallResult)) {
+        //     log.info("no twillio reqeust numbers...");
+        // } else {
+        //     log.info("error resend numbers- with twillio: {}", JsonUtils.serialize(twillioCallResult));
+        //     for (InforbipRequest twillioReq : twillioCallResult) {
+        //         try {
+        //             TeleCallResult callInfo = new TeleCallResult();
+        //             callInfo.setTellNumber(twillioReq.getMobileNumber());
+        //             callInfo.setCallType(twillioReq.getCallType());
+        //             callInfo.setCallNode(twillioReq.getCallNode());
+        //             callInfo.setOrderNo(twillioReq.getOrderNo());
+        //             callInfo.setUserUuid(twillioReq.getUserUuid());
+        //             inforbipService.sendTwilioCall(callInfo);
+        //         } catch (Exception e) {
+        //             log.error("twillio call error with param: {}", JsonUtils.serialize(twillioReq), e);
+        //         }
+        //     }
+        // }
 
     }
 

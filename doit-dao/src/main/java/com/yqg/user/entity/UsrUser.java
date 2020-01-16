@@ -32,6 +32,7 @@ public class UsrUser extends BaseEntity implements Serializable {
     private String companyType;  // 公司类型 （userType为2的时候才有）
     private String registeredLegalName;  // 注册法人名称 （userType为2的时候才有）
     private Integer age;  // 年龄
+    private Integer isInvited;
 
     /**
      *   第三方撞库命中 1 CashCash命中Do-It黑名单

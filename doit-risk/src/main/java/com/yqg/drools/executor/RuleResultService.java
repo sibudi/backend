@@ -13,6 +13,8 @@ import com.yqg.order.entity.OrdRiskRecord;
 import com.yqg.risk.repository.OrderRiskRecordRepository;
 import com.yqg.system.entity.SysAutoReviewRule;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.xpath.operations.Bool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +57,7 @@ public class RuleResultService {
             }
             String respMessage = rule.getRuleDesc() + flowEnum.name();
             String realValue = elem.getRealValue();
+            boolean isPassed = elem.isPass();
 
             //插入ordRiskRecord表
             OrdRiskRecord record = new OrdRiskRecord();
@@ -67,6 +70,7 @@ public class RuleResultService {
             record.setUuid(UUIDGenerateUtil.uuid());
             record.setCreateTime(new Date());
             record.setUpdateTime(new Date());
+            record.setRemark("isPassed: " + isPassed);
             orderRiskRecords.add(record);
 
             //isHitRule

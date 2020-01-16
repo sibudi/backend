@@ -54,6 +54,39 @@ public class RiskErrorLogService {
 
     }
 
+    public void addRiskError(String orderNo, RiskErrorTypeEnum errorType, String remark) {
+
+        log.warn("risk error, orderNo: {}, type: {}", orderNo, errorType == null ? null : errorType.name());
+        //检查是否有该异常记录：
+        RiskErrorLog search = new RiskErrorLog();
+        //search.setDisabled(0);
+        search.setOrderNo(orderNo);
+        search.setErrorType(errorType == null ? 0 : errorType.getCode());
+        List<RiskErrorLog> searchResult = riskErrorLogDao.scan(search);
+        if(CollectionUtils.isEmpty(searchResult)){
+            //记录异常表
+            RiskErrorLog riskErrorLog = new RiskErrorLog();
+            riskErrorLog.setOrderNo(orderNo);
+            riskErrorLog.setCreateTime(new Date());
+            riskErrorLog.setUpdateTime(new Date());
+            riskErrorLog.setUuid(UUIDGenerateUtil.uuid());
+            riskErrorLog.setErrorType(errorType == null ? 0 : errorType.getCode());
+            riskErrorLog.setRemark(remark);
+            riskErrorLogDao.insert(riskErrorLog);
+        }else{
+            RiskErrorLog riskErrorLog = new RiskErrorLog();
+            riskErrorLog.setOrderNo(orderNo);
+            riskErrorLog.setCreateTime(new Date());
+            riskErrorLog.setUpdateTime(new Date());
+            riskErrorLog.setUuid(UUIDGenerateUtil.uuid());
+            riskErrorLog.setErrorType(errorType == null ? 0 : errorType.getCode());
+            Integer times = searchResult.size()+1;
+            riskErrorLog.setTimes(times);
+            riskErrorLog.setRemark(remark);
+            riskErrorLogDao.insert(riskErrorLog);
+        }
+    }
+
     public List<RiskErrorLog> getTaxNumberNeedRetryOrders() {
         return riskErrorLogDao.getTaxNumberNeedRetryOrders(RiskErrorTypeEnum.TAX_VERIFY_NEED_RETRY.getCode());
     }

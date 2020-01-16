@@ -22,7 +22,7 @@ public class CheakAccountBalanceTask {
     /**
      * @throws Exception
      */
-    @Scheduled(cron = "0 10 08 * * ?")
+    // @Scheduled(cron = "0 10 08 * * ?")
     public void cheakLoanAccountBalanceOnSpecifiedTime() throws Exception{
         log.info("cheakLoanAccountBalance begin");
         cheakLoanBalanceService.cheakLoanAccountBalanceEveryHour(false);

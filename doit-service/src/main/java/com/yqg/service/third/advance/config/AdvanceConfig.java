@@ -29,4 +29,6 @@ public class AdvanceConfig {
 
     private String multiPlatform;
 
+    private boolean switchOn;
+
 }
