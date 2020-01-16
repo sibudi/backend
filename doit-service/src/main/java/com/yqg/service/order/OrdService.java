@@ -324,7 +324,8 @@ public class OrdService {
         //List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
         List<Integer> scanList = this.orderDao.isInvited(orderRequest.getUserUuid());
         if (CollectionUtils.isEmpty(scanList)){
-            orderResponse.setIsAgain("0");
+            //orderResponse.setIsAgain("0");
+            throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
         }else {
             orderResponse.setIsAgain("1");
         }

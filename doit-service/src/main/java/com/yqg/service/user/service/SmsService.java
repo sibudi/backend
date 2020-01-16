@@ -287,9 +287,12 @@ public class SmsService {
 
 
                 //invite
-                List<Integer> scanListCheck = this.usrDao.isInvitedAndNeedRepay(mobileNumberDES2);
-                if (CollectionUtils.isEmpty(scanListCheck)){
-                    throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
+                String is_invitedSwitch = redisClient.get(RedisContants.IS_INVITED_SWITCH);
+                if ("true".equals(is_invitedSwitch)) {
+                    List<Integer> scanListCheck = this.usrDao.isInvitedAndNeedRepay(mobileNumberDES2);
+                    if (CollectionUtils.isEmpty(scanListCheck)) {
+                        throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
+                    }
                 }
 
                 usrUser.setMobileNumberDES(mobileNumberDES);
