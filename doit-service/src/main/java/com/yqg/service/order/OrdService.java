@@ -321,13 +321,27 @@ public class OrdService {
 
         }
         //Invite
-        //List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
-        List<Integer> scanList = this.orderDao.isInvited(orderRequest.getUserUuid());
-        if (CollectionUtils.isEmpty(scanList)){
-            //orderResponse.setIsAgain("0");
-            throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
-        }else {
-            orderResponse.setIsAgain("1");
+        //budi: add isinvited_switch
+        String is_invitedSwitch = redisClient.get(RedisContants.IS_INVITED_SWITCH);
+        if ("true".equals(is_invitedSwitch)) {
+            List<Integer> scanList = this.orderDao.isInvited(orderRequest.getUserUuid());
+            if (CollectionUtils.isEmpty(scanList)) {
+                throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
+            } else {
+                List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
+                if (CollectionUtils.isEmpty(scanList)) {
+                    orderResponse.setIsAgain("0");
+                } else {
+                    orderResponse.setIsAgain("1");
+                }
+            }
+        } else {
+            List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
+            if (CollectionUtils.isEmpty(scanList)) {
+                orderResponse.setIsAgain("0");
+            } else {
+                orderResponse.setIsAgain("1");
+            }
         }
 
         //判断是否跳转到联系人页面[当前订单是否外呼被拒绝过]
