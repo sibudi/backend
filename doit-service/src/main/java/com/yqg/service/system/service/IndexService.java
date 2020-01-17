@@ -1,13 +1,16 @@
 package com.yqg.service.system.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.yqg.common.constants.RedisContants;
 import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.OrdBillStatusEnum;
 import com.yqg.common.enums.order.OrderTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.enums.user.UsrBankCardBinEnum;
+import com.yqg.common.enums.order.OrdShowStateEnum;
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.models.BaseRequest;
+import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.StringUtils;
 import com.yqg.order.dao.OrdBillDao;
@@ -65,6 +68,9 @@ public class IndexService {
 
     @Autowired
     private OrdDao orderDao;
+
+    @Autowired
+    private RedisClient redisClient;
 
     @Autowired
     private UsrBankDao usrBankDao;
@@ -350,9 +356,11 @@ public class IndexService {
                 case 12:// ??????????12???????
                     //    ?????
                 {
+                    //budi: reject duration (minutes) configurable from redis
+                    int rejectDuration = Integer.parseInt(redisClient.get(RedisContants.RISK_REJECT_DURATION));
                     long diffMinute = (new Date().getTime() - orderObj.getUpdateTime().getTime()) / (1000 * 60);
                     log.info(diffMinute+"");
-                    if (diffMinute>=60){
+                    if (diffMinute >= rejectDuration){
                         return  homeOrdWithRefuse(orderObj,status,baseRequest,type);
                     }else {
                         HomeOrdResponse loadingResponse = boxResponseFunc(orderObj,type);
@@ -362,6 +370,7 @@ public class IndexService {
                         loadingResponse.setShowState(ShowStatusEnum.REVIEWING_STAGE.getCode());
                         loadingResponse.setOrderStatus(ordService.boxShowOrderStatus(status).get(KEY));
                         loadingResponse.setOrderStatusMsg(ordService.boxShowOrderStatus(status).get(VALUE));
+                        loadingResponse.setRejectStatusDescription(OrdShowStateEnum.REJECT_STATUS_DESCRIPTION.getMessage()); //budi: add reject description
 
                         confMap.put("date", "");
                         confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));

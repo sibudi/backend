@@ -14,7 +14,8 @@ public enum OrdShowStateEnum {
     PAYED(7,"Pinjaman sudah lunas"),//???
     CHECKNOTPASS(8,"Verifikasi gagal"),//?????
     CANCEL(9,"BATAL"),//??
-    LOAN_FAILD(10,"Transfer gagal")//????
+    LOAN_FAILD(10,"Transfer gagal"),//????
+    REJECT_STATUS_DESCRIPTION(99,"Silakan coba beberapa saat lagi")
     ;
 
     private Integer code;

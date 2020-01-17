@@ -205,6 +205,9 @@ public class RedisContants {
     // ??????  son
     public static final String RISK_REFUSE_JUDGE_SON = "risk:refuse:judge:son";
 
+    //budi: add redis configurable reject duration
+    public static final String RISK_REJECT_DURATION = "risk:reject:duration";
+
     //获取h5 url 列表缓存
     public static final String CACHE_H5_CASE2_URL_LIST_KEY = "cache:h5:url:list:cash2key";
 

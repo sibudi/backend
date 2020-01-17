@@ -322,13 +322,13 @@ public class OrdService {
         }
         //Invite
         //budi: add isinvited_switch
+        List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
         String is_invitedSwitch = redisClient.get(RedisContants.IS_INVITED_SWITCH);
         if ("true".equals(is_invitedSwitch)) {
-            List<Integer> scanList = this.orderDao.isInvited(orderRequest.getUserUuid());
-            if (CollectionUtils.isEmpty(scanList)) {
+            List<Integer> scanInvitedList = this.orderDao.isInvited(orderRequest.getUserUuid());
+            if (CollectionUtils.isEmpty(scanInvitedList)) {
                 throw new ServiceException(ExceptionEnum.USER_NOT_INVITED);
             } else {
-                List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
                 if (CollectionUtils.isEmpty(scanList)) {
                     orderResponse.setIsAgain("0");
                 } else {
@@ -336,7 +336,6 @@ public class OrdService {
                 }
             }
         } else {
-            List<OrdOrder> scanList = this.orderDao.isLoanAgain(orderRequest.getUserUuid());
             if (CollectionUtils.isEmpty(scanList)) {
                 orderResponse.setIsAgain("0");
             } else {

@@ -170,8 +170,8 @@ third:
     serverAddress: 172.31.178.144
   izi:
     accessKey: WUZaMYxRkIfWlbyVslDM
-    #secretKey: YPIJQtWrHvwplAvqJjdNMLcBlELpyEYxSnHjknaK
-    secretKey: invalidKey
+    secretKey: YPIJQtWrHvwplAvqJjdNMLcBlELpyEYxSnHjknaK
+    #secretKey: invalidKey
     phoneVerifyUrl: https://api.izi.credit/v1/phoneverify
     phoneAgeUrl: https://api.izi.credit/v1/phoneage
     identityCheck3Url: https://api.izi.credit/v3/identitycheck

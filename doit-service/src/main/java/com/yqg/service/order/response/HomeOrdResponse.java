@@ -32,6 +32,7 @@ public class HomeOrdResponse implements Serializable {
     private String borrowingTerm;//????
     private String showState;//????
     private String isBankCardFaild;//??????  1 ????  0 pending????
+    private String rejectStatusDescription; //budi: tambahan untuk reject description
 
     private String rate1;
     private String rate2;
