@@ -12,10 +12,10 @@ public enum OrdShowStateEnum {
     OVERDUE(5,"Terlambat melunasi"),//???
     PAYING(6,"Dalam proses pelunasan"),//???
     PAYED(7,"Pinjaman sudah lunas"),//???
-    CHECKNOTPASS(8,"Verifikasi gagal"),//?????
+    CHECKNOTPASS(8,"Pengajuan ditolak"),//?????
     CANCEL(9,"BATAL"),//??
     LOAN_FAILD(10,"Transfer gagal"),//????
-    REJECT_STATUS_DESCRIPTION(99,"Silakan coba beberapa saat lagi")
+    REJECT_STATUS_DESCRIPTION(99,"Silakan coba   hari lagi dari~tanggal pengajuan Anda~")
     ;
 
     private Integer code;

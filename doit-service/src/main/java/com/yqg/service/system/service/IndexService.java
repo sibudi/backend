@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -358,6 +359,14 @@ public class IndexService {
                 {
                     //budi: reject duration (minutes) configurable from redis
                     int rejectDuration = Integer.parseInt(redisClient.get(RedisContants.RISK_REJECT_DURATION));
+                    int rejectDurationDay = rejectDuration / 24 / 60;
+                    SimpleDateFormat format = new SimpleDateFormat("dd MMM yyyy");
+                    String rejectDate = format.format(orderObj.getUpdateTime());
+                    String rejectStatusDescription = OrdShowStateEnum.REJECT_STATUS_DESCRIPTION.getMessage();
+                    rejectStatusDescription = rejectStatusDescription.substring(0, 13) 
+                        + rejectDurationDay 
+                        + rejectStatusDescription.substring(14, rejectStatusDescription.length()) 
+                        + rejectDate;
                     long diffMinute = (new Date().getTime() - orderObj.getUpdateTime().getTime()) / (1000 * 60);
                     log.info(diffMinute+"");
                     if (diffMinute >= rejectDuration){
@@ -370,7 +379,7 @@ public class IndexService {
                         loadingResponse.setShowState(ShowStatusEnum.REVIEWING_STAGE.getCode());
                         loadingResponse.setOrderStatus(ordService.boxShowOrderStatus(status).get(KEY));
                         loadingResponse.setOrderStatusMsg(ordService.boxShowOrderStatus(status).get(VALUE));
-                        loadingResponse.setRejectStatusDescription(OrdShowStateEnum.REJECT_STATUS_DESCRIPTION.getMessage()); //budi: add reject description
+                        loadingResponse.setRejectStatusDescription(rejectStatusDescription); //budi: add reject description
 
                         confMap.put("date", "");
                         confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
