@@ -826,7 +826,6 @@ public class IndexService {
                             // Overdue service fee (regardless overdue duration)
                             response.setOverdueFee(bill.getOverdueFee().toString().replace(".00",""));
                             int overdueDay = DateUtils.daysBetween(DateUtils.formDate(bill.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(new Date(),"yyyy-MM-dd"));
-<<<<<<< HEAD
                             BigDecimal penalty = this.repayService.calculatePenaltyFeeByRepayDaysForBills(bill,overdueDay);
                             BigDecimal totalBill = penalty.add(bill.getBillAmout()).add(bill.getOverdueFee());
                             if (totalBill.compareTo(limit) > 0 ){
@@ -834,10 +833,6 @@ public class IndexService {
                             }
 
                             response.setPenalty(penalty.toString().replace(".00",""));
-=======
-                            //TODO ahalim: check whether penalty is correct (without limit)
-                            response.setPenalty(this.repayService.calculatePenaltyFeeByRepayDaysForBills(bill,overdueDay).toString().replace(".00",""));
->>>>>>> Enable t+2 for installment
                         }
                         remainAmout = remainAmout.add(shouldPayAmount).setScale(2);
                         list.add(response);
