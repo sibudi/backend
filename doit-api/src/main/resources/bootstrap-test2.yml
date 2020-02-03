@@ -173,7 +173,6 @@ third:
   izi:
     accessKey: WUZaMYxRkIfWlbyVslDM
     secretKey: YPIJQtWrHvwplAvqJjdNMLcBlELpyEYxSnHjknaK
-    #secretKey: invalidKey
     phoneVerifyUrl: https://api.izi.credit/v1/phoneverify
     phoneAgeUrl: https://api.izi.credit/v1/phoneage
     identityCheck3Url: https://api.izi.credit/v3/identitycheck

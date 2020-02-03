@@ -342,5 +342,9 @@ public class SysParamContants {
 
     // 首页金额回收率
     public static final String SYSTEM_REPAY_RATE = "system:repay:rate";
+
+    //check is default product is staging. 1 for new user only, 9 for all user
+    public static final String SYSTEM_DEFAULT_IS_INSTALLMENT = "system:default:isinstallment";
+    public static final String SYSTEM_DEFAULT_INSTALLMENT_PRODUCT = "system:default:installment:product";
 }
 

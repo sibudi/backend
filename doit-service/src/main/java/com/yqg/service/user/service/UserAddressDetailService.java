@@ -20,6 +20,7 @@ public class UserAddressDetailService {
         UsrAddressDetail addressDetail = new UsrAddressDetail();
         addressDetail.setDisabled(0);
         addressDetail.setAddressType(addressEnum.getType());
+        addressDetail.setUserUuid(userId);
         List<UsrAddressDetail> addressList = usrAddressDetailDao.scan(addressDetail);
         if (CollectionUtils.isEmpty(addressList)) {
             return null;

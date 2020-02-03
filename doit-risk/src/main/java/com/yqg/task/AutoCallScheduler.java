@@ -96,7 +96,7 @@ public class AutoCallScheduler {
     /***
      * 本人外呼定时发送
      */
-    @Scheduled(cron = "0 0 9,12,15,18,20 * * ?")
+    // @Scheduled(cron = "0 0 9,12,15,18,20 * * ?")
     public void autoCall() {
         //查询所有待外呼状态的订单[30分钟内的忽略，下次再外呼]
         Date maxUpdateTime = DateUtils.addMinutes(new Date(), -30);
@@ -202,7 +202,7 @@ public class AutoCallScheduler {
     /***
      * 检查订单外呼结果
      */
-    @Scheduled(cron = "0 0/1 * * * ? ")
+    // @Scheduled(cron = "0 0/1 * * * ? ")
     public void checkAutoCallResultTask1() {
         //所有机审后待外呼状态的单
         List<OrdOrder> ordOrders = ordDao.getWaitingAutoCallOrders(1);
@@ -223,7 +223,7 @@ public class AutoCallScheduler {
     /***
      * 检查订单外呼结果
      */
-    @Scheduled(cron = "0 0/1 * * * ? ")
+    // @Scheduled(cron = "0 0/1 * * * ? ")
     public void checkAutoCallResultTask2() {
         //所有机审后待外呼状态的单
         List<OrdOrder> ordOrders = ordDao.getWaitingAutoCallOrders(2);

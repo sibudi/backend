@@ -116,6 +116,9 @@ public class OrdService {
     @Autowired
     private CouponService couponService;
 
+    @Autowired
+    private RedisClient redisClient;
+
     @Transactional
     public OrderOrderResponse toOrder(OrdRequest orderRequest, RedisClient redisClient) throws ServiceException, InvocationTargetException, IllegalAccessException {
 
@@ -497,7 +500,8 @@ public class OrdService {
             orderObj.setOrderStep(item.getOrderStep().toString());
             orderObj.setOrderNo(item.getUuid());
             orderObj.setAmountApply(StringUtils.formatMoney(item.getAmountApply().doubleValue()).replaceAll(",",".").toString());// ??
-            orderObj.setBorrowingTerm(item.getBorrowingTerm().toString());
+            // orderObj.setBorrowingTerm(item.getBorrowingTerm().toString());
+            orderObj.setBorrowingTerm(getProductTotalPeriodToDays(item.getProductUuid()).toString());
             Map<String,String> map = boxShowOrderStatus(item.getStatus());
             orderObj.setApplyTime(DateUtils.DateToString2(item.getApplyTime()));
             orderObj.setOrderStatus(map.get(KEY));
@@ -507,6 +511,36 @@ public class OrdService {
         return orderResponse;
     }
 
+    public Integer getProductTotalPeriodToDays(String productUuid){
+        
+        SysProduct product = new SysProduct();
+        product.setUuid(productUuid);
+        List<SysProduct> products = sysProductDao.scan(product);
+        SysProduct result = null;
+
+        if(!CollectionUtils.isEmpty(products)){
+            result = products.get(0);
+            //yearly
+            if(result.getProductType() >= 300){
+                return (result.getProductType() - 300) * 365 * result.getBorrowingTerm();
+            }
+            //weekly
+            else if(result.getProductType() >= 200){
+                return (result.getProductType() - 200) * 7 * result.getBorrowingTerm();
+            }
+            //monthly
+            else if(result.getProductType() >= 100){
+                return (result.getProductType() - 100) * 30 * result.getBorrowingTerm();
+            }
+            //monthly
+            else if(result.getProductType() == 1){
+                return 30;
+            }
+
+            return  result.getBorrowingTerm();
+        }
+        return 0;
+    }
 
     /**
      * ??????
@@ -595,7 +629,15 @@ public class OrdService {
     // ???????? ??id
     public List<OrdOrder> scanReviewOrderById(Integer num){
 
-        List<OrdOrder> orderList = orderDao.getRiskOrderListById(num);
+        String orders = redisClient.get("risk:order:manual");
+        List<OrdOrder> orderList = null;
+        if("true".equals(orders)){
+            orderList = orderDao.getRiskOrderListManual();
+        }
+        else{
+            orderList = orderDao.getRiskOrderListById(num);
+        }
+        
         return orderList;
     }
 

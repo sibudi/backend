@@ -158,15 +158,23 @@ public class IndexService {
                     // 正常订单
                     return  getIndexConfig(baseRequest,1);
                 }else {
-                    StagingProductWhiteList productWhiteList = stagingProductWhiteListService.getProductListByUserUuid(baseRequest.getUserUuid());
-                    if (productWhiteList == null) {
-                        // 正常订单
-                        return getIndexConfig(baseRequest, 1);
-                    } else {
-                        // 分期订单
-                        //  用户在分期白名单中 查询是否有分期订单
-                        return getIndexConfig(baseRequest, 2);
+                    String installmentDefault = this.sysParamService.getSysParamValue(SysParamContants.SYSTEM_DEFAULT_IS_INSTALLMENT);
+                    if("9".equals(installmentDefault) || "1".equals(installmentDefault)){
+                            setInstallmentProductAsDefault(baseRequest.getUserUuid());
+                            return getIndexConfig(baseRequest, 2);
                     }
+                    else{
+                        StagingProductWhiteList productWhiteList = stagingProductWhiteListService.getProductListByUserUuid(baseRequest.getUserUuid());
+                        if (productWhiteList == null) {
+                            // 正常订单
+                            return getIndexConfig(baseRequest, 1);
+                        } else {
+                            // 分期订单
+                            //  用户在分期白名单中 查询是否有分期订单
+                            return getIndexConfig(baseRequest, 2);
+                        }
+                    }
+                    
                 }
             }
         }catch (Exception e){
@@ -193,6 +201,8 @@ public class IndexService {
         Map<String,String> confMap = new HashMap<>();
 
         if(CollectionUtils.isEmpty(list)){
+            // setInstallmentProductAsDefault(baseRequest.getUserUuid());
+
             JSONObject config = boxConfigData(baseRequest,type);
             config.put("showState", ShowStatusEnum.INIT_STAGE.getCode());
             return config;
@@ -201,6 +211,7 @@ public class IndexService {
             Integer status = orderObj.getStatus();
             switch(status) {
                 case 1:
+                    // setInstallmentProductAsDefault(baseRequest.getUserUuid());
                     JSONObject config = boxConfigData(baseRequest,type);
                     config.put("showState",ShowStatusEnum.SUBMITTING_STAGE.getCode());
                     config.put(KEY, ordService.boxShowOrderStatus(status).get(KEY));
@@ -372,6 +383,7 @@ public class IndexService {
                     if (diffMinute >= rejectDuration){
                         return  homeOrdWithRefuse(orderObj,status,baseRequest,type);
                     }else {
+
                         HomeOrdResponse loadingResponse = boxResponseFunc(orderObj,type);
                         loadingResponse.setBorrowingAmount(StringUtils.formatMoney(orderObj.getAmountApply().doubleValue()).replaceAll(",","."));// ?????????????
 
@@ -1148,52 +1160,6 @@ public class IndexService {
                                     result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
                                 }
                             }
-                            //   else if (product.getProductType() >= 100){
-                            //     BigDecimal serviceFee = BigDecimal.ZERO;
-                            //     int totalNum = 0; //DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
-
-                            //     int term = product.getBorrowingTerm();
-                            //     List<Map<String,String>>  repayPlans = new ArrayList<>();
-                            //     Date nowDate = new Date();
-                            //     // Date lastDate = new Date();
-                            //     for (int i = 1; i <= term; i++) {
-                            //         Map<String,String> plan = new HashMap<>();
-                            //         plan.put("billTerm",i+"");
-                            //         plan.put("billAmount",product.getTermAmount().toString().replace(".00",""));
-                            //         Date refundTime =  DateUtils.addDate(DateUtils.addDate(nowDate,14 * (term+1-i)),-1);
-                            //         log.info("Bill term of "+i+" Due Date: "+DateUtils.DateToString(refundTime));
-                            //         plan.put("refundTime",DateUtils.DateToString(refundTime));
-                                    
-                            //         totalNum = DateUtils.differentDaysByMillisecond(nowDate,refundTime)+1;
-                            //         log.info("Today is :"+DateUtils.DateToString(nowDate)+" with last date:"+DateUtils.DateToString(refundTime) + " borrowing days:" + totalNum);
-                            //         serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
-                            //         log.info("Sum of service fee for installment order for term: "+ i + " service fee" + serviceFee);
-
-                            //         // if (i == term){
-                            //         //     lastDate = refundTime;
-                            //         // }
-
-                            //         repayPlans.add(plan);
-                            //     }
-                            //     result.put("billsList",repayPlans);
-
-                            //     //int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
-
-                            //     //BigDecimal serviceFee =  product.getBorrowingAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
-                                
-                            //     Date lastDate = DateUtils.addDate(DateUtils.addDate(nowDate,14 * term),-1);
-                            //     result.put("totalTerm", DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1);
-                            //     result.put("actualAmount",product.getBorrowingAmount().subtract(serviceFee).setScale(2).toString().replace(".00",""));
-                            //     // 每月还款金额
-                            //     result.put("termAmount",product.getTermAmount().toString().replace(".00",""));
-
-                            //     //  用于公式计算  kudo的分期产品  公式里面需要用 本金
-                            //     if (product.getUuid().equals("1006")){
-                            //         result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
-                            //     }else {
-                            //         result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
-                            //     }
-                            //   }
                         }
                         else {
                             //  可能配置表中的产品 在产品表中被disable掉了
@@ -1406,46 +1372,77 @@ public class IndexService {
     public String getProductTenor(String productUuid){
         
         SysProduct product = new SysProduct();
-        product.setDisabled(0);
         product.setUuid(productUuid);
-        SysProduct result = sysProductDao.getProductInfo(productUuid);        
-        if(result.getProductType() >= 300){
-            return Integer.toString((result.getProductType() - 300) * result.getBorrowingTerm())+  " Tahun";
-        }
-        else if(result.getProductType() >= 200){
-            return Integer.toString((result.getProductType() - 200)  * result.getBorrowingTerm()) + " Minggu";
-        }
-        else if(result.getProductType() >= 100){
-            return Integer.toString((result.getProductType() - 100)  * result.getBorrowingTerm()) + " Bulan";
-        }
-        else if(result.getProductType() == 1){
-            return Integer.toString(result.getBorrowingTerm()) + " Bulan";
-        }
-        else{
+        List<SysProduct> products = sysProductDao.scan(product);
+        SysProduct result = null;
+        if(!CollectionUtils.isEmpty(products)){
+            result = products.get(0);
+
+            if(result.getProductType() >= 300){
+                return Integer.toString((result.getProductType() - 300) * result.getBorrowingTerm())+  " Tahun";
+            }
+            else if(result.getProductType() >= 200){
+                return Integer.toString((result.getProductType() - 200)  * result.getBorrowingTerm()) + " Minggu";
+            }
+            else if(result.getProductType() >= 100){
+                return Integer.toString((result.getProductType() - 100)  * result.getBorrowingTerm()) + " Bulan";
+            }
+            else if(result.getProductType() == 1){
+                return Integer.toString(result.getBorrowingTerm()) + " Bulan";
+            }
+            
             return  Integer.toString(result.getBorrowingTerm()) + " Hari"; 
         }
+        
+        return "";
     }
 
     public String getProductPeriod(String productUuid){
         
         SysProduct product = new SysProduct();
-        product.setDisabled(0);
         product.setUuid(productUuid);
-        SysProduct result = sysProductDao.getProductInfo(productUuid);        
-        if(result.getProductType() >= 300){
-            return Integer.toString((result.getProductType() - 300))+  " Tahun";
+        List<SysProduct> products = sysProductDao.scan(product);
+        SysProduct result = null;
+
+        if(!CollectionUtils.isEmpty(products)){
+            result = products.get(0);
+            if(result.getProductType() >= 300){
+                return Integer.toString((result.getProductType() - 300))+  " Tahun";
+            }
+            else if(result.getProductType() >= 200){
+                return Integer.toString((result.getProductType() - 200)) + " Minggu";
+            }
+            else if(result.getProductType() >= 100){
+                return Integer.toString((result.getProductType() - 100)) + " Bulan";
+            }
+            else if(result.getProductType() == 1){
+                return "Bulan";
+            }
+
+            return  Integer.toString(result.getBorrowingTerm()) + " Hari";   
         }
-        else if(result.getProductType() >= 200){
-            return Integer.toString((result.getProductType() - 200)) + " Minggu";
-        }
-        else if(result.getProductType() >= 100){
-            return Integer.toString((result.getProductType() - 100)) + " Bulan";
-        }
-        else if(result.getProductType() == 1){
-            return "Bulan";
-        }
-        else{
-            return  Integer.toString(result.getBorrowingTerm()) + " Hari"; 
+
+        return "";
+    }
+
+    public void setInstallmentProductAsDefault(String userUuid){
+        //check is default product is staging. 1 for new user only, 9 for all user
+        String installmentDefault = this.sysParamService.getSysParamValue(SysParamContants.SYSTEM_DEFAULT_IS_INSTALLMENT);
+        if("9".equals(installmentDefault) || "1".equals(installmentDefault)){
+            String defaultInstallmentProductUuid = this.sysParamService.getSysParamValue(SysParamContants.SYSTEM_DEFAULT_INSTALLMENT_PRODUCT);
+            List<OrdOrder> prevOrder = orderDao.getLatestOrder(userUuid);                
+            String beachId = "DEFAULT_STAGING_PQ_" + (new java.text.SimpleDateFormat("yyyyMMdd_HHmmss")).format(new java.util.Date());
+            String ruleName = "DEFAULT STAGING PRODUCT";
+            if(prevOrder.isEmpty()){
+                this.stagingProductWhiteListService.upsertWhiteList(userUuid, defaultInstallmentProductUuid, 
+                    beachId, ruleName);
+            }
+            else{
+                if("9".equals(installmentDefault)){
+                    this.stagingProductWhiteListService.upsertWhiteList(userUuid, defaultInstallmentProductUuid, 
+                        beachId, ruleName);
+                }
+            }
         }
     }
 

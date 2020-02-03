@@ -424,27 +424,30 @@ public class ContractSignService {
             Date firstOrderApplyTime = orderCheckService.getFirstSettledOrderApplyTime(order.getUserUuid());
             if (firstOrderApplyTime == null) {
                 log.info("cannot get the first order apply time, orderNo: {}", order.getUuid());
-                return false;
-            } else {
-                String startTime = redisClient.get(RedisContants.RE_BORROWING_DIGI_SIGN_START_TIME);
-                if(StringUtils.isEmpty(startTime)){
-                    startTime = "2019-07-12";
-                }
-                if(firstOrderApplyTime.compareTo(DateUtils.stringToDate(startTime, DateUtils.FMT_YYYY_MM_DD)) >= 0) {
-                    // budi: check digisign bucket for today
-                    int bucket = Integer.parseInt(redisClient.get(RedisContants.DIGITAL_SIGN_BUCKET));
-                    if( bucket <= 0) {
-                        log.info("Digisign bucket is already empty.");
-                        return false;
-                    }
-                    bucket -= 1;
-                    redisClient.set(RedisContants.DIGITAL_SIGN_BUCKET, String.valueOf(bucket));
 
-                    return true;
-                }
-
-                return false;
+                //janhsen: if cannot find firstorder then use current order
+                firstOrderApplyTime = order.getApplyTime();
+                // return false;
             }
+
+            String startTime = redisClient.get(RedisContants.RE_BORROWING_DIGI_SIGN_START_TIME);
+            if(StringUtils.isEmpty(startTime)){
+                startTime = "2019-07-12";
+            }
+            if(firstOrderApplyTime.compareTo(DateUtils.stringToDate(startTime, DateUtils.FMT_YYYY_MM_DD)) >= 0) {
+                // budi: check digisign bucket for today
+                int bucket = Integer.parseInt(redisClient.get(RedisContants.DIGITAL_SIGN_BUCKET));
+                if( bucket <= 0) {
+                    log.info("Digisign bucket is already empty.");
+                    return false;
+                }
+                bucket -= 1;
+                redisClient.set(RedisContants.DIGITAL_SIGN_BUCKET, String.valueOf(bucket));
+
+                return true;
+            }
+
+            return false;
         }
 
         // budi: check digisign bucket for today

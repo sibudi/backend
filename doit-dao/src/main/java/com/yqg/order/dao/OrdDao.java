@@ -79,8 +79,8 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     @Select("select * from ordOrder where disabled = 0 and userUuid = #{userUuid}  and status in(2,3,4,17,18,19)  and orderStep = 7")
     List<OrdOrder> loneOrderList(@Param("userUuid") String userUuid);
 
-    @Select("select * from ordOrder o where o.status = 5 and o.orderStep in(7,8) and o.disabled = 0 " +
-            " and not exists (select 1 from usrUser ss where ss.uuid=o.userUuid and ss.userSource not in(81,82,83,84) and o.borrowingCount<=1 and ss.disabled=0) "
+    @Select("select * from ordOrder o where o.status = 5 and o.orderStep in(7,8) and o.disabled = 0 " 
+        //    " and not exists (select 1 from usrUser ss where ss.uuid=o.userUuid and ss.userSource not in(81,82,83,84) and o.borrowingCount<=1 and ss.disabled=0) "
     )
     public List<OrdOrder> getLoanList();
 
@@ -148,28 +148,41 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     public List<OrdOrder> getLoanOrderTwice();
 
 
-    // Janhsen: unmark mod and remove line " and o.uuid in ('011911010536580190','011911010842245390','011911011050521990') "
-    // so that service can run all order
-    @Select("select * from ordOrder o where status = 2 and orderStep in(7,8) and disabled = 0  " +
-            " and o.uuid in ('011912132144481110') " +
-            " and updateTime< date_add(now(),INTERVAL -3 MINUTE) " +
-            " and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.disabled=0) " +
-            " and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%') " +
-            //" and mod(id,11)=#{num}  " +
-            " and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1) " +
-            " and not exists (select 1 from usrUser ss where ss.uuid=o.userUuid and ss.userSource not in(81,82,83,84) and o.borrowingCount<=1 and ss.disabled=0) " +
-            "  order by id desc limit 30 ")
-// @Select("select * from ordOrder o " + 
-// 	"inner join usrUser u on u.uuid = o.userUuid and u.createTime > '2019-07-12' " + 
-//         //"and o.uuid in ('011911010536580190','011911010842245390','011911011050521990') " + 
-//         "and o.uuid in ('011911280945473221') " + 
-// 	"where o.status = 2 and o.orderStep in(7,8) and o.disabled = 0 -- and MONTH(o.createTime) in (11) and YEAR(o.createTime) in (2019) " + 
-// 	"and o.updateTime< date_add(now(),INTERVAL -3 MINUTE) " + 
-// 	"and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.disabled=0)  " + 
-// 	"and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%') " + 
-// 	// "and mod(o.id,11)=#{num} " + 
-// 	"and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1)")
+    // Janhsen
+    // Risk only support kudo user
+//     @Select("select * from ordOrder o where status = 2 and orderStep in(7,8) and disabled = 0  " +
+//             " and updateTime< date_add(now(),INTERVAL -3 MINUTE) " +
+//             " and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.disabled=0) " +
+//             " and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%') " +
+//             " and mod(id,11)=#{num}  " +
+//             " and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1) " +
+//             " and not exists (select 1 from usrUser ss where ss.uuid=o.userUuid and ss.userSource not in(81,82,83,84) and o.borrowingCount<=1 and ss.disabled=0) " +
+//             "  order by id desc limit 30 ")
+
+        @Select("select * from ordOrder o" +
+                "inner join doit.usrUser u on u.uuid = o.userUuid and borrowingCount = 1 and u.createTime >= '2020-01-12' " +
+                "where o.status = 2 and (u.userSource in (81,82,83,84) or productUuid = '1006')  " +
+                "and o.disabled = 0 and u.disabled = 0 and o.createTime >= '2020-01-12' " +
+                "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.disabled=0)  " +
+                "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%')  " +
+                "and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1)  " +
+                "and o.updateTime< date_add(now(),INTERVAL -3 MINUTE) " + 
+                "limit 30")
     List<OrdOrder> getRiskOrderListById(@Param("num") Integer num);
+
+        //try 100 data for new user 
+        @Select("select o.* " +
+        "from ordOrder o " +
+        "inner join usrUser u on u.uuid = o.userUuid and u.createTime >= '2020-01-12' " +
+        "inner join temp_OrderRisk t on t.orderNo = o.uuid " + 
+        "where o.status = 2 and (u.userSource in (81,82,83,84) or productUuid = '1006')  " +
+        "and o.disabled = 0 and u.disabled = 0 and o.createTime >= '2020-01-12' " +
+        "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.disabled=0)  " +
+        "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%')  " +
+        "and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1)  " +
+        "and o.updateTime< date_add(now(),INTERVAL -3 MINUTE) " +
+        "LIMIT 30")
+        List<OrdOrder> getRiskOrderListManual();
 
 
     @Select("select * from ordOrder where status = 7 and orderStep in(7,8) and disabled = 0  ")

@@ -177,7 +177,8 @@ public class RiskService {
 
                     boolean isKudoChannel = user.getUserSource() != null && Arrays.asList("81", "82", "83", "84").contains(user.getUserSource().toString());
 
-                    if (rejectAll != null && rejectAll.getRuleResult() == 2 && !isKudoChannel) {
+                    //janhsen: remove isKudoChannel because need open for all
+                    if (rejectAll != null && rejectAll.getRuleResult() == 2 ){ //&& !isKudoChannel) {
                         log.info("reject all first borrowing .");
                         this.reviewRefuse(order, rejectAll);
                     } else {

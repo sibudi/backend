@@ -28,7 +28,7 @@ public class TwilioCallTask {
     @Autowired
     private RedisClient redisClient;
 
-    @Scheduled(cron = "0 0 8 * * ?")
+    // @Scheduled(cron = "0 0 8 * * ?")
     public void call8D_1() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
             String managerUrl = url;
@@ -38,7 +38,7 @@ public class TwilioCallTask {
         }
     }
 
-    @Scheduled(cron = "0 0 8 * * ?")
+    // @Scheduled(cron = "0 0 8 * * ?")
     public void call8D_2() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
 
@@ -49,7 +49,7 @@ public class TwilioCallTask {
         }
     }
 
-    @Scheduled(cron = "0 0 11 * * ?")
+    // @Scheduled(cron = "0 0 11 * * ?")
     public void call11D_1() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
 
@@ -60,7 +60,7 @@ public class TwilioCallTask {
         }
     }
 
-    @Scheduled(cron = "0 0 11 * * ?")
+    // @Scheduled(cron = "0 0 11 * * ?")
     public void call11D_2() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
 
@@ -71,7 +71,7 @@ public class TwilioCallTask {
         }
     }
 
-    @Scheduled(cron = "0 0 11 * * ?")
+    // @Scheduled(cron = "0 0 11 * * ?")
     public void call11D_3() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
 
@@ -82,7 +82,7 @@ public class TwilioCallTask {
         }
     }
 
-    @Scheduled(cron = "0 0 15 * * ?")
+    // @Scheduled(cron = "0 0 15 * * ?")
     public void call15D_1() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
 
@@ -93,7 +93,7 @@ public class TwilioCallTask {
         }
     }
 
-    @Scheduled(cron = "0 0 15 * * ?")
+    // @Scheduled(cron = "0 0 15 * * ?")
     public void call15D_2() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
 
@@ -109,20 +109,20 @@ public class TwilioCallTask {
      *
      update twilio voice message.
      */
-    @Scheduled(cron = "0 */1 * * * ?")
+    // @Scheduled(cron = "0 */1 * * * ?")
     public void startUpdateCallResult0() {
         String managerUrl = url;
         managerUrl += "startUpdateCallResult/managerTask";
         sendGetRequest(managerUrl + "?num=0");
     }
 
-    @Scheduled(cron = "0 */1 * * * ?")
+    // @Scheduled(cron = "0 */1 * * * ?")
     public void startUpdateCallResult1() {
         String managerUrl = url;
         managerUrl += "startUpdateCallResult/managerTask";
         sendGetRequest(managerUrl + "?num=1");
     }
-    @Scheduled(cron = "0 */1 * * * ?")
+    // @Scheduled(cron = "0 */1 * * * ?")
     public void startUpdateCallResult2() {
         String managerUrl = url;
         managerUrl += "startUpdateCallResult/managerTask";
@@ -133,7 +133,7 @@ public class TwilioCallTask {
      *
      update infobip voice message.
      */
-    @Scheduled(cron = "0 0/2 8-18 * * ?")
+    // @Scheduled(cron = "0 0/2 8-18 * * ?")
     public void getInfobipCollectionReport0() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
             String managerUrl = url;
@@ -142,7 +142,7 @@ public class TwilioCallTask {
         }
     }
 
-    @Scheduled(cron = "0 0/2 8-18 * * ?")
+    // @Scheduled(cron = "0 0/2 8-18 * * ?")
     public void getInfobipCollectionReport1() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
             String managerUrl = url;
@@ -150,7 +150,7 @@ public class TwilioCallTask {
             sendGetRequest(managerUrl + "?num=1");
         }
     }
-    @Scheduled(cron = "0 0/2 8-18 * * ?")
+    // @Scheduled(cron = "0 0/2 8-18 * * ?")
     public void sgetInfobipCollectionReport2() {
         if (judgeSwitchOpen(RedisContants.TWILIO_CALL_TOTAL_SWITCH)) {
             String managerUrl = url;
@@ -162,7 +162,7 @@ public class TwilioCallTask {
     /**
      * 沉默用户
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?")
     public void infobipSilient() {
         if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":silientVoiceCall")) {
             String managerUrl = url;
@@ -175,7 +175,7 @@ public class TwilioCallTask {
     /**
      * 申请为提交
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?")
     public void infobipNotSumbit() {
         if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":notSubmitVoiceCall")) {
             String managerUrl = url;

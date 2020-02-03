@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by wanghuaizhou on 2019/4/18.
@@ -38,5 +39,23 @@ public class StagingProductWhiteListService {
 
     public void insertWhiteList(StagingProductWhiteList productWhiteList){
         this.stagingProductWhiteListDao.insert(productWhiteList);
+    }
+
+    public void upsertWhiteList(String userUuid, String productUuid, String beachId, String ruleName){
+        StagingProductWhiteList productWhiteList = this.getProductListByUserUuid(userUuid);
+        if(productWhiteList == null){
+            productWhiteList = new StagingProductWhiteList();
+            productWhiteList.setUuid(UUID.randomUUID().toString());
+            productWhiteList.setUserUuid(userUuid);
+            
+            productWhiteList.setProductUuid(productUuid);
+            productWhiteList.setBeachId(beachId);
+            productWhiteList.setRuleName(ruleName);
+            this.insertWhiteList(productWhiteList);
+        }
+        else{
+            productWhiteList.setProductUuid(productUuid);
+            this.updateWhiteList(productWhiteList);
+        }
     }
 }
