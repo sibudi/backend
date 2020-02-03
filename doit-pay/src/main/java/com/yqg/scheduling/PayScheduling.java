@@ -4,6 +4,7 @@ package com.yqg.scheduling;
 import com.yqg.service.LoanService;
 import com.yqg.service.OverdueService;
 import com.yqg.service.PayService;
+import com.yqg.service.pay.RepayService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,6 +22,9 @@ public class PayScheduling {
 
     @Autowired
     private PayService payService;
+
+    @Autowired
+    private RepayService repayService;
 
     @Autowired
     private OverdueService overdueService;
@@ -117,6 +121,12 @@ public class PayScheduling {
         log.info("======================================cheakRepayOrder end0 ==========================================");
     }
 
+    @Scheduled(cron = "0 0 12,18 * * ? ")
+    public void checkRdnRepayment() {
+        log.info("======================================BulkRdnRepayment begin ==========================================");
+        this.repayService.BulkRdnRepayment();
+        log.info("======================================BulkRdnRepayment end ==========================================");
+    }
 
     /**
      *     p2p的代放款款订单查询

@@ -1,5 +1,6 @@
 package com.yqg.service;
 
+import com.yqg.common.enums.order.OrdRepayAmountRecordStatusEnum;
 import com.yqg.order.dao.OrdDao;
 import com.yqg.order.dao.OrdDelayRecordDao;
 import com.yqg.order.dao.OrdPaymentCodeDao;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -51,26 +53,27 @@ public class RepairOrderService {
         List<OrdOrder> list = this.ordDao.getOrderWithNotRepayRecord();
 
         if (CollectionUtils.isEmpty(list)) {
-            log.info("=============查询列表为空=======================");
+            log.info("=============Repair Data List is empty=======================");
             return;
         }
 
-        log.info("无还款流水的已还款订单一共有" + list.size());
+        log.info("Total repayment orders without repayment flow" + list.size());
 
         for (OrdOrder order : list) {
-            // 根据订单号去第三方查询
             UsrUser user = this.usrService.getUserByUuid(order.getUserUuid());
-            // 查询还款处理中 订单在第三方状态
+            // Query repayment status on table T_LPAY_DEPOSIT
             CheckRepayResponse response = this.payService.cheakRepay(order.getUuid(), user);
 
             if (response != null) {
                 if (response.getCode().equals("0")) {
                     if (response.getDepositStatus().equals("COMPLETED")) {
-                        // 还款成功
                         OrdRepayAmoutRecord record = new OrdRepayAmoutRecord();
                         record.setOrderNo(order.getUuid());
                         record.setUserUuid(order.getUserUuid());
-                        record.setRemark("手动修复添加");
+                        record.setActualDisbursedAmount(new BigDecimal(order.getApprovedAmount()));
+                        record.setServiceFee(order.getServiceFee());
+                        record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
+                        record.setRemark("Manual Fix");
                         if (!StringUtils.isEmpty(response.getDepositMethod())) {
                             record.setRepayMethod(response.getDepositMethod());
                         }
@@ -83,7 +86,8 @@ public class RepairOrderService {
                         if (!StringUtils.isEmpty(response.getAmount())) {
                             record.setActualRepayAmout(response.getAmount());
                         }
-                        // 查询还款码 获取用户当时的还款信息
+                        
+                        // Query the repayment code to get the repayment information of the user at that time
                         OrdPaymentCode scan = new OrdPaymentCode();
                         scan.setOrderNo(order.getUuid());
                         scan.setPaymentCode(response.getPaymentCode());

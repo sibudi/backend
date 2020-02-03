@@ -95,46 +95,42 @@ public class LoanService {
      */
     public void loanPay() {
 
-        //开关
         String sysParamValue = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO);
-        //非放款区间
         String sysParamLoanStr = this.sysParamService.getSysParamValue(SysParamContants.NOT_IN_LOAN_SECTION);
 
         if (!StringUtils.isEmpty(sysParamValue) && sysParamValue.equals("1")) {
-            log.info("=====================》放款开关已打开《====================");
-
 
             if (!StringUtils.isEmpty(sysParamLoanStr)) {
                 String[] strs = sysParamLoanStr.split("#");
                 String hh = DateUtils.formDate(new Date(), "HH");
                 for (String str : strs) {
                     if (str.contains(hh)) {
-                        log.info("当前时间不在放款区间，官人也休息了，早上会记得放款嗷！");
+                        log.info("LoanPay skipped. The current time is not in the lending range");
                         return;
                     }
                 }
 
-                log.info("放款开始了。。。。。。。。。。。。");
-                //  审核通过待放款的订单
+                log.info("Lending started 。。。。。。。。。。。。");
+                //  Approval of orders pending payment
                 List<OrdOrder> orderOrders = this.ordDao.getLoanList();
 
-                log.info("---------------准备放款{}笔", orderOrders.size());
+                log.info("---------------Found {} order(s)", orderOrders.size());
                 for (OrdOrder order : orderOrders) {
 
                     String s = this.redisClient.get(RedisContants.ORDER_LOAN_LOCK_NEW + order.getUuid());
                     if (!StringUtils.isEmpty(s)) {
-                        log.info("已经放款一次：{}", order.getUuid());
+                        log.info("Skipped. Already processed by other process：{}", order.getUuid());
                         continue;
                     }
 
-                    // 查询用户是否在发短信之后登陆过
+                    // Check if the user has logged in after sending a text message
                     List<UsrLoginHistory> usrLoginHistoryList = this.usrLoginHistoryDao.getLoginByTiming(order.getUserUuid());
                     if (CollectionUtils.isEmpty(usrLoginHistoryList)) {
-                        //用户在发完召回短信之后，没有登录，无法放款
+                        //The user cannot log in after sending the recall SMS and cannot log in
                         continue;
                     }
 
-                    //重新查订单，如果不存在，则跳出
+                    //Re-check the order, if it does not exist, jump out
                     OrdOrder orderOrder = new OrdOrder();
                     orderOrder.setDisabled(0);
                     orderOrder.setUuid(order.getUuid());
@@ -144,11 +140,11 @@ public class LoanService {
                     }
 
                     OrdOrder tempOrder = orderList.get(0);
-                    //  再次确认订单状态，如果不是待放款的，则跳出
+                    //  Reconfirm the order status, if it is not pending, jump out
                     if (tempOrder.getStatus() != OrdStateEnum.LOANING.getCode()) {
                         continue;
                     }
-                    //  再次确认订单状态， 如果是放款处理中，代还款，跳出
+                    //  Reconfirm the status of the order. If it is in the process of lending, pay on behalf of you and jump out.
                     if (tempOrder.getStatus() == OrdStateEnum.LOANING_DEALING.getCode() ||
                             tempOrder.getStatus() == OrdStateEnum.RESOLVING_NOT_OVERDUE.getCode() ||
                             tempOrder.getStatus() == OrdStateEnum.RESOLVING_OVERDUE.getCode()) {
@@ -156,7 +152,7 @@ public class LoanService {
                     }
 
                     UsrUser userUser = this.usrService.getUserByUuid(order.getUserUuid());
-//                    TODO:是否查询银行卡是否可放款
+//                    TODO:Whether to check whether the bank card can be debited
                     UsrBank usrBank = new UsrBank();
                     usrBank.setUuid(order.getUserBankUuid());
                     List<UsrBank> bankList = this.usrBankDao.scan(usrBank);
@@ -165,29 +161,29 @@ public class LoanService {
                     }
 
                     UsrBank bankEntity = bankList.get(0);
-                    // 如果银行卡是1 pending状态，跳出，让task继续轮询银行卡状态
+                    // If the bank card is 1 pending, jump out and let the task continue to poll the bank card status
                     if (bankEntity.getStatus() == 1) {
                         continue;
                     }
-                    // 该笔订单对应的银行卡状态为3 faild,绑卡失败,也跳出,不打款,让前端引导用户重新绑卡，替换该笔订单相关的银行卡信息
-                    // 发送短信提醒
+                    // The status of the bank card corresponding to this order is 3 failed.
+                    // Send SMS reminder
                     /**
-                     *       短信文案：【Do-It】您的银行账户验证失败，请登录 DO-IT APP重新绑定银行账户，绑定成功即可放款。
-                     * */
+                     * Text message copy: [Do-It] Your bank account verification failed. Please log in to the DO-IT APP to re-bind the bank account, and the loan will be released after successful binding.
+                     * */
                     if (bankEntity.getStatus() == 3) {
                         if (order.getThirdType() == 0) {
-//                            log.info("订单对应的银行卡错误：{}", order.getUuid());
+                            //log.info("Wrong bank card for order:{}", order.getUuid());
                             String sms = this.redisClient.get(RedisContants.SMS_BANK_CADR_LOCK + order.getUuid());
                             if (sms == null) {
                                 String smsContent = "<Do-It> verifikasi kartu bank Anda gagal. silakan masuk ke aplikasi dan coba daftarkan kartu lagi. dana akan cair setelah kartu bank sesuai verifikasi.";
-                                // 今天未发送短信
+                                // No text messages sent today
                                 try {
                                     String mobileNumberDes = userUser.getMobileNumberDES();
                                     String mobileNumber = "62" + DESUtils.decrypt(mobileNumberDes);
                                     smsServiceUtil.sendTypeSmsCode("BANK_CARD_REMIND", mobileNumber, smsContent);
                                     this.redisClient.set(RedisContants.SMS_BANK_CADR_LOCK + order.getUuid(), order.getUuid(), 3600 * 24 * 7);
                                 } catch (Exception e) {
-                                    log.error("发送绑卡提醒短信异常", e);
+                                    log.error("Sending a card binding alert message is abnormal", e);
                                 }
                             }
                         }
@@ -202,30 +198,30 @@ public class LoanService {
                 }
             }
         } else {
-            log.info("=====================》放款开关已关闭《====================");
+            log.info("=====================》Loan switch is OFF《====================");
         }
 
     }
 
     /***
-     * 正常系统放款
+     * Normal system lending
      */
     private void normalLoanIssuing(OrdOrder order, UsrUser userUser, UsrBank bankEntity) {
-        //TODO 可能会由于服务异常导致重复打款 保险起见去mk那里查询订单 如果存在，则跳出
+        // TODO may make repeated payments due to abnormal service. Go to mk to check the order for insurance. If it exists, jump out.
         if (this.loanQuery(order, userUser)) {
             return;
         }
 
-        log.info("=========================开始打款=====================");
+        log.info("=========================Start normalLoanIssuing=====================");
 
-        //当前放款金额 和 每日放款限制
+        //Current Lending Amount and Daily Lending Limit
         String loanLimit = this.sysParamService.getSysParamValue(SysParamContants.LOAN_ACCOUNT_LIMIT);
         String loanNow = this.sysParamService.getSysParamValue(SysParamContants.LOAN_ACCOUNT_NOW);
         if (new BigDecimal(loanNow).compareTo(new BigDecimal(loanLimit)) >= 0){
-            log.info("金额放款金额已经达到上限,当前放款金额为:{},每日放款金额上限:{}",loanNow,loanLimit);
+            log.info("The amount of lending has reached the upper limit. The current amount of lending is: {}, the maximum amount of daily lending: {}",loanNow,loanLimit);
             return;
         }else {
-            log.info("当前放款金额为:{}",loanNow);
+            log.info("The current loan amount is:{}",loanNow);
         }
 
 
@@ -239,8 +235,6 @@ public class LoanService {
                 if (bankEntity.getBankCode().equals("BCA") && !StringUtils.isEmpty(sysParamValue) && sysParamValue.equals("1")) {
                     response = this.payService.commitPay(order, userUser,bankEntity,"BCA");
                 }else {
-                    // BNI银行走BNI放款
-                    // BNI开关
                     String sysParamValue2 = this.sysParamService.getSysParamValue(SysParamContants.LOAN_OFF_NO_BNI);
                     if (bankEntity.getBankCode().equals("BNI") && !StringUtils.isEmpty(sysParamValue2) && sysParamValue2.equals("1")) {
                         response = this.payService.commitPay(order, userUser,bankEntity,"BNI");
@@ -253,7 +247,7 @@ public class LoanService {
                                 // && !bankEntity.getBankCode().equals("BCA")) {
                             response = this.payService.commitPay(order, userUser, bankEntity, "CIMB");
                         }else {
-                            log.info("CIMB 打款开关已关闭"+order.getUuid());
+                            log.info("The deposit switch is off"+order.getUuid());
                             return;
                         }
                     }
@@ -263,7 +257,7 @@ public class LoanService {
                     if (response.getCode().equals("0")) {
                         loanTempSuccess(order);
                     } else {
-                        log.info("放款失败,订单号:{},失败原因：{}", order.getUuid(), response.getErrorMessage());
+                        log.info("Lending failed, order number: {}, failure reason：{}", order.getUuid(), response.getErrorMessage());
                         if (response.getErrorCode().equals("RECIPIENT_ACCOUNT_NUMBER_ERROR") ||
                                 response.getErrorCode().equals("INVALID_DESTINATION") ||
                                 response.getErrorCode().equals("BANK_CODE_NOT_SUPPORTED_ERROR")
@@ -273,24 +267,23 @@ public class LoanService {
                                 || (response.getErrorCode().equals("ESB-82-021") && response.getErrorMessage().equals("Account cannot do transaction"))
                                 || (response.getErrorCode().equals("0169") && response.getErrorMessage().equals("Account number is not found"))
                                 || (response.getErrorCode().equals("0110") && response.getErrorMessage().equals("Account is closed"))) {
-                            // 因为银行卡问题 放款失败
+                            // Lending failed due to bank card problem
                             loanFaildWithCard(order);
                             if (order.getThirdType() == 1) {
-                                // CashCash订单  需要通知对方修改银行卡
+                                // CashCash orders need to notify counterparty to modify bank card
                                 kaBinCheckService.postBankCardResult2CashCash(order.getUuid(), "2", "银行返回失败");
                             }
                         } else {
-                            // 放款失败
                             loanFaild(order,response);
                         }
                     }
                 } else {
-                    log.error("放款失败,接口返回为空,订单号:{}", order.getUuid());
+                    log.error("Lending failed, interface returned empty, order number:{}", order.getUuid());
                     loanFaild(order,response);
                 }
             } catch (Exception e) {
-                log.error("放款失败,订单号:" + order.getUuid(), e);
-                //TODO:是否需要添加放款失败表 增加放款失败原因
+                log.error("Lending failed, order number:" + order.getUuid(), e);
+                //TODO:Whether to add a loan failure table
                 loanFaild(order,null);
             } finally {
                 this.redisClient.unLock(lockKey);
@@ -334,11 +327,11 @@ public class LoanService {
 
 
     /**
-     * 打款失败，修改订单状态
+     * Payment failed, modify order status
      */
     @Transactional
     public void loanFaild(OrdOrder order,LoanResponse response) {
-        log.info("打款失败=====================》订单号：" + order.getUuid());
+        log.info("Payment failed=====================》Order number：" + order.getUuid());
         OrdOrder entity = new OrdOrder();
         entity.setUuid(order.getUuid());
         entity.setStatus(OrdStateEnum.LOAN_FAILD.getCode());
@@ -355,13 +348,13 @@ public class LoanService {
     }
 
     /**
-     * 打款失败，修改订单状态
+     * Payment failed, modify order status
      */
     @Transactional
     public void loanFaildWithCard(OrdOrder order) {
-        log.info("打款失败=====================》订单号：" + order.getUuid());
+        log.info("Payment failed (bank card error)=====================》Order number：" + order.getUuid());
 
-        // 如果是cashcash的订单 反馈更新订单状态
+        // If it is a cashcash order, feedback updates the order status
         if (order.getThirdType() == 1) {
             this.cash2OrderService.ordStatusFeedback(order, Cash2OrdStatusEnum.LOAN_FAILD);
         }else if (order.getThirdType() == 2) {
@@ -380,12 +373,12 @@ public class LoanService {
     }
 
     /**
-     * 预打款成功，修改订单状态
+     * Prepayment successful, modify order status
      */
     @Transactional
     public void loanTempSuccess(OrdOrder order) {
 
-        log.info("预打款成功=====================》订单号：" + order.getUuid());
+        log.info("Prepayment success=====================》Order number：" + order.getUuid());
 
         OrdOrder entity = new OrdOrder();
         entity.setUuid(order.getUuid());
@@ -406,13 +399,13 @@ public class LoanService {
     }
 
     /**
-     * 查询放款订单是否存在
+     * Check whether the loan order exists
      */
     public boolean loanQuery(OrdOrder order, UsrUser user) {
 
         boolean flag = false;
         try {
-            log.info("查询订单号:{}", order.getUuid());
+            log.info("Check the order number:{}", order.getUuid());
             LoanResponse response = this.payService.queryLoanResult(order.getUuid(), user.getUuid());
 
             if (response != null) {
@@ -422,7 +415,7 @@ public class LoanService {
             }
             return flag;
         } catch (Exception e) {
-            log.error("查询订单异常,单号: " + order.getUuid(), e);
+            log.error("Query order abnormality, order number: " + order.getUuid(), e);
         }
         return flag;
     }

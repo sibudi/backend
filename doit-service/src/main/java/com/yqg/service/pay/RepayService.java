@@ -4,38 +4,51 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.SocketTimeoutException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import com.yqg.common.constants.RedisContants;
+import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.OrdBillStatusEnum;
+import com.yqg.common.enums.order.OrdRepayAmountRecordStatusEnum;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.enums.order.OrderTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.enums.system.SysThirdLogsEnum;
 import com.yqg.common.exceptions.ServiceException;
+import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
 import com.yqg.order.dao.OrdBillDao;
 import com.yqg.order.dao.OrdDelayRecordDao;
 import com.yqg.order.dao.OrdPaymentCodeDao;
+import com.yqg.order.dao.OrdRepayAmoutRecordDao;
 import com.yqg.order.entity.CouponRecord;
 import com.yqg.order.entity.OrdBill;
 import com.yqg.order.entity.OrdDelayRecord;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdPaymentCode;
+import com.yqg.order.entity.OrdRepayAmoutRecord;
+import com.yqg.service.notification.request.NotificationRequest;
+import com.yqg.service.notification.service.EmailNotificationService;
+import com.yqg.service.notification.service.SlackNotificationService;
 import com.yqg.service.order.OrdBillService;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.p2p.request.UserRepayRequest;
 import com.yqg.service.p2p.response.P2PUserPayResponse;
 import com.yqg.service.p2p.service.P2PService;
+import com.yqg.service.pay.request.RdnRepayRequest;
 import com.yqg.service.pay.request.RepayRequest;
 import com.yqg.service.pay.response.RepayResponse;
 import com.yqg.service.system.service.CouponService;
 import com.yqg.service.system.service.SysThirdLogsService;
+import com.yqg.service.system.service.SysParamService;
 import com.yqg.service.user.service.UsrService;
 import com.yqg.system.dao.SysPaymentChannelDao;
 import com.yqg.system.dao.SysProductDao;
@@ -65,11 +78,17 @@ public class RepayService {
     @Autowired
     private OrdService ordService;
     @Autowired
+    private RedisClient redisClient;
+    @Autowired
+    private SysParamService sysParamService;
+    @Autowired
     private SysThirdLogsService sysThirdLogsService;
     @Autowired
     private SysProductDao sysProductDao;
     @Autowired
     private OrdPaymentCodeDao ordPaymentCodeDao;
+    @Autowired
+    private OrdRepayAmoutRecordDao ordRepayAmoutRecordDao;
     @Autowired
     private OrdDelayRecordDao ordDelayRecordDao;
     @Autowired
@@ -83,12 +102,22 @@ public class RepayService {
     @Autowired
     private SysPaymentChannelDao sysPaymentChannelDao;
 
+    @Autowired
+    private SlackNotificationService slackNotificationService;
+
+    @Autowired
+    private EmailNotificationService emailNotificationService;
+    
     // ??????url
     @Value("${pay.commitRepayUrl}")
     private String COMMIT_REPAY_URL;
 
     @Value("${pay.ovoCommitRepayUrl}")
     private String OVO_COMMIT_REPAY_URL;
+
+    @Value("${pay.repaymentSendToRdnUrl}")
+    private String REPAYMENT_SEND_TO_RDN_URL;
+
 
     @Value("${pay.token}")
     private String PAY_TOKEN;
@@ -116,7 +145,7 @@ public class RepayService {
 
 
         if (repayRequest.getType().equals("1") || repayRequest.getType().equals("2")){
-            // 普通还款 和 展期还款
+            // Normal and Extended Repayments
             OrdOrder orderOrder = new OrdOrder();
             orderOrder.setDisabled(0);
             orderOrder.setUuid(repayRequest.getOrderNo());
@@ -139,7 +168,7 @@ public class RepayService {
             responseStr = getResponseStr(repayRequest,order);
 
         }else if (repayRequest.getType().equals("3")){
-           //  分期账单还款
+           //  Installment Repayment
             OrdBill scan = new OrdBill();
             scan.setDisabled(0);
             scan.setUuid(repayRequest.getOrderNo());
@@ -270,6 +299,7 @@ public class RepayService {
             Map<String,String> contents = new HashMap<String, String>();
 
             String type = "";
+            //Repayment Type  1 Normal repayment 2 Installment repayment 3 Rollover repayment
             if (!StringUtils.isEmpty(repayRequest.getType())){
                 type = repayRequest.getType();
             }else {
@@ -290,10 +320,10 @@ public class RepayService {
                 orderNo = order.getUuid();
                 paymentCount = calculateRepayAmount(order,type);
 
-                // 判断是否有优惠券
+                // 判断是否有优惠券 - Determine if there is a coupon
                 if (!order.getOrderType().equals(OrderTypeEnum.STAGING)){
                     couponRecord = this.couponService.getCouponInfoWithOrderNo(order.getUuid());
-                    // 有优惠券且未使用
+                    // 有优惠券且未使用 - Coupons and unused
                     if (couponRecord != null){
                         paymentCount = new BigDecimal(paymentCount).subtract(couponRecord.getMoney()).setScale(2)+"";
                     }
@@ -334,7 +364,7 @@ public class RepayService {
                 .build();
             }
 
-            log.info("用户还款金额"+paymentCount);
+            log.info("User repayment amount "+paymentCount);
 
             String codeType = "";
             if (paymentType.equals("BLUEPAY")){
@@ -351,21 +381,22 @@ public class RepayService {
                 codeType = "6";
             }
 
-            //p2p还款
+            //p2p repayment
             if(p2PService.isP2PIssuedLoan(orderNo)){
                 UserRepayRequest request = new UserRepayRequest();
                 request.setAmountApply(new BigDecimal(paymentCount));
                 request.setCreditorNo(repayRequest.getOrderNo());
                 request.setInterest(interest);
-                request.setOverdueFee(new BigDecimal(calculatePenaltyFee(object))); //逾期服务费
-                request.setOverdueRate(new BigDecimal(calculateOverDueFee(object))); //滞纳金费-- 逾期服务费
+                
+                request.setOverdueFee(new BigDecimal(calculatePenaltyFee(object))); //Penalty fee, without limit
+                //Overdue service fee regardless overdue date
+                request.setOverdueRate(new BigDecimal(calculateOverDueFee(object)));
                 request.setUserName(userName);
                 request.setUserUuid(repayRequest.getUserUuid());
 
-//              repaymentType  还款类型 1正常还款 2分期还款 3展期还款
+                //Repayment Type  1 Normal repayment 2 Installment repayment 3 Rollover repayment
                 request.setRepaymentType("1");
                 if (object instanceof OrdOrder){
-                    //  type 1 正常还款   2 展期还款    3 分期账单还款
                     if (type.equals("2")){
                         request.setRepaymentType("3");
                     }
@@ -383,7 +414,7 @@ public class RepayService {
                 }
                 resp.setPaymentCode(p2pResp.getData().getPaymentCode());
                 String respStr =  JsonUtils.serialize(resp);
-                //p2p还款 也记录还款码
+                //p2p repayment also records repayment code
                 recordOrderPaymentCode(repayRequest,codeType,resp.getPaymentCode(),object,paymentCount,couponRecord);
                 return respStr;
             }
@@ -412,21 +443,20 @@ public class RepayService {
             {
                 responseStr = response.body().string();
 
-                // ????
-                log.info("?? ?????:{}", JsonUtils.serialize(responseStr));
+                log.info("Response from CommitRepay:{}", JsonUtils.serialize(responseStr));
                 RepayResponse repayResponse = JsonUtils.deserialize(responseStr,RepayResponse.class);
-                // 记录还款码
+                // Record repayment code
                 recordOrderPaymentCode(repayRequest,codeType,repayResponse.getPaymentCode(),object,paymentCount,couponRecord);
-                // ???????sysThirdLogs
+                // Add sysThirdLogs (type = 8)
                 sysThirdLogsService.addSysThirdLogs(repayRequest.getOrderNo(),repayRequest.getUserUuid(), SysThirdLogsEnum.COMMIT_REPAY.getCode(),0,null,responseStr);
                 return responseStr;
             }else {
                 if (object instanceof OrdOrder){
                     OrdOrder order = (OrdOrder) object;
-                    log.info("订单提交还款异常，订单号:{}",order.getUuid());
+                    log.info("Error on order commitRepay, order number:{}",order.getUuid());
                 }else if (object instanceof OrdBill){
                     OrdBill bill = (OrdBill) object;
-                    log.info("账单提交还款异常，账单号:{}",bill.getUuid());
+                    log.info("Error on order commitRepay, order number:{}",bill.getUuid());
                 }
                 sysThirdLogsService.addSysThirdLogs(repayRequest.getOrderNo(),repayRequest.getUserUuid(), SysThirdLogsEnum.COMMIT_REPAY.getCode(),0,null,response.body().string());
             }
@@ -434,7 +464,7 @@ public class RepayService {
         } catch(SocketTimeoutException e){
             throw new ServiceException(ExceptionEnum.SYSTEM_TIMEOUT);
         }catch (Exception e){
-            log.error("提交还款异常",e);
+            log.error("Exception on commitRepay",e);
         }
         return responseStr;
     }
@@ -454,11 +484,14 @@ public class RepayService {
             OrdOrder order = (OrdOrder) object;
             entity.setOrderNo(repayRequest.getOrderNo());
             entity.setInterest(order.getInterest()+"");
+            //Overdue service fee regardless overdue date
             entity.setOverDueFee(calculateOverDueFee(order));
+            //Actual overdue fee based on overdue date, without limit
+            //It is intended that the PenaltyFee on ordPaymentCode is without limit
             entity.setPenaltyFee(calculatePenaltyFee(order));
             entity.setAmountApply(order.getAmountApply().toString());
 
-            //  说明使用了优惠券  在paymentCode中记录使用
+            //  If coupon is used
             if (couponRecord != null){
                 if (couponRecord.getStatus().equals(3)){
                     entity.setCouponUuid(couponRecord.getUuid());
@@ -469,7 +502,10 @@ public class RepayService {
             OrdBill bill = (OrdBill) object;
             entity.setOrderNo(bill.getUuid());
             entity.setInterest(bill.getInterest()+"");
+            //Overdue service fee regardless overdue date
             entity.setOverDueFee(calculateOverDueFee(bill));
+            //Actual overdue fee based on overdue date, without limit
+            //It is intended that the PenaltyFee on ordPaymentCode is without limit
             entity.setPenaltyFee(calculatePenaltyFee(bill));
             entity.setAmountApply(bill.getBillAmout().toString());
         }
@@ -486,7 +522,11 @@ public class RepayService {
     }
 
     /**
-     *   逾期服务费
+     *   Calculate overdue service fee (based on amount apply, regardless of overdue duration)
+     *   <= 500k                -> 20k
+     *   > 500k and <= 2000k    -> 40k
+     *   > 2000k                -> 60k
+     *   ordBill (installment)  -> sysProduct.getOverdueFee
      * */
     public String calculateOverDueFee(Object object){
 
@@ -533,7 +573,10 @@ public class RepayService {
     }
 
     /**
-     *   通过时间还款时间计算逾期服务费
+     *   Calculate overdue service fee (based on amount apply, regardless of overdue duration)
+     *   <= 500k                -> 20k
+     *   > 500k and <= 2000k    -> 40k
+     *   > 2000k                -> 60k
      * */
     public String calculateOverDueFee(OrdOrder ordOrder, int overdueDay){
 
@@ -559,12 +602,12 @@ public class RepayService {
         return shouldPayAmount + "";
     }
     /**
-     *   ?????????
+     *   Calculate penalty fee based on overdue duration BEFORE limit. 
+     *   DO NOT PUT LIMIT HERE
      * */
     public String calculatePenaltyFee(Object object){
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
-        // ?????????
         try {
             if (object instanceof OrdOrder){
                 OrdOrder ordOrder = (OrdOrder) object;
@@ -588,8 +631,10 @@ public class RepayService {
     }
 
     /**
-     *   通过实际还款时间计算罚息
-     *
+     *   Calculate penalty fee based on overdue duration BEFORE limit. 
+     *   DO NOT PUT LIMIT HERE
+     *   Use overdueRates[0] for d+1 d+2 d+3
+     *   Use overdueRates[1] for >d+4
      * */
     public String calculatePenaltyFeeByRepayDays(Object object, int overdueDay) {
 
@@ -601,8 +646,8 @@ public class RepayService {
                 OrdOrder ordOrder = (OrdOrder) object;
                 BigDecimal[] overdueRates = getOverDueRates(ordOrder);
 
-                if (ordOrder.getOrderType().equals("0")){
-                    if(overdueDay <=3 ) {
+                if (ordOrder.getOrderType().equals("0")){ //It has the same logic as the "else"
+                    if(overdueDay <=3 ) { 
                         shouldPayAmount = ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay)).setScale(2);
                     } else {
                         shouldPayAmount = ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3))
@@ -617,7 +662,7 @@ public class RepayService {
                     }
                 }
             }else if (object instanceof OrdBill){
-
+                //Same logic with calculatePenaltyFeeByRepayDaysForBills
                 OrdBill bill = (OrdBill) object;
                 shouldPayAmount = bill.getBillAmout().multiply(bill.getOverdueRate()).multiply(BigDecimal.valueOf(overdueDay)).setScale(2);
             }
@@ -628,20 +673,21 @@ public class RepayService {
 
 
     /**
-     *   通过实际还款时间计算罚息  （针对分期产品的账单)
-     *
+     *   Calculate penalty fee (for installment) based on overdue duration BEFORE limit. 
+     *   DO NOT PUT LIMIT HERE
      * */
     public BigDecimal calculatePenaltyFeeByRepayDaysForBills(OrdBill bill, int overdueDay) {
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
 
         if (overdueDay >0){
+            //Same logic with calculatePenaltyFeeByRepayDays when object parameter = ordBill
             shouldPayAmount = bill.getBillAmout().multiply(bill.getOverdueRate()).multiply(BigDecimal.valueOf(overdueDay)).setScale(2);
         }
         return shouldPayAmount ;
     }
     /**
-     *   ?????
+     *   Calculate service fee for extend (regardless overdue duration) -> ordDelayRecord.getDelayFee
      * */
     public String calculateDelayFee(OrdOrder ordOrder){
 
@@ -668,28 +714,28 @@ public class RepayService {
         return shouldPayAmount + "";
     }
 
-    // 根据还款码的时间 计算还款金额
-    public String calculateRepayAmountWithDate(OrdOrder ordOrder,Date repayDate) throws Exception{
+    /**  << Same logic with dealWithNum & dealWithNumByRepayTime >>
+     *   Used by loanInfoService.doLoanExtension
+     *   Calculate the repayment amount based on the time of the repayment code
+     *   Use getOverdueRate1 for d+1 d+2 d+3
+     *   Use getOverdueRate2 for >d+4
+     *   Set maximum repayment amount here
+     *  */
+     public String calculateRepayAmountWithDate(OrdOrder ordOrder,Date repayDate) throws Exception{
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
         int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(ordOrder.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(repayDate,"yyyy-MM-dd"));
         if (overdueDay >0){
             SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
-            // ??????????????+?? + ???
-
-            // ??<=3??overdueRate1?>3??overdueRate2
             if(overdueDay <=3){
-                // ????? = ????+  ????? + ?? + ????????*??????*??????
                 shouldPayAmount =ordOrder.getAmountApply().add(ordOrder.getInterest()).add(sysProd.getOverdueFee()).add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
             }else{
-
                 shouldPayAmount =ordOrder.getAmountApply().add(ordOrder.getInterest())
                         .add(sysProd.getOverdueFee())
                         .add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
                         .add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
             }
         }else {
-            // ????
             shouldPayAmount = ordOrder.getAmountApply().add(ordOrder.getInterest());
         }
 
@@ -701,23 +747,24 @@ public class RepayService {
         return shouldPayAmount+"";
     }
 
-        /**
-         *   ??????
-         * */
+    /**  << Similar logic with calculateShouldRepayAmount >>
+     *   Calculate the repayment amount based on the time of the repayment code
+     *   Use getOverdueRate1 for d+1 d+2 d+3
+     *   Use getOverdueRate2 for >d+4
+     *   Set maximum repayment amount here
+     *  */
     public String calculateRepayAmount(OrdOrder ordOrder,String type){
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
-        // ?????????
         try {
             if (ordOrder.getOrderType().equals("0")||ordOrder.getOrderType().equals("2")){
-
-                //????  ?? ??????
+                //orderType = (0)Normal or (2)Extend (old order)
                 if (!StringUtils.isEmpty(type)){
                     if (type.equals("1")){
-
+                        //Normal Repayment
                         shouldPayAmount = dealWithNum(ordOrder);
                     }else {
-                        // ?????? ?OrdDelayRecord ???
+                        // Check whether order is an Extend Repayment
                         OrdDelayRecord record = new OrdDelayRecord();
                         record.setOrderNo(ordOrder.getUuid());
                         record.setDisabled(0);
@@ -727,24 +774,27 @@ public class RepayService {
 //                        String repayAmount = StringUtils.formatMoney(Double.valueOf(this.repayService.calculateRepayAmount(order).replace(".00",""))).replaceAll(",",".");
 //                        response.setRepayAmout(repayAmount);
                             if (!recordList.get(0).getRepayNum().equals(ordOrder.getAmountApply())){
+                                //RepayNum + ServiceCharge + ExtendFee + OverdueServiceChargeFee + Overdue/PenaltyFee
                                 OrdDelayRecord entity = recordList.get(0);
                                 shouldPayAmount  =  entity.getRepayNum().add(entity.getInterest()).add(entity.getDelayFee()).add(new BigDecimal(entity.getOverDueFee())).add(new BigDecimal(entity.getPenaltyFee()));
 
                             }else {
+                                //normal repayment
                                 shouldPayAmount = dealWithNum(ordOrder);
                             }
-
                         }
                     }
                 }else {
+                    //Default to normal repayment
                     shouldPayAmount = dealWithNum(ordOrder);
                 }
 
             }else {
-                //  ????  ?????????????)?
+                //orderType = (1)Extend (new order)
+                // Amount apply + overdue service fee + overdue/penalty fee
                 int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(ordOrder.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(new Date(),"yyyy-MM-dd"));
                 if (overdueDay >0){
-
+                    //Calculate overdue service charge fee
                     BigDecimal delayFee = BigDecimal.ZERO;
                     if (ordOrder.getAmountApply().compareTo(BigDecimal.valueOf(500000)) <= 0){
                         delayFee = BigDecimal.valueOf(20000);
@@ -753,32 +803,23 @@ public class RepayService {
                     }else {
                         delayFee = BigDecimal.valueOf(40000);
                     }
-
-                    // ??<=3??overdueRate1?>3??overdueRate2
-                    // SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
+                    
+                    // AmountApply + OverdueServiceChargeFee + Overdue/PenaltyFee )* No need to include interest anymore.
                     BigDecimal[] overdueRates = getOverDueRates(ordOrder);
                     if(overdueDay <=3){
-                        // ????? = ????+  ????? + ?? + ????????*??????*??????
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
                                 .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
-
                     }else{
-
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
                                 .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3)))
                                 .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
-
                     }
-
                 }else {
-                    // ????
-                    shouldPayAmount = ordOrder.getAmountApply();;
+                    shouldPayAmount = ordOrder.getAmountApply();
                 }
-
             }
-
             //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
             BigDecimal limit = ordOrder.getAmountApply().subtract(ordOrder.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
             if (shouldPayAmount.compareTo(limit) > 0 ){
@@ -793,20 +834,22 @@ public class RepayService {
         return shouldPayAmount + "";
     }
 
-    // 计算分期账单还款金额
+    /**  << Same logic with dealWithNum & dealWithNumByRepayTime >>
+     *   Calculate the repayment amount based on the time of the repayment code
+     *   Only have 1 overdue rate
+     *   Set maximum repayment amount here
+     *  */
     public String calculateBillRepayAmount(OrdBill bill){
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
         try {
-
+            // Amount + ServiceChargeFee + OverdueServiceChargeFee + Overdue/PenaltyFee
             int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(bill.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(new Date(),"yyyy-MM-dd"));
             if (overdueDay >0){
-                // 逾期
                 SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(bill.getProductUuid());
                 shouldPayAmount =bill.getBillAmout().add(bill.getInterest()).add(sysProd.getOverdueFee()).add(bill.getBillAmout().multiply(bill.getOverdueRate()).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
 
             }else {
-                // 未逾期
                 shouldPayAmount = bill.getBillAmout().add(bill.getInterest());
             }
 
@@ -829,10 +872,12 @@ public class RepayService {
         return shouldPayAmount + "";
     }
 
-    /**
-     * 通过实际还款时间计算应还款金额
+    /** << Similar with calculateRepayAmount but without checking OrdDelayRecord >>
+     * Calculate repayable amount based on actual repayment time
+     * Used by ChangeOrderService.manualOperationRepayOrder
+     * Set maximum repayment amount here
      * @param ordOrder
-     * @param overdueDay 实际还款时间差
+     * @param overdueDay 
      * @return
      */
     public String calculateShouldRepayAmount(OrdOrder ordOrder, int overdueDay){
@@ -840,7 +885,7 @@ public class RepayService {
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
         try {
             if (ordOrder.getOrderType().equals("0")||ordOrder.getOrderType().equals("2")){
-
+                //orderType = (0)Normal or (2)Extend (old order)
                 shouldPayAmount = dealWithNumByRepayTime(ordOrder, overdueDay);
             } else {
                 if (overdueDay > 0) {
@@ -855,25 +900,21 @@ public class RepayService {
                     }
 
                     // SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
+                    // AmountApply + OverdueServiceChargeFee + Overdue/PenaltyFee )* No need to include interest anymore.
                     BigDecimal[] overdueRates = getOverDueRates(ordOrder);
-
                     if (overdueDay <=3) {
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
                                 .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
-
                     } else {
-
                         shouldPayAmount = ordOrder.getAmountApply()
                                 .add(delayFee)
                                 .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3)))
                                 .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
-
                     }
                 } else {
                     shouldPayAmount = ordOrder.getAmountApply();
                 }
-
             }
             //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
             BigDecimal limit = ordOrder.getAmountApply().subtract(ordOrder.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
@@ -888,13 +929,13 @@ public class RepayService {
         return shouldPayAmount + "";
     }
 
-    // 已还款订单计算还款金额
+    // UNUSED. ONLY USED BY XIAOMISERVICE.java
+    // Calculated repayment amount for repaid order
+    // Still missing the Max limit logic
     public String calculateRepayAmountWithRepayOrder(OrdOrder ordOrder){
 
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
-        // ?????????
         try {
-            //  ????  ?????????????)?
             int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(ordOrder.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(ordOrder.getActualRefundTime(),"yyyy-MM-dd"));
             if (overdueDay >0){
 
@@ -908,30 +949,20 @@ public class RepayService {
                 }
 
                 // SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
-                // ??<=3??overdueRate1?>3??overdueRate2
-
                 BigDecimal[] overdueRates = getOverDueRates(ordOrder);
                 if(overdueDay <=3){
-                    // ????? = ????+  ????? + ?? + ????????*??????*??????
                     shouldPayAmount = ordOrder.getAmountApply()
                             .add(delayFee)
                             .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
-
                 }else{
-
                     shouldPayAmount = ordOrder.getAmountApply()
                             .add(delayFee)
                             .add(ordOrder.getAmountApply().multiply(overdueRates[0]).multiply(BigDecimal.valueOf(3)))
                             .add(ordOrder.getAmountApply().multiply(overdueRates[1]).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
-
                 }
             }else {
-                // ????
                 shouldPayAmount = ordOrder.getAmountApply();
             }
-
-
-
         } catch (ParseException e) {
             e.getStackTrace();
         } catch (Exception e) {
@@ -941,26 +972,26 @@ public class RepayService {
 
     }
 
+    /**  << Same logic with calculateRepayAmountWithDate & dealWithNumByRepayTime >>
+     *   Calculate the repayment amount based on the time of the repayment code
+     *   Use getOverdueRate1 for d+1 d+2 d+3
+     *   Use getOverdueRate2 for >d+4
+     *   Set maximum repayment amount here
+     *  */
     public BigDecimal dealWithNum(OrdOrder ordOrder) throws Exception{
         BigDecimal shouldPayAmount = BigDecimal.valueOf(0);
         int overdueDay = (int) DateUtils.daysBetween(DateUtils.formDate(ordOrder.getRefundTime(),"yyyy-MM-dd"),DateUtils.formDate(new Date(),"yyyy-MM-dd"));
         if (overdueDay >0){
             SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(ordOrder.getProductUuid());
-            // ??????????????+?? + ???
-
-            // ??<=3??overdueRate1?>3??overdueRate2
             if(overdueDay <=3){
-                // ????? = ????+  ????? + ?? + ????????*??????*??????
                 shouldPayAmount =ordOrder.getAmountApply().add(ordOrder.getInterest()).add(sysProd.getOverdueFee()).add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
             }else{
-
                 shouldPayAmount =ordOrder.getAmountApply().add(ordOrder.getInterest())
                         .add(sysProd.getOverdueFee())
                         .add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
                         .add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
             }
         }else {
-            // ????
             shouldPayAmount = ordOrder.getAmountApply().add(ordOrder.getInterest());
         }
 
@@ -972,6 +1003,12 @@ public class RepayService {
         return shouldPayAmount;
     }
 
+    /**  << Same logic with calculateRepayAmountWithDate & dealWithNum >>
+     *   Calculate the repayment amount based on the time of the repayment code
+     *   Use getOverdueRate1 for d+1 d+2 d+3
+     *   Use getOverdueRate2 for >d+4
+     *   Set maximum repayment amount here
+     *  */
     public BigDecimal dealWithNumByRepayTime(OrdOrder ordOrder, int overdueDay) throws Exception{
 
         BigDecimal shouldPayAmount ;
@@ -980,14 +1017,12 @@ public class RepayService {
             if(overdueDay <=3){
                 shouldPayAmount =ordOrder.getAmountApply().add(ordOrder.getInterest()).add(sysProd.getOverdueFee()).add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(overdueDay))).setScale(2);
             }else{
-
                 shouldPayAmount =ordOrder.getAmountApply().add(ordOrder.getInterest())
                         .add(sysProd.getOverdueFee())
                         .add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
                         .add(ordOrder.getAmountApply().multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(overdueDay - 3))).setScale(2);
             }
         }else {
-            // ????
             shouldPayAmount = ordOrder.getAmountApply().add(ordOrder.getInterest());
         }
 
@@ -1018,5 +1053,142 @@ public class RepayService {
         return overDueRates;
     }
 
+    /** RDN Notification */
+   private void SendRdnNotificationError(String errorMessage, String subject) {
+        NotificationRequest notificationRequest = new NotificationRequest();
+        notificationRequest.setTo(this.sysParamService.getSysParamValue(SysParamContants.RDN_NOTIFICATION_EMAIL_TO));
+        notificationRequest.setCc(this.sysParamService.getSysParamValue(SysParamContants.RDN_NOTIFICATION_EMAIL_CC));
+        notificationRequest.setSubject(String.format("[%s]", subject));
+        notificationRequest.setMessage(String.format("*%s* - %s", subject, errorMessage));  
+        slackNotificationService.SendNotification(notificationRequest);
+        emailNotificationService.SendNotification(notificationRequest);      
+    }
+    /** Bulk RDN Repayment */ 
+    public RepayResponse BulkRdnRepayment() {
+        RepayResponse repayResponse = new RepayResponse();
+        try {
+            String rdnRepaymentStatusError = this.redisClient.get(RedisContants.RDN_REPAYMENT_STATUS_ERROR_LOCK);
+            if(!StringUtils.isEmpty(rdnRepaymentStatusError)) {
+                String errorMessage = String.format("RDN Repayment aborted due to previous error: %s. Need manual fix and then clear this lock manually", rdnRepaymentStatusError);
+                log.error(errorMessage);
+                return new RepayResponse(){{
+                    setCode("-1");
+                    setErrorMessage(errorMessage);
+                }};
+            }
+            
+            String repayChannels = this.sysParamService.getSysParamValue(SysParamContants.RDN_REPAYMENT_CHANNELS).toUpperCase();
+            log.info("{} is {}", SysParamContants.RDN_REPAYMENT_CHANNELS, repayChannels);
+            for(String repayChannel : repayChannels.split(","))  {
+                log.info("Sending Bulk Rdn Repayment for channel {}", repayChannel);
+                List<OrdRepayAmoutRecord> lOrdRepayAmoutRecord = this.ordRepayAmoutRecordDao.getOrderRepayRecordWaitingRepaymentToRdn(repayChannel.toUpperCase()); 
+                if (lOrdRepayAmoutRecord.size() == 0) {
+                    String errorMessage = String.format("Nothing to process OrdRepayAmountRecord for channel %s", repayChannel);
+                    log.info(errorMessage);
+                    repayResponse = new RepayResponse();
+                    repayResponse.setCode("0");
+                    repayResponse.setErrorMessage(errorMessage);
+                    continue;
+                }
+                log.info("Found {} order(s) for sending Bulk Rdn Repayment", lOrdRepayAmoutRecord.size());     
+                
+                //Send to biak-rest /BulkRdnRepayment
+                List<RdnRepayRequest> lrdnRepayRequest = new ArrayList<RdnRepayRequest>();
+                for (OrdRepayAmoutRecord ordRepayAmountRecord : lOrdRepayAmoutRecord){
+                    RdnRepayRequest rdnRepayRequest = new RdnRepayRequest();
+                    rdnRepayRequest.setParentOrderNo(ordRepayAmountRecord.getParentOrderNo());
+                    rdnRepayRequest.setOrderNo(ordRepayAmountRecord.getOrderNo());
+                    rdnRepayRequest.setAmount(ordRepayAmountRecord.getActualDisbursedAmount());
+                    rdnRepayRequest.setInterest(ordRepayAmountRecord.getServiceFee());
+                    rdnRepayRequest.setOverdueFee(new BigDecimal(ordRepayAmountRecord.getOverDueFee()));
+                    rdnRepayRequest.setPenalty(new BigDecimal(ordRepayAmountRecord.getPenaltyFee()));
+                    rdnRepayRequest.setOrderType(RdnRepayRequest.OrderType.fromString(ordRepayAmountRecord.getOrderType()));
+                    lrdnRepayRequest.add(rdnRepayRequest);
+                }
+                String requestJson = JsonUtils.serialize(lrdnRepayRequest);
+                log.info("RepayChannel: {} RequestJson: {}", repayChannel, requestJson);
+                RequestBody requestBody =  new FormBody.Builder().build();
+                requestBody = new FormBody.Builder()
+                    .add("rdnRepaymentEntities", requestJson)
+                    .add("depositChannel", repayChannel)    
+                    .build();
+                
+                    Request request = new Request.Builder()
+                    .url(REPAYMENT_SEND_TO_RDN_URL)
+                    .post(requestBody)
+                    .addHeader("X-AUTH-TOKEN", PAY_TOKEN)
+                    .addHeader("Content-Type","application/x-www-form-urlencoded")
+                    .build();
+               
+                httpClient.newBuilder()
+                    .connectTimeout(30,TimeUnit.SECONDS)
+                    .readTimeout(75,TimeUnit.SECONDS)
+                    .writeTimeout(75,TimeUnit.SECONDS)
+                    .build();
+                   
+                //The following block is sensitive, as the repayment may be succeeded but we failed to update the record
+                //That's why we put additional try catch block to hold subsequent call on error
+                try {
+                    Response response = httpClient.newCall(request).execute();
+                    if(response.isSuccessful()) {
+                        String  responseStr = response.body().string();
+                        log.info("Response from REPAYMENT_SEND_TO_RDN_URL:{}", JsonUtils.serialize(responseStr));
+                        repayResponse = JsonUtils.deserialize(responseStr,RepayResponse.class);
+                        if (repayResponse.getCode().equals("0")) {
+                            //Repayment is successful, Update ordRepayAmountRecord table
+                            List<Integer> ids = lOrdRepayAmoutRecord.stream()
+                                .map(elem -> elem.getId())
+                                .collect(Collectors.toList());
+                            ordRepayAmoutRecordDao.bulkUpdateStatus(
+                                OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString().toString(),
+                                OrdRepayAmountRecordStatusEnum.WAITING_SENDING_REPORT.toString(),
+                                ids);
+                        }
+                    }
+                    else {
+                        String errorMessage = response.body().string();
+                        log.error(errorMessage);
+                        this.redisClient.set(RedisContants.RDN_REPAYMENT_STATUS_ERROR_LOCK, 
+                            String.format("%s %s", DateUtils.formDate(new Date(),"yyyy-MM-dd HH:mm:ss"), errorMessage));
+                        //Doesn't need to send notification, since already sent by biak-rest
+                        //SendRdnNotificationError(errorMessage, "RDN_REPAYMENT_STATUS_ERROR");
+                        repayResponse = new RepayResponse(){{
+                            setCode("-1");
+                            setErrorMessage(errorMessage);
+                        }};
+                    }
+                }
+                catch(Exception e){
+                    String errorMessage = String.format("%s %s", DateUtils.formDate(new Date(),"yyyy-MM-dd HH:mm:ss"), e);
+                    log.error(errorMessage, e);
+                    //Lock in redis
+                    this.redisClient.set(RedisContants.RDN_REPAYMENT_STATUS_ERROR_LOCK, errorMessage);
+                    SendRdnNotificationError(errorMessage, "RDN_REPAYMENT_STATUS_ERROR");
+                    //rethrow the error
+                    throw e;
+                }
+            }
+        }
+        catch(SocketTimeoutException e){
+            String errorMessage = String.format("%s %s", DateUtils.formDate(new Date(),"yyyy-MM-dd HH:mm:ss"), e);
+            log.error(errorMessage, e);
+            SendRdnNotificationError(errorMessage, "RDN_REPAYMENT_STATUS_ERROR");
+            repayResponse = new RepayResponse(){{
+                setCode("-1");
+                setErrorMessage(ExceptionEnum.SYSTEM_TIMEOUT.toString());
+            }};
+        }catch (Exception e){
+            String errorMessage = String.format("There is an error on RepayService.BulkRdnRepayment %s", e); 
+            log.error(errorMessage, e);
+            SendRdnNotificationError(errorMessage, "RDN_REPAYMENT_STATUS_ERROR");
+            repayResponse = new RepayResponse(){{
+                setCode("-1");
+                setErrorMessage(errorMessage);
+            }};
+        }
+        finally {
+            return repayResponse;
+        }
+    }
 
 }

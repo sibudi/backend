@@ -20,4 +20,7 @@ public class RepayResponse {
     @ApiModelProperty(value = "??????? xendit ??paymentCode")
     @JsonProperty
     private String paymentCode;
+    @ApiModelProperty(value = "String error message if any")
+    @JsonProperty
+    private String errorMessage;
 }

@@ -435,16 +435,19 @@ public class ManOrderOrderService {
             //逾期账户管理费
             response.setOverdueFee(this.repayService.calculateOverDueFee(order));
 
+            //Overdue account penalty fees based on overdue duration (without limit)
             BigDecimal overdueMoney = new BigDecimal(this.repayService.calculatePenaltyFee(order));
-            // （逾期）应还款金额：借款金额+利息 + 逾期费
+            // (Overdue) Repayable amount: Borrowing amount + interest + overdue fees
             BigDecimal shouldPayAmount = BigDecimal.ZERO;
 
             if (!order.getOrderType().equals("0")){
+                //There is already a limit set in repayService.calculateRepayAmount
                 shouldPayAmount  = new BigDecimal(this.repayService.calculateRepayAmount(order,"2"));
+                //Delay fee is service fee for extending the order (regardless of overdue duration)
                 response.setExtendServiceFee(com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(this.repayService.calculateDelayFee(order))).replaceAll(",",".").toString());
             }else {
                 if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()  || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()){
-
+                    //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount 
                     OrdRepayAmoutRecord ordRepayAmoutRecord = new OrdRepayAmoutRecord();
                     ordRepayAmoutRecord.setDisabled(0);
                     ordRepayAmoutRecord.setOrderNo(order.getUuid());
@@ -453,10 +456,11 @@ public class ManOrderOrderService {
                         shouldPayAmount  = new BigDecimal(recordList.get(0).getActualRepayAmout());
                     }
                 }else {
+                    //There is already a limit set in repayService.calculateRepayAmount
                     shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "1"));
                 }
             }
-            // 应还款金额
+            // Repayable Amount (currently the same with ActualPayAmount)
             response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
 
             //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
@@ -465,10 +469,11 @@ public class ManOrderOrderService {
                 shouldPayAmount = limit;
             }
 
-            //实际应还款金额
+            //Actual Repayment Amount (currently the same with ShouldPayAmount)
             response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
 
-            //逾期账户滞纳金
+            //Overdue account penalty fee based on overdue duration. 
+            //It is intended to show the real overdue fee without limit, but it's not the amount that the user should pay 
             response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overdueMoney.doubleValue()).replaceAll(",",".").toString());
         } catch (ParseException e) {
             e.printStackTrace();

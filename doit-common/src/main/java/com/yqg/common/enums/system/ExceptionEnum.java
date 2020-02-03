@@ -42,7 +42,7 @@ public enum ExceptionEnum {
     INPUT_CAPTCHA(1041,"Masukan kode verifikasi SMS"),//请输入短信验证码
     CAPTCHA_INVALID(1042,"Kode verifikasi tidak berlaku"),//短信验证码无效
     Captcha_INVALID_AND_RESENT(1043,"terdapat kesalahan dalam kode verifikasi, mencoba kirim kode yang baru"),//短信验证码错误且会重新发送
-    SYSTEM_TIMEOUT(1044,"Sistem terjadi kesalahan, silakan ulangi beberapa saat lagi"),//系统错误请稍后重试
+    SYSTEM_TIMEOUT(1044,"Terjadi kesalahan sistem (timeout), silakan ulangi beberapa saat lagi"),//系统错误请稍后重试
     CAPTCHA_TIMEOUT(1045,"Telah melebihi batas waktu pengisian kode"),//提交验证码超时
     CAPTCHA_ERROR_TO_MANY_TIMES(1046,"kesalahan pengisian kode melebihi batas, akun terkunci secara otomatis"),//验证码错误次数过多,账号已被锁定
     FAILED_CAPTCHA_TOO_MANY_TIMES(1047,"kesalahan pengisian kode melebihi batas, ulangi beberapa saat lagi"),//验证码错误次数过多,请稍后重试

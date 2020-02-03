@@ -90,6 +90,7 @@ pay:
   cheakRepayUrl: http://api.uat.doitglotech.cloud/repayment/ #:8888/repayment/
   inactiveOrderUrl: http://api.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
   transferOrderUrl: http://api.uat.doitglotech.cloud/fund/fee/transfer/ #:8888/fund/fee/transfer/
+  repaymentSendToRdnUrl: http://api.uat.doitglotech.cloud/repayment/BulkRdnRepayment/ #case sensitive
   token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
 HttpUrl:
   #smsUrl: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
@@ -143,3 +144,7 @@ spring:
     checkTemplateLocation: false
 
 endpoints.enabled: false
+
+notification.service.url: https://notificationapi.doitglotech.co.id
+notification.service.token: lgezRLxR84n$9@
+slack.webhook.url: https://hooks.slack.com/services/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

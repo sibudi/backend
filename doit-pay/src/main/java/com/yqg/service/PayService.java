@@ -3,6 +3,7 @@ package com.yqg.service;
 import com.yqg.activity.entity.ActivityAccountRecord;
 import com.yqg.common.constants.RedisContants;
 import com.yqg.common.constants.SysParamContants;
+import com.yqg.common.enums.order.OrdRepayAmountRecordStatusEnum;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.enums.order.OrderTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
@@ -325,7 +326,9 @@ public class PayService {
         }
         for (OrdOrder order : orderOrders) {
             if(p2PService.isP2PIssuedLoan(order.getUuid())){
-                p2pPaymentCheck(order);
+                //ahalim: TODO P2P - For now disable P2P
+                //p2pPaymentCheck(order);
+                continue;
             }else{
                 try {
                     normalPaymentCheck(order);
@@ -532,8 +535,14 @@ public class PayService {
                 record.setTransactionId("");
                 record.setActualRepayAmout(repayService.calculateRepayAmount(dealOrder,"1"));
                 record.setInterest(dealOrder.getInterest()+"");
+                //Overdue service fee regardless overdue date
                 record.setOverDueFee(repayService.calculateOverDueFee(dealOrder));
+                //Actual overdue fee based on overdue date, without limit.
+                //Currently the penaltyfee in ordRepayAmoutRecord is actual overdue fee without limit
                 record.setPenaltyFee(repayService.calculatePenaltyFee(dealOrder));
+                record.setActualDisbursedAmount(new BigDecimal(dealOrder.getApprovedAmount()));
+                record.setServiceFee(dealOrder.getServiceFee());
+                record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
                 record.setRepayChannel("3");
                 this.ordRepayAmoutRecordDao.insert(record);
 

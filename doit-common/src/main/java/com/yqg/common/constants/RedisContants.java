@@ -313,6 +313,8 @@ public class RedisContants {
     public static final String OVO_SWITCH_TIME_FROM = "paymentSwitch:ovoTimeFrom";
     public static final String OVO_SWITCH_TIME_TO = "paymentSwitch:ovoTimeTo";
 
+    public static final String RDN_REPAYMENT_STATUS_ERROR_LOCK = "rdn:repayment:status:error:lock"; 
+    
     public static final String AIQQON_SWITCH ="aiqqon:switch";
 
 

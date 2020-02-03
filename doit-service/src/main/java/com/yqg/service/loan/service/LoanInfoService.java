@@ -758,19 +758,31 @@ public class LoanInfoService {
 
             String orderNo = "";
             String userUuid = "";
+            BigDecimal actualDisbursedAmount = BigDecimal.ZERO;
+            BigDecimal serviceFee = BigDecimal.ZERO;
 
             if (object instanceof OrdOrder){
                 OrdOrder order = (OrdOrder) object;
                 orderNo = order.getUuid();
                 userUuid = order.getUserUuid();
-
+                serviceFee = order.getServiceFee();
+                actualDisbursedAmount = new BigDecimal(order.getApprovedAmount());
             }else if(object instanceof OrdBill){
-
                 OrdBill bill = (OrdBill) object;
                 orderNo = bill.getUuid();
                 userUuid = bill.getUserUuid();
+                //Get disbursed amount and service fee from parent order, divided by bill term
+                OrdOrder billOrder = new OrdOrder();
+                billOrder.setUuid(bill.getOrderNo());
+                billOrder.setDisabled(0);
+                List<OrdOrder> scanList = this.ordDao.scan(billOrder);
+                if (!CollectionUtils.isEmpty(scanList)) {
+                    //For installment, borrowing term in ordOrder contains installment count (ex: 3 times)
+                    //Notes that for normal order, borrowing term in ordOrder contains the borrowing duration (ex: 30 days)
+                    actualDisbursedAmount = new BigDecimal(scanList.get(0).getApprovedAmount()).divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
+                    serviceFee = scanList.get(0).getServiceFee().divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
+                }
             }
-
             OrdRepayAmoutRecord record = new OrdRepayAmoutRecord();
             record.setOrderNo(orderNo);
             record.setUserUuid(userUuid);
@@ -801,7 +813,9 @@ public class LoanInfoService {
                 if (!StringUtils.isEmpty(paymentCode.getCodeType())){
                     record.setRepayChannel(paymentCode.getCodeType());;
                 }
-
+                record.setActualDisbursedAmount(actualDisbursedAmount);
+                record.setServiceFee(serviceFee);
+                record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
 
                 if (object instanceof OrdOrder){
                     OrdOrder order = (OrdOrder) object;
@@ -947,7 +961,7 @@ public class LoanInfoService {
                                 actualNum = new BigDecimal(paymentCode.getActualRepayAmout()).add(couponRecord.getMoney()).setScale(2);
                             }
                         }
-                        // 实际还款金额和应还金额比较
+                        // Comparison of actual repayment amount and repayable amount
                         if (actualNum.compareTo(new BigDecimal(this.repayService.calculateRepayAmountWithDate(order,paymentCode.getCreateTime()))) < 0 ){
 
                             // 生成展期订单

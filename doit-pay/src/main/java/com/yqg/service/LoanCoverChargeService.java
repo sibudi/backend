@@ -65,14 +65,16 @@ public class LoanCoverChargeService {
 
         String serviceOrderNo = "04" + order.getUuid().substring(2);
 
-        // 防止打款失败的订单再次打款的时候，会再次生成服务费订单，所以生成订单前，再次检查数据库
+        // To prevent a failed order from being charged again, 
+        // a service fee order will be generated again, 
+        // so check the database again before generating an order
         OrdServiceOrder scan = new OrdServiceOrder();
         scan.setDisabled(0);
         scan.setUuid(serviceOrderNo);
         scan.setOrderNo(order.getUuid());
         List<OrdServiceOrder> scanList = this.ordServiceOrderDao.scan(scan);
         if (CollectionUtils.isEmpty(scanList)){
-            // 首次打款 未生成对应的服务费订单
+            // The first payment did not generate a corresponding service fee order
             OrdServiceOrder entity = new OrdServiceOrder();
             try {
                 entity.setUuid(serviceOrderNo);

@@ -16,21 +16,31 @@ public class OrdRepayAmoutRecord extends BaseEntity implements Serializable{
 
     private static final long serialVersionUID = 1360828775742012626L;
 
-    private String userUuid;// ??uuid
+    private String userUuid;
 
-    private String orderNo;// ????
+    private String orderNo;
 
-    private String actualRepayAmout;// ??????
+    private String actualRepayAmout;
 
-    private String interest;// ??
+    private String interest;
 
-    private String overDueFee;// ?????
+    private String overDueFee;
 
-    private String penaltyFee;// ??
+    private String penaltyFee;
 
-    private String repayChannel;// ????  1 bluePay  2 xendit
+    private BigDecimal actualDisbursedAmount;
+    
+    private BigDecimal serviceFee;
 
-    private String transactionId;// ??????
+    private String repayChannel;//  1 BLUEPAY  2 XENDIT 3 CIMB 4 DOKU 5 BNI 6 OVO (from ordPaymentCode.codeType)
 
-    private String repayMethod; // ????  ?ATM alfamart bni bri others?
+    private String transactionId;
+
+    private String repayMethod; // ALFAMART,INDOMARET, BCA, MANDIRI, BNI, BRI, CIMB, PERMATA, OTHERS, OVO, MANUAL (from T_LPAY_DEPOSIT_METHOD.deposit_method)
+
+    private String status;
+
+    private String orderType; //OrdTypeEnum 0 NORMAL 1 DELAY 2 DELAY_PAID 3 STAGING
+    
+    private String parentOrderNo; //If 0 NORMAL -> Same as orderNo. If 3 STAGING -> Parent order no in ordOrder
 }

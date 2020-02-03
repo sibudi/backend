@@ -58,6 +58,7 @@ flyway/jars/*.jar
 *.*~
 *~
 .merge_file*
+.vscode/
 bootstrap-prod.yml
 
 ######################

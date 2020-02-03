@@ -346,5 +346,10 @@ public class SysParamContants {
     //check is default product is staging. 1 for new user only, 9 for all user
     public static final String SYSTEM_DEFAULT_IS_INSTALLMENT = "system:default:isinstallment";
     public static final String SYSTEM_DEFAULT_INSTALLMENT_PRODUCT = "system:default:installment:product";
+    //rdn repayment channel
+    public static final String RDN_REPAYMENT_CHANNELS = "rdn:repayment:channel";        //Also used by biak-rest
+    public static final String RDN_NOTIFICATION_EMAIL_TO = "rdn:notification:email:to"; //Also used by biak-rest
+    public static final String RDN_NOTIFICATION_EMAIL_CC = "rdn:notification:email:cc"; //Also used by biak-rest
+
 }
 

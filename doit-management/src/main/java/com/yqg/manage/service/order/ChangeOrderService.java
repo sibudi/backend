@@ -1,5 +1,6 @@
 package com.yqg.manage.service.order;
 
+import com.yqg.common.enums.order.OrdRepayAmountRecordStatusEnum;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.ServiceException;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -101,6 +103,9 @@ public class ChangeOrderService {
         record.setInterest(dealOrder.getInterest()+"");
         record.setOverDueFee(repayService.calculateOverDueFee(dealOrder, overdueDay));
         record.setPenaltyFee(repayService.calculatePenaltyFeeByRepayDays(dealOrder, overdueDay));
+        record.setActualDisbursedAmount(new BigDecimal(dealOrder.getApprovedAmount()));
+        record.setServiceFee(dealOrder.getServiceFee());
+        record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
         record.setRepayChannel("3");
         this.ordRepayAmoutRecordDao.insert(record);
 
