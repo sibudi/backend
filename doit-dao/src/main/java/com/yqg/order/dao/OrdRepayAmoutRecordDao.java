@@ -18,9 +18,9 @@ public interface OrdRepayAmoutRecordDao extends BaseMapper<OrdRepayAmoutRecord>{
     @Select("SELECT COALESCE(ord.orderType, 3) as orderType, " //3 is orderType Staging (installment)
         + " COALESCE(ord.uuid, bill.orderNo) as parentOrderNo, "
         + " repay.* FROM ordRepayAmoutRecord AS repay "
-        + " LEFT OUTER JOIN ordOrder AS ord ON repay.orderNo=ord.uuid  AND ord.lendingTime > '2019-04-08' AND datediff(ord.actualRefundTime, ord.refundTime) < 90 AND ord.disabled=0 "
-        + " LEFT OUTER JOIN ordBill as bill on repay.orderNo=bill.uuid AND bill.createTime > '2019-04-08' AND datediff(bill.actualRefundTime, bill.refundTime) < 90 AND bill.disabled=0 "
-        + " WHERE repay.repayMethod='CIMB' AND repay.status='WAITING_REPAYMENT_TO_RDN' AND repay.disabled=0")   //Ignore 90+ //Ignore Lending Time before TCC contracts
+        + " LEFT OUTER JOIN ordOrder AS ord ON repay.orderNo=ord.uuid  AND ord.lendingTime >= '2019-04-08' AND ord.disabled=0 "
+        + " LEFT OUTER JOIN ordBill as bill on repay.orderNo=bill.uuid AND bill.createTime >= '2019-04-08' AND bill.disabled=0 "
+        + " WHERE repay.repayMethod='CIMB' AND repay.status='WAITING_REPAYMENT_TO_RDN' AND repay.disabled=0 AND (ord.uuid is not null or bill.uuid is not null)")   //Ignore 90+ //Ignore Lending Time before TCC contracts
     List<OrdRepayAmoutRecord> getOrderRepayRecordWaitingRepaymentToRdn(@Param("repayChannel") String repayChannel);
 
     @Update("<script>"
