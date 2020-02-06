@@ -36,5 +36,10 @@ public class OrdPaymentCode extends BaseEntity implements Serializable {
     private String principal; //还款本金
 
     private String couponUuid; //优惠券uuid
+
+    public enum DepositChannel {
+        BLUEPAY, XENDIT, CIMB,BNI,DOKU,BCA,OVO;
+    }
+
 }
 

@@ -754,103 +754,104 @@ public class LoanInfoService {
      */
     @Transactional
     private void repaySuccessRecord(Object object, CheckRepayResponse response) throws Exception {
-        if (!StringUtils.isEmpty(response.getPaymentCode())){
+        String orderNo = "";
+        String userUuid = "";
+        BigDecimal actualDisbursedAmount = BigDecimal.ZERO;
+        BigDecimal serviceFee = BigDecimal.ZERO;
 
-            String orderNo = "";
-            String userUuid = "";
-            BigDecimal actualDisbursedAmount = BigDecimal.ZERO;
-            BigDecimal serviceFee = BigDecimal.ZERO;
+        if (object instanceof OrdOrder){
+            OrdOrder order = (OrdOrder) object;
+            orderNo = order.getUuid();
+            userUuid = order.getUserUuid();
+            serviceFee = order.getServiceFee();
+            actualDisbursedAmount = new BigDecimal(order.getApprovedAmount());
+        }else if(object instanceof OrdBill){
+            OrdBill bill = (OrdBill) object;
+            orderNo = bill.getUuid();
+            userUuid = bill.getUserUuid();
+            //Get disbursed amount and service fee from parent order, divided by bill term
+            OrdOrder billOrder = new OrdOrder();
+            billOrder.setUuid(bill.getOrderNo());
+            billOrder.setDisabled(0);
+            List<OrdOrder> scanList = this.ordDao.scan(billOrder);
+            if (!CollectionUtils.isEmpty(scanList)) {
+                //For installment, borrowing term in ordOrder contains installment count (ex: 3 times)
+                //Notes that for normal order, borrowing term in ordOrder contains the borrowing duration (ex: 30 days)
+                actualDisbursedAmount = new BigDecimal(scanList.get(0).getApprovedAmount()).divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
+                serviceFee = scanList.get(0).getServiceFee().divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
+            }
+        }
+        OrdRepayAmoutRecord record = new OrdRepayAmoutRecord();
+        record.setOrderNo(orderNo);
+        record.setUserUuid(userUuid);
+        if (!StringUtils.isEmpty(response.getDepositMethod())){
+            record.setRepayMethod(response.getDepositMethod());
+        }
+        if (!StringUtils.isEmpty(response.getTransactionId())){
+            record.setTransactionId(response.getTransactionId());
+        }
+
+        List<OrdPaymentCode> codeList = new ArrayList<OrdPaymentCode>();
+        //bug fix ahalim: OVO doesn't have payment code, so will need to get by orderno
+        if (response.getDepositMethod().equals(OrdPaymentCode.DepositChannel.OVO.name())) {
+            codeList = this.ordPaymentCodeDao.getOrderPaymentCodeByOrderNoDesc(orderNo);
+        }
+        else if (!StringUtils.isEmpty(response.getPaymentCode())){
+            // bug fix budi 20191119: memperbaiki isi dari tbl ordRepayAmoutRecord 
+            // agar mengambil record yg created date-nya paling akhir.
+            codeList = this.ordPaymentCodeDao.getOrderPaymentCodeDesc(orderNo, response.getPaymentCode());
+        }
+        if (!CollectionUtils.isEmpty(codeList)){
+            OrdPaymentCode paymentCode = codeList.get(0);
+            if (!StringUtils.isEmpty(paymentCode.getActualRepayAmout())){
+                record.setActualRepayAmout(paymentCode.getActualRepayAmout());
+            }
+            if (!StringUtils.isEmpty(paymentCode.getInterest())){
+                record.setInterest(paymentCode.getInterest());;
+            }
+            if (!StringUtils.isEmpty(paymentCode.getOverDueFee())){
+                record.setOverDueFee(paymentCode.getOverDueFee());;
+            }
+            if (!StringUtils.isEmpty(paymentCode.getPenaltyFee())){
+                record.setPenaltyFee(paymentCode.getPenaltyFee());;
+            }
+            if (!StringUtils.isEmpty(paymentCode.getCodeType())){
+                record.setRepayChannel(paymentCode.getCodeType());;
+            }
+            record.setActualDisbursedAmount(actualDisbursedAmount);
+            record.setServiceFee(serviceFee);
+            record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
 
             if (object instanceof OrdOrder){
                 OrdOrder order = (OrdOrder) object;
-                orderNo = order.getUuid();
-                userUuid = order.getUserUuid();
-                serviceFee = order.getServiceFee();
-                actualDisbursedAmount = new BigDecimal(order.getApprovedAmount());
-            }else if(object instanceof OrdBill){
-                OrdBill bill = (OrdBill) object;
-                orderNo = bill.getUuid();
-                userUuid = bill.getUserUuid();
-                //Get disbursed amount and service fee from parent order, divided by bill term
-                OrdOrder billOrder = new OrdOrder();
-                billOrder.setUuid(bill.getOrderNo());
-                billOrder.setDisabled(0);
-                List<OrdOrder> scanList = this.ordDao.scan(billOrder);
-                if (!CollectionUtils.isEmpty(scanList)) {
-                    //For installment, borrowing term in ordOrder contains installment count (ex: 3 times)
-                    //Notes that for normal order, borrowing term in ordOrder contains the borrowing duration (ex: 30 days)
-                    actualDisbursedAmount = new BigDecimal(scanList.get(0).getApprovedAmount()).divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
-                    serviceFee = scanList.get(0).getServiceFee().divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
-                }
-            }
-            OrdRepayAmoutRecord record = new OrdRepayAmoutRecord();
-            record.setOrderNo(orderNo);
-            record.setUserUuid(userUuid);
-            if (!StringUtils.isEmpty(response.getDepositMethod())){
-                record.setRepayMethod(response.getDepositMethod());
-            }
-            if (!StringUtils.isEmpty(response.getTransactionId())){
-                record.setTransactionId(response.getTransactionId());
-            }
+                doLoanExtension(order,paymentCode,response.getAmount());
 
-            // bug fix budi 20191119: memperbaiki isi dari tbl ordRepayAmoutRecord 
-            // agar mengambil record yg created date-nya paling akhir.
-            List<OrdPaymentCode> codeList = this.ordPaymentCodeDao.getOrderPaymentCodeByOrderNoDesc(orderNo, response.getPaymentCode());
-            if (!CollectionUtils.isEmpty(codeList)){
-                OrdPaymentCode paymentCode = codeList.get(0);
-                if (!StringUtils.isEmpty(paymentCode.getActualRepayAmout())){
-                    record.setActualRepayAmout(paymentCode.getActualRepayAmout());
-                }
-                if (!StringUtils.isEmpty(paymentCode.getInterest())){
-                    record.setInterest(paymentCode.getInterest());;
-                }
-                if (!StringUtils.isEmpty(paymentCode.getOverDueFee())){
-                    record.setOverDueFee(paymentCode.getOverDueFee());;
-                }
-                if (!StringUtils.isEmpty(paymentCode.getPenaltyFee())){
-                    record.setPenaltyFee(paymentCode.getPenaltyFee());;
-                }
-                if (!StringUtils.isEmpty(paymentCode.getCodeType())){
-                    record.setRepayChannel(paymentCode.getCodeType());;
-                }
-                record.setActualDisbursedAmount(actualDisbursedAmount);
-                record.setServiceFee(serviceFee);
-                record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
-
-                if (object instanceof OrdOrder){
-                    OrdOrder order = (OrdOrder) object;
-                    doLoanExtension(order,paymentCode,response.getAmount());
-
-                    //如果是订单还款 确定是否使用了优惠券
-                    if (!StringUtils.isEmpty(paymentCode.getCouponUuid())){
-                        CouponRecord couponRecord = this.couponService.getCouponInfoWithUuid(paymentCode.getCouponUuid());
-                        if (couponRecord != null){
-                            couponRecord.setStatus(1);
-                            couponRecord.setUpdateTime(new Date());
-                            couponRecord.setUsedDate(new Date());
-                            this.couponService.updateCoupon(couponRecord);
-                        }
+                //如果是订单还款 确定是否使用了优惠券
+                if (!StringUtils.isEmpty(paymentCode.getCouponUuid())){
+                    CouponRecord couponRecord = this.couponService.getCouponInfoWithUuid(paymentCode.getCouponUuid());
+                    if (couponRecord != null){
+                        couponRecord.setStatus(1);
+                        couponRecord.setUpdateTime(new Date());
+                        couponRecord.setUsedDate(new Date());
+                        this.couponService.updateCoupon(couponRecord);
                     }
-
-                    // 查询判断用户是否需要降额 适用对象为首借50rmb 80rmb 100rmb或150rmb，截止规则上线还没有进行复借的用户
-                    if (order.getBorrowingCount() == 1
-                            && (order.getAmountApply().compareTo(BigDecimal.valueOf(100000)) == 0 ||
-                            order.getAmountApply().compareTo(BigDecimal.valueOf(160000)) == 0 ||
-                    order.getAmountApply().compareTo(BigDecimal.valueOf(200000)) == 0  ||
-                    order.getAmountApply().compareTo(BigDecimal.valueOf(300000)) == 0))
-                    checkUserProductLevel(order,order.getUserUuid());
                 }
 
-
-            }else {
-                log.error("paymentCode not found");
-                throw new ServiceException(ExceptionEnum.ORDER_REPAYMENT_CODE_NOT_FOUND);
+                // 查询判断用户是否需要降额 适用对象为首借50rmb 80rmb 100rmb或150rmb，截止规则上线还没有进行复借的用户
+                if (order.getBorrowingCount() == 1
+                        && (order.getAmountApply().compareTo(BigDecimal.valueOf(100000)) == 0 ||
+                        order.getAmountApply().compareTo(BigDecimal.valueOf(160000)) == 0 ||
+                order.getAmountApply().compareTo(BigDecimal.valueOf(200000)) == 0  ||
+                order.getAmountApply().compareTo(BigDecimal.valueOf(300000)) == 0))
+                checkUserProductLevel(order,order.getUserUuid());
             }
-            this.ordRepayAmoutRecordDao.insert(record);
+
+
         }else {
-            log.error("未返回paymentCode");
+            log.error("paymentCode not found");
             throw new ServiceException(ExceptionEnum.ORDER_REPAYMENT_CODE_NOT_FOUND);
         }
+        this.ordRepayAmoutRecordDao.insert(record);
     }
 
     /**
