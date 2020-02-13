@@ -19,6 +19,7 @@ public class OrderOrderResponse implements Serializable {
     private String userRole;//用户标识
     private String orderStatus;//订单状态
     private String orderStatusMsg;//订单状态名称
+    private String rejectStatusDescription = "";
 
     private String isAgain;  //是否是复借
 
