@@ -1,19 +1,15 @@
 package com.yqg.order.entity;
 
-import com.yqg.base.data.annotations.Table;
 import com.yqg.base.data.condition.BaseEntity;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-
 /**
- * Created by Didit Dwianto on 2018/2/2.
+ * Created by Didit Dwianto on 2018/1/6.
  */
 @Data
-@Table("ordRepayAmoutRecord")
-public class OrdRepayAmoutRecord extends BaseEntity implements Serializable{
-
+public class OrderRepayAmountRecordExtended extends BaseEntity implements Serializable{
     private static final long serialVersionUID = 1360828775742012626L;
 
     private String userUuid;
@@ -39,4 +35,8 @@ public class OrdRepayAmoutRecord extends BaseEntity implements Serializable{
     private String repayMethod; // ALFAMART,INDOMARET, BCA, MANDIRI, BNI, BRI, CIMB, PERMATA, OTHERS, OVO, MANUAL (from T_LPAY_DEPOSIT_METHOD.deposit_method)
 
     private String status;
+
+    private String orderType; //OrdTypeEnum 0 NORMAL 1 DELAY 2 DELAY_PAID 3 STAGING
+    
+    private String parentOrderNo; //If 0 NORMAL -> Same as orderNo. If 3 STAGING -> Parent order no in ordOrder
 }

@@ -35,6 +35,8 @@ import com.yqg.order.entity.OrdDelayRecord;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdPaymentCode;
 import com.yqg.order.entity.OrdRepayAmoutRecord;
+import com.yqg.order.entity.OrderRepayAmountRecordExtended;
+
 import com.yqg.service.notification.request.NotificationRequest;
 import com.yqg.service.notification.service.EmailNotificationService;
 import com.yqg.service.notification.service.SlackNotificationService;
@@ -1081,8 +1083,8 @@ public class RepayService {
             log.info("{} is {}", SysParamContants.RDN_REPAYMENT_CHANNELS, repayChannels);
             for(String repayChannel : repayChannels.split(","))  {
                 log.info("Sending Bulk Rdn Repayment for channel {}", repayChannel);
-                List<OrdRepayAmoutRecord> lOrdRepayAmoutRecord = this.ordRepayAmoutRecordDao.getOrderRepayRecordWaitingRepaymentToRdn(repayChannel.toUpperCase()); 
-                if (lOrdRepayAmoutRecord.size() == 0) {
+                List<OrderRepayAmountRecordExtended> lOrderRepayAmountRecordExtended = this.ordRepayAmoutRecordDao.getOrderRepayRecordWaitingRepaymentToRdn(repayChannel.toUpperCase()); 
+                if (lOrderRepayAmountRecordExtended.size() == 0) {
                     String errorMessage = String.format("Nothing to process OrdRepayAmountRecord for channel %s", repayChannel);
                     log.info(errorMessage);
                     repayResponse = new RepayResponse();
@@ -1090,19 +1092,19 @@ public class RepayService {
                     repayResponse.setErrorMessage(errorMessage);
                     continue;
                 }
-                log.info("Found {} order(s) for sending Bulk Rdn Repayment", lOrdRepayAmoutRecord.size());     
+                log.info("Found {} order(s) for sending Bulk Rdn Repayment", lOrderRepayAmountRecordExtended.size());     
                 
                 //Send to biak-rest /BulkRdnRepayment
                 List<RdnRepayRequest> lrdnRepayRequest = new ArrayList<RdnRepayRequest>();
-                for (OrdRepayAmoutRecord ordRepayAmountRecord : lOrdRepayAmoutRecord){
+                for (OrderRepayAmountRecordExtended orderRepayAmountRecord : lOrderRepayAmountRecordExtended){
                     RdnRepayRequest rdnRepayRequest = new RdnRepayRequest();
-                    rdnRepayRequest.setParentOrderNo(ordRepayAmountRecord.getParentOrderNo());
-                    rdnRepayRequest.setOrderNo(ordRepayAmountRecord.getOrderNo());
-                    rdnRepayRequest.setAmount(ordRepayAmountRecord.getActualDisbursedAmount());
-                    rdnRepayRequest.setInterest(ordRepayAmountRecord.getServiceFee());
-                    rdnRepayRequest.setOverdueFee(new BigDecimal(ordRepayAmountRecord.getOverDueFee()));
-                    rdnRepayRequest.setPenalty(new BigDecimal(ordRepayAmountRecord.getPenaltyFee()));
-                    rdnRepayRequest.setOrderType(RdnRepayRequest.OrderType.fromString(ordRepayAmountRecord.getOrderType()));
+                    rdnRepayRequest.setParentOrderNo(orderRepayAmountRecord.getParentOrderNo());
+                    rdnRepayRequest.setOrderNo(orderRepayAmountRecord.getOrderNo());
+                    rdnRepayRequest.setAmount(orderRepayAmountRecord.getActualDisbursedAmount());
+                    rdnRepayRequest.setInterest(orderRepayAmountRecord.getServiceFee());
+                    rdnRepayRequest.setOverdueFee(new BigDecimal(orderRepayAmountRecord.getOverDueFee()));
+                    rdnRepayRequest.setPenalty(new BigDecimal(orderRepayAmountRecord.getPenaltyFee()));
+                    rdnRepayRequest.setOrderType(RdnRepayRequest.OrderType.fromString(orderRepayAmountRecord.getOrderType()));
                     lrdnRepayRequest.add(rdnRepayRequest);
                 }
                 String requestJson = JsonUtils.serialize(lrdnRepayRequest);
@@ -1136,7 +1138,7 @@ public class RepayService {
                         repayResponse = JsonUtils.deserialize(responseStr,RepayResponse.class);
                         if (repayResponse.getCode().equals("0")) {
                             //Repayment is successful, Update ordRepayAmountRecord table
-                            List<Integer> ids = lOrdRepayAmoutRecord.stream()
+                            List<Integer> ids = lOrderRepayAmountRecordExtended.stream()
                                 .map(elem -> elem.getId())
                                 .collect(Collectors.toList());
                             ordRepayAmoutRecordDao.bulkUpdateStatus(
