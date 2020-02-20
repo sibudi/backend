@@ -29,4 +29,7 @@ public interface OrdBillDao extends BaseMapper<OrdBill> {
     @Select("select * from ordBill where disabled = 0 and status in(1,2) and orderNo = #{orderNo} and uuid != #{uuid} order by billTerm limit 1;")
     public OrdBill getRepayBillWithOrderNo(@Param("orderNo") String orderNo, @Param("uuid") String uuid);
 
+    //get overdue bill
+    @Select("select * from ordBill where disabled = 0 and status in (2, 4) and orderNo = #{orderNo} limit 1;")
+    public OrdBill getOverdueBillWithOrderNo(@Param("orderNo") String orderNo);
 }

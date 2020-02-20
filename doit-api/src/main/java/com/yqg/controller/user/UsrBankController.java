@@ -1,5 +1,6 @@
 package com.yqg.controller.user;
 
+import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.exceptions.ServiceExceptionSpec;
 import com.yqg.common.models.BaseRequest;
@@ -40,10 +41,13 @@ public class UsrBankController {
     @RequestMapping(value = "/checkBankCardBin", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
     public ResponseEntity<Object> checkBankCardBin(HttpServletRequest request, @RequestBody UsrBankRequest userBankRequest)
-            throws ServiceException, ServiceExceptionSpec {
+            throws Exception, ServiceException, ServiceExceptionSpec {
 //        UserSessionUtil.filter(request, this.redisClient, userBankRequest);
 //        log.info("request body{}", JsonUtils.serialize(userBankRequest));
         log.info("卡bin校验");
+        if(!usrService.isMobileValidated(userBankRequest.getUserUuid())){
+                throw new ServiceException(ExceptionEnum.INVALID_ACTION);
+        }
         usrBankService.bindBankCard(userBankRequest,redisClient);
         //绑卡后检查whatsapp
         usrService.addCheckIziWhatsAppTask(userBankRequest.getUserUuid());

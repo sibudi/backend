@@ -168,6 +168,25 @@ public class SmsService {
         }
 
     }
+
+    public Boolean verifyOTP(String mobileNumber, String smsCode) throws Exception {
+
+        if(mobileNumber.substring(0,1).equals("0")){
+            mobileNumber = mobileNumber.substring(1,mobileNumber.length());
+        }
+        String newMobileNumber = "62"+mobileNumber;
+
+        StringBuilder stringBuilder2=new StringBuilder(RedisContants.SESSION_SMS_KEY);
+        stringBuilder2.append(newMobileNumber);
+        String code = redisClient.get(stringBuilder2.toString());
+        log.info("smscode{}---------------------------------------code{}",smsCode,code);
+        if(!smsCode.equals(code)) {
+            throw new ServiceException(ExceptionEnum.USER_CHECK_SMS_CODE_ERROR);
+        }
+
+        return true;
+    }
+
     public void sendSmsCode(SmsRequest smsRequest) throws Exception {
 
         throw new ServiceException(ExceptionEnum.SYSTEM_APP_NEED_UPDATE);

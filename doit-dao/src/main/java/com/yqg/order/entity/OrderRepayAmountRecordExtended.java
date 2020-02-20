@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
+
 /**
  * Created by Didit Dwianto on 2018/1/6.
  */
@@ -39,4 +41,6 @@ public class OrderRepayAmountRecordExtended extends BaseEntity implements Serial
     private String orderType; //OrdTypeEnum 0 NORMAL 1 DELAY 2 DELAY_PAID 3 STAGING
     
     private String parentOrderNo; //If 0 NORMAL -> Same as orderNo. If 3 STAGING -> Parent order no in ordOrder
+
+    private Date lendingTime;
 }

@@ -557,6 +557,17 @@ public class UsrBankService {
                 throw new ServiceException(ExceptionEnum.ORDER_STATES_ERROR);
             }
 
+            UsrUser user = new UsrUser();
+            user.setUuid(order.getUserUuid());
+            user.setDisabled(0);
+            user.setIsMobileValidated(1);
+
+            //to submit, user mobile need to validate
+            List<UsrUser> users = this.usrDao.scan(user);
+            if(CollectionUtils.isEmpty(users)){
+                throw new ServiceException(ExceptionEnum.USER_NOT_FOUND);
+            }
+
             // 查询该订单绑定的银行卡
             UsrBank orderBank = new UsrBank();
             orderBank.setUuid(order.getUserBankUuid());

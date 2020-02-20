@@ -163,7 +163,7 @@ public class PayScheduling {
 
 
     //  每天定时处理打款失败的订单
-    @Scheduled(cron = "0 0 08 * * ?")
+    @Scheduled(cron = "0 0 08,15 * * ?")
     public void checkOrdLoanFaild() {
         log.info("checkOrdLoanFaild begin");
         this.payService.checkOrdLoanFaild();

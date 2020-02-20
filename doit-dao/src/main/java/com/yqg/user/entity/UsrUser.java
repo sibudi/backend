@@ -56,6 +56,10 @@ public class UsrUser extends BaseEntity implements Serializable {
      */
     private String addBlackRemark;
 
+    private String emailAddress;
+
+    private Integer isMobileValidated;
+
     public enum AddBlackReasonEnum {
 
         SELF_RESAON(1,"客户本人原因"),

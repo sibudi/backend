@@ -48,4 +48,17 @@ public class UsrRequst extends BaseRequest {
     @ApiModelProperty(value = "")
     @JsonProperty
     private String invite;//邀请人
+    @ApiModelProperty(value = "")
+    @JsonProperty
+    private String email;//邀请人
+    @ApiModelProperty(value = "")
+    @JsonProperty
+    private String currentPIN;
+    @ApiModelProperty(value = "")
+    @JsonProperty
+    private String newPIN;
+    @ApiModelProperty(value = "")
+    @JsonProperty("fcmtoken")
+    private String fcmToken;
+    
 }

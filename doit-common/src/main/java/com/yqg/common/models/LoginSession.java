@@ -69,4 +69,20 @@ public class LoginSession extends CompatibleResponse{
     @ApiModelProperty(value = "登录还是注册 默认0不是（新用户 注册） 1是（老用户 登录）")
     @JsonProperty
     private Integer isLogin;
+
+    @ApiModelProperty(value = "????")
+    @JsonProperty
+    private Integer isMobileValidated = 0;
+
+    @ApiModelProperty(value = "????")
+    @JsonProperty
+    private String emailAddress;
+
+    @ApiModelProperty(value = "")
+    @JsonProperty("fcmtoken")
+    private String fcmToken;
+
+    @ApiModelProperty(value = "")
+    @JsonProperty
+    private Integer isTempPIN = 0;
 }

@@ -35,4 +35,29 @@ public class ManUserCommonInfoController {
             throws Exception {
         return ResponseEntitySpecBuilder.success(this.manUserCommonInfoService.smsCodeByMobileFromMysql(sysLoginRequest));
     }
+
+    @ApiOperation("")
+    @RequestMapping(value = "/manage/user/email", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntitySpec<Object> getUserEmail( @RequestBody ManUserUserRequest sysLoginRequest)
+            throws Exception {
+        return ResponseEntitySpecBuilder.success(this.manUserCommonInfoService.getUserEmail(sysLoginRequest));
+    }
+
+    @ApiOperation("")
+    @RequestMapping(value = "/manage/user/updateemail", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntitySpec<Object> setUserEmail(@RequestBody ManUserUserRequest sysLoginRequest)
+            throws Exception {
+        return ResponseEntitySpecBuilder.success(this.manUserCommonInfoService.setUserEmail(sysLoginRequest));
+    }
+
+    @ApiOperation("")
+    @RequestMapping(value = "/manage/user/resetpin", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntitySpec<Object> resetPIN( @RequestBody ManUserUserRequest sysLoginRequest)
+            throws Exception {
+        this.manUserCommonInfoService.resetPIN(sysLoginRequest);
+        return ResponseEntitySpecBuilder.success(true);
+    }
 }

@@ -866,6 +866,10 @@ public class RepayService {
                 shouldPayAmount = limit;
             }
 
+            //budi: diskon 50ribu if no overdue in all term
+            if(ordBillDao.getOverdueBillWithOrderNo(bill.getOrderNo()) == null && bill.getBillTerm().equals("3"))
+                shouldPayAmount = shouldPayAmount.subtract(BigDecimal.valueOf(50000));    
+
         } catch (ParseException e) {
             e.getStackTrace();
         } catch (Exception e) {
@@ -1096,15 +1100,17 @@ public class RepayService {
                 
                 //Send to biak-rest /BulkRdnRepayment
                 List<RdnRepayRequest> lrdnRepayRequest = new ArrayList<RdnRepayRequest>();
-                for (OrderRepayAmountRecordExtended orderRepayAmountRecord : lOrderRepayAmountRecordExtended){
+                for (OrderRepayAmountRecordExtended orderRepayAmountRecordExtended : lOrderRepayAmountRecordExtended){
                     RdnRepayRequest rdnRepayRequest = new RdnRepayRequest();
-                    rdnRepayRequest.setParentOrderNo(orderRepayAmountRecord.getParentOrderNo());
-                    rdnRepayRequest.setOrderNo(orderRepayAmountRecord.getOrderNo());
-                    rdnRepayRequest.setAmount(orderRepayAmountRecord.getActualDisbursedAmount());
-                    rdnRepayRequest.setInterest(orderRepayAmountRecord.getServiceFee());
-                    rdnRepayRequest.setOverdueFee(new BigDecimal(orderRepayAmountRecord.getOverDueFee()));
-                    rdnRepayRequest.setPenalty(new BigDecimal(orderRepayAmountRecord.getPenaltyFee()));
-                    rdnRepayRequest.setOrderType(RdnRepayRequest.OrderType.fromString(orderRepayAmountRecord.getOrderType()));
+                    rdnRepayRequest.setParentOrderNo(orderRepayAmountRecordExtended.getParentOrderNo());
+                    rdnRepayRequest.setOrderNo(orderRepayAmountRecordExtended.getOrderNo());
+                    rdnRepayRequest.setAmount(orderRepayAmountRecordExtended.getActualDisbursedAmount());
+                    rdnRepayRequest.setServiceFee(orderRepayAmountRecordExtended.getServiceFee());
+                    rdnRepayRequest.setInterest(new BigDecimal(orderRepayAmountRecordExtended.getInterest()));
+                    rdnRepayRequest.setLendingTime(orderRepayAmountRecordExtended.getLendingTime());
+                    rdnRepayRequest.setOverdueFee(new BigDecimal(orderRepayAmountRecordExtended.getOverDueFee()));
+                    rdnRepayRequest.setPenalty(new BigDecimal(orderRepayAmountRecordExtended.getPenaltyFee()));
+                    rdnRepayRequest.setOrderType(RdnRepayRequest.OrderType.fromString(orderRepayAmountRecordExtended.getOrderType()));
                     lrdnRepayRequest.add(rdnRepayRequest);
                 }
                 String requestJson = JsonUtils.serialize(lrdnRepayRequest);

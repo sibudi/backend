@@ -1,15 +1,21 @@
 package com.yqg.manage.service.user;
 
+import com.yqg.common.constants.MessageConstants;
 import com.yqg.common.constants.RedisContants;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.ServiceExceptionSpec;
 import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.DateUtils;
+import com.yqg.common.utils.EmailUtils;
 import com.yqg.common.utils.StringUtils;
 import com.yqg.manage.service.user.request.ManUserUserRequest;
+import com.yqg.service.user.service.UsrPINService;
 import com.yqg.system.dao.SysSmsCodeDao;
 import com.yqg.system.entity.SysSmsCode;
+import com.yqg.user.dao.UsrDao;
+import com.yqg.user.entity.UsrUser;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +36,12 @@ public class ManUserCommonInfoService {
 
     @Autowired
     private SysSmsCodeDao sysSmsCodeDao;
+
+    @Autowired
+    private UsrPINService pinService;
+
+    @Autowired
+    private UsrDao userDao;
 
     public Object getSmsCodeByMobile(ManUserUserRequest request) throws ServiceExceptionSpec {
         String mobileNumber = request.getMobile();
@@ -80,5 +92,92 @@ public class ManUserCommonInfoService {
             return redisClient.del(stringBuilder.toString());
         }
         return new ArrayList<>();
+    }
+
+    public String getUserEmail(ManUserUserRequest request) throws Exception {
+        String mobileNumber = request.getMobile();
+        if (StringUtils.isEmpty(mobileNumber)) {
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_NOT_FOUND);
+        }
+
+        UsrUser user = new UsrUser();
+        user.setDisabled(0);
+        user.setMobileNumberDES(DESUtils.encrypt(mobileNumber));
+
+        List<UsrUser> users =  userDao.scan(user);
+        if(CollectionUtils.isEmpty(users)){
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_NOT_FOUND);
+        }
+        else{
+            return DESUtils.decrypt(users.get(0).getEmailAddress());
+        }
+    }
+
+    public String setUserEmail(ManUserUserRequest request) throws Exception {
+        String mobileNumber = request.getMobile();
+        if (StringUtils.isEmpty(mobileNumber)) {
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_NOT_FOUND);
+        }
+
+        UsrUser user = new UsrUser();
+        user.setDisabled(0);
+        user.setMobileNumberDES(DESUtils.encrypt(mobileNumber));
+
+        List<UsrUser> users =  userDao.scan(user);
+        if(CollectionUtils.isEmpty(users)){
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_NOT_FOUND);
+        }
+        else{
+            UsrUser checkEmail = new UsrUser(); 
+            checkEmail.setDisabled(0);
+            checkEmail.setEmailAddress(DESUtils.encrypt(request.getEmailAddress()));
+            List<UsrUser> emails = userDao.scan(checkEmail);
+            if(!CollectionUtils.isEmpty(emails)){
+                return MessageConstants.DUPLICATE_EMAIL_MESSAGE;
+            }
+
+            UsrUser usr = users.get(0);
+            if("".equals(usr.getEmailAddress()) || usr.getEmailAddress() == null){
+                if(EmailUtils.isValid(request.getEmailAddress())){
+                    usr.setEmailAddress(DESUtils.encrypt(request.getEmailAddress()));
+                    userDao.update(usr);
+
+                    return MessageConstants.SUCCESS_EMAIL_UPDATE_MESSAGE;
+                }
+                else{
+                    throw new ServiceExceptionSpec(ExceptionEnum.INVALID_EMAIL);
+                }
+            }
+            else{
+                throw new ServiceExceptionSpec(ExceptionEnum.INVALID_ACTION);
+            }
+        }
+    }
+
+    public void resetPIN(ManUserUserRequest request) throws Exception {
+        
+        String mobileNumber = request.getMobile();
+        if (StringUtils.isEmpty(mobileNumber)) {
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_NOT_FOUND);
+        }
+
+        UsrUser user = new UsrUser();
+        user.setDisabled(0);
+        user.setMobileNumberDES(DESUtils.encrypt(mobileNumber));
+
+        List<UsrUser> users =  userDao.scan(user);
+        if(CollectionUtils.isEmpty(users)){
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_NOT_FOUND);
+        }
+        else{
+            UsrUser usr = users.get(0);
+            if(StringUtils.isEmpty(usr.getEmailAddress())){
+                throw new ServiceExceptionSpec(ExceptionEnum.INVALID_EMAIL_NOT_FOUND);
+            }
+            else{
+                String email = DESUtils.decrypt(usr.getEmailAddress());
+                pinService.forgotPIN(request.getMobile(), email);
+            }
+        }
     }
 }

@@ -22,8 +22,11 @@ import com.yqg.system.entity.StagingProductWhiteList;
 import com.yqg.system.entity.SysPaymentChannel;
 import com.yqg.system.entity.SysProductChannel;
 import com.yqg.service.user.service.SmsService;
+import com.yqg.service.user.service.UsrPINService;
 import com.yqg.user.dao.UsrDao;
 import com.yqg.user.entity.UsrUser;
+import com.yqg.service.user.request.UsrRequst;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +72,9 @@ public class UsrH5Service {
 
     @Autowired
     private SmsServiceUtil smsServiceUtil;
+
+    @Autowired
+    private UsrPINService pinService;
 
     // ??h5 ???????
     public SmsH5Response sendH5SmsCode(SmsH5Request smsH5Request) throws Exception {
@@ -251,26 +257,27 @@ public class UsrH5Service {
             mobileNumber = mobileNumber.substring(1, mobileNumber.length());
         }
 
-        //?????
+        if (usrService.checkUserMobileNumberEmailIsExist(mobileNumber, request.getEmail())) {
+            throw new ServiceExceptionSpec(ExceptionEnum.USER_IS_EXIST);
+        } 
+        else{
+            pinService.newPIN(mobileNumber, request.getEmail());
+        }
+
         String setMobileNumberDES = DESUtils.encrypt(mobileNumber);
         user.setMobileNumberDES(setMobileNumberDES);
 
-        UsrUser usrUserParam = new UsrUser();
-        usrUserParam.setMobileNumberDES(setMobileNumberDES);
-        usrUserParam.setDisabled(0);
-        if (this.usrDao.count(usrUserParam) > 0) {
-            throw new ServiceExceptionSpec(ExceptionEnum.USER_IS_EXIST);
-        }
-        //????6???
         String mobile = mobileNumber.substring(0, mobileNumber.length() - 6) + "******";
         user.setMobileNumber(mobile);
-        //?????
+
         user.setUserSource(Integer.valueOf(request.getChannel()));
+        user.setEmailAddress(DESUtils.encrypt(request.getEmail()));
 
         user.setIsInvited(1); //need is Invited so that not go to BD message
         if (this.usrDao.insert(user) < 1) {
             throw new BadRequestException();
         }
+
         return this.generateSessionForH5(user);
     }
 

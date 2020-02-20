@@ -102,7 +102,7 @@ p2p:
   sendOrderInfoUrl: http://10.24.30.70:9090/doit/investment/getCreditRightTask
 des:
   file:
-    path: /SECRET/des-test.cer
+    path: C:/SECRET/des-test.cer
 upload:
   path: http://www.do-it.id
   #imagePath: http://control2.uanguang.co.id/manage/showStreamOnBrowser?path=
@@ -227,5 +227,9 @@ spring:
     checkTemplateLocation: false
 manager:
   ourPayPath: http://api.uat.doitglotech.cloud/
+
+notificationservice:
+  emailUrl: https://notificationapi.doitglotech.co.id/email
+  token: lgezRLxR84n$9@
 
 endpoints.enabled: false

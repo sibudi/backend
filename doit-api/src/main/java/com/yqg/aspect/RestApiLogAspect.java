@@ -52,7 +52,8 @@ public class RestApiLogAspect {
             .asList("/web/users", "/facebook/getFacebookData", "/operator/getOprator",
                     "/system/smsCode", "/system/isUpdate", "/system/appH5UrlValueList",
                     "/system/isUploadUserApps", "/system/getDicItemListByDicCode", "/users/signup","/users/inviteSignup",
-                    "/users/smsAutoLogin", "/system/getAiqqonStatus");
+                    "/users/smsAutoLogin", "/system/getAiqqonStatus", "/users/pin/forgot", 
+                    "/v3/users/signup", "/v3/users/signin");
 
     @Autowired
     private RedisClient redisClient;

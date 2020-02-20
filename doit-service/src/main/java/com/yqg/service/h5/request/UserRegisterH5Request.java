@@ -33,4 +33,6 @@ public class UserRegisterH5Request extends BaseRequest{
     private String imgCode;
     @JsonProperty
     private String imgKey;
+    @JsonProperty
+    private String email;
 }

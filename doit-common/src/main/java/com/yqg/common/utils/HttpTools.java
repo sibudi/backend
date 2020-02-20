@@ -116,9 +116,13 @@ public class HttpTools {
             StringEntity postentity = new StringEntity(JSONObject.parse(jsonParam).toString(), "utf-8");
             postentity.setContentType("application/json");
             httppost.setEntity(postentity);
-            if (null != headers)
-                httppost.setHeader("Content-Type", headers.get("Content-Type"));
-            httppost.setHeader("Accept", "application/json");
+
+            for (Map.Entry<String, String>  header : headers.entrySet()) {
+                httppost.setHeader(header.getKey(), header.getValue());
+            }
+            if (null != headers && headers.get("Accept") == null){
+                httppost.setHeader("Accept", "application/json");
+            }
             // ???????????
             RequestConfig requestConfig = RequestConfig.custom()
                     .setSocketTimeout(readTimeout)

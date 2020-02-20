@@ -1,10 +1,11 @@
 package com.yqg.controller.system;
 
-
 import com.yqg.common.annotations.CompatibleRSA;
+import com.yqg.common.constants.MessageConstants;
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.models.*;
 import com.yqg.common.models.builders.ResponseEntityBuilder;
+import com.yqg.common.utils.EmailUtils;
 import com.yqg.common.utils.GetIpAddressUtil;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.service.system.request.SysAppVersionRequest;
@@ -13,10 +14,13 @@ import com.yqg.service.system.service.SystemService;
 import com.yqg.service.user.request.UsrRequst;
 import com.yqg.service.user.service.SmsService;
 import com.yqg.service.user.service.UsrService;
+import com.yqg.service.user.service.UsrPINService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.text.MessageFormat;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
@@ -33,6 +37,8 @@ public class SystemCompatibleRSAController {
     private UsrService usrService;
     @Autowired
     private SmsService smsService;
+    @Autowired
+    private UsrPINService UsrPINService;
 
     @ApiOperation("app更新接口")
     @RequestMapping(value = "/system/isUpdate", method = RequestMethod.POST)
@@ -76,6 +82,81 @@ public class SystemCompatibleRSAController {
         return ResponseEntityBuilder.success(result);
     }
 
+    @ApiOperation("/v3/users/signup")
+    @RequestMapping(value = "/v3/users/signup", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<Object> signupV3(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
+        log.info("v3/users/signup - request body {}", JsonUtils.serialize(usrRequst));
+        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        log.info("request ip address {}", ipAddr);
+        usrRequst.setIPAdress(ipAddr);
+        this.usrService.signupV3(usrRequst);
+        
+        return ResponseEntityBuilder.success(
+            MessageFormat.format(MessageConstants.USER_SUCCESS_REGISTRATION, usrRequst.getEmail())
+        );
+    }
+
+    @ApiOperation("/users/signin")
+    @RequestMapping(value = "/v3/users/signin", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<LoginSession> signinV3(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
+        log.info("v3/users/signin - request body {}", JsonUtils.serialize(usrRequst));
+        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        log.info("request ip address {}", ipAddr);
+        usrRequst.setIPAdress(ipAddr);
+        LoginSession result = this.usrService.signin(usrRequst);
+        result.setAppVersion(usrRequst.getClient_version());
+        return ResponseEntityBuilder.success(result);
+    }
+
+    @ApiOperation("/users/pin/forgot")
+    @RequestMapping(value = "/users/pin/forgot", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<Object> forgotPIN(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
+        log.info("/users/resetpin - request body {}", JsonUtils.serialize(usrRequst));
+        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        log.info("request ip address {}", ipAddr);
+        this.usrService.forgotPIN(usrRequst);
+
+        return ResponseEntityBuilder.success(
+                MessageFormat.format(MessageConstants.USER_SUCCESS_FORGOT_PIN, EmailUtils.maskEmail(usrRequst.getEmail()))
+        );
+    }
+
+    @ApiOperation("/users/pin/change")
+    @RequestMapping(value = "/users/pin/change", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<Object> changePIN(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
+        log.info("/users/resetpin - request body {}", JsonUtils.serialize(usrRequst));
+        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        log.info("request ip address {}", ipAddr);
+        this.usrService.changePIN(usrRequst);
+        return ResponseEntityBuilder.success(true);
+    }
+
+    @ApiOperation("/users/otp/verify")
+    @RequestMapping(value = "/users/otp/verify", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<Object> verifyOTP(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
+        log.info("/users/otp/verify - request body {}", JsonUtils.serialize(usrRequst));
+        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        log.info("request ip address {}", ipAddr);
+        this.usrService.verifyOTP(usrRequst);
+
+        return ResponseEntityBuilder.success(this.usrService.verifyOTP(usrRequst));
+        
+    }
+
+    @ApiOperation("/users/ismobilevalidated")
+    @RequestMapping(value = "/users/ismobilevalidated", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<Object> isMobileValidated(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
+        log.info("/users/isMobileValidated - request body {}", JsonUtils.serialize(usrRequst));
+        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        return ResponseEntityBuilder.success(this.usrService.isMobileValidated(usrRequst));
+    }
+
     @ApiOperation("???????")
     @RequestMapping(value = "/system/smsCode", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
     @ResponseBody
@@ -84,7 +165,7 @@ public class SystemCompatibleRSAController {
         smsService.sendSmsCode(smsRequest);
         CompatibleResponse result = new CompatibleResponse();
         result.setAppVersion(smsRequest.getClient_version());
-        return ResponseEntityBuilder.success(result );
+        return ResponseEntityBuilder.success(result);
     }
 
     @ApiOperation("/v2/system/smsCode")

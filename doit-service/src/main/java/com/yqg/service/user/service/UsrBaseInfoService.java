@@ -50,6 +50,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Didit Dwianto on 2017/11/24.
@@ -873,6 +874,7 @@ public class UsrBaseInfoService {
     public void addWorkBaseInfo(UsrWorkBaseInfoRequest workBaseInfoRequest) throws Exception{
         //首先判断订单步骤是否正确
         this.checkOrderStep(workBaseInfoRequest.getOrderNo(), OrdStepTypeEnum.IDENTITY.getType());
+
         //添加或修改基本信息
         UsrWorkDetail usrWorkDetail = new UsrWorkDetail();
         usrWorkDetail.setUserUuid(workBaseInfoRequest.getUserUuid());
@@ -908,6 +910,8 @@ public class UsrBaseInfoService {
             BeanUtils.copyProperties(usrWorkDetail,workBaseInfoRequest);
             this.usrWorkDetailDao.update(usrWorkDetail);
         }
+
+        updateEmailUsrUser(workBaseInfoRequest.getUserUuid(), workBaseInfoRequest.getEmail());
 
         //添加或修改居住地址信息
         if(!StringUtils.isEmpty(workBaseInfoRequest.getProvince())){
@@ -1053,6 +1057,31 @@ public class UsrBaseInfoService {
             return null;
         }
         return usrWorkInfoModel;
+    }
+
+    private void updateEmailUsrUser(String userUuid, String email) throws Exception{
+        //check email already exist
+        String emailDES = DESUtils.encrypt(email.toLowerCase());
+        UsrUser user = new UsrUser();
+        user.setDisabled(0);
+        user.setEmailAddress(emailDES);
+        List<UsrUser> userSameEmails = usrDao.scan(user);
+        List<UsrUser> filteredSameEmails = userSameEmails.stream()
+            .filter(a->!a.getUuid().equals(userUuid)).collect(Collectors.toList());
+
+        if(!CollectionUtils.isEmpty(filteredSameEmails)){
+            throw new ServiceException(ExceptionEnum.INVALID_EMAIL_DUPLICATE);
+        }
+
+        //janhsen: update column email address
+        user = new UsrUser();
+        user.setDisabled(0);
+        user.setUuid(userUuid);
+        List<UsrUser> users = this.usrDao.scan(user);
+        if(!CollectionUtils.isEmpty(users)){
+            users.get(0).setEmailAddress(emailDES);
+            this.usrDao.update(users.get(0));
+        }
     }
 
     /**
@@ -1233,6 +1262,8 @@ public class UsrBaseInfoService {
             BeanUtils.copyProperties(usrHouseWifeDetail,workBaseInfoRequest);
             this.usrHouseWifeDetailDao.update(usrHouseWifeDetail);
         }
+
+        updateEmailUsrUser(workBaseInfoRequest.getUserUuid(), workBaseInfoRequest.getEmail());
 
         //添加或修改居住地址信息
         if(!StringUtils.isEmpty(workBaseInfoRequest.getProvince())){
@@ -1768,6 +1799,8 @@ public class UsrBaseInfoService {
         birthAddressModel.setBigDirect(studentBaseInfoRequest.getBirthBigDirect());
         birthAddressModel.setSmallDirect(studentBaseInfoRequest.getBirthSmallDirect());
         this.addOrUpdateAddress(birthAddressModel);
+
+        updateEmailUsrUser(studentBaseInfoRequest.getUserUuid(), studentBaseInfoRequest.getEmail());
 
         String academic = studentBaseInfoRequest.getAcademic();
         int age = getAgeFromBirthday(studentBaseInfoRequest.getBirthday());

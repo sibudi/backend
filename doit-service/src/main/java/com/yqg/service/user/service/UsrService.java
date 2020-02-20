@@ -38,6 +38,7 @@ import com.yqg.service.third.izi.response.IziResponse;
 import com.yqg.service.third.yitu.FileHelper;
 import com.yqg.service.third.yitu.YiTuService;
 import com.yqg.service.user.request.*;
+import com.yqg.service.user.service.UsrPINService;
 import com.yqg.service.user.response.UsrAttachmentResponse;
 import com.yqg.service.user.response.UsrCertificationResponse;
 import com.yqg.system.dao.SysDeviceIdWhiteListDao;
@@ -85,6 +86,8 @@ public class UsrService {
     private RedisClient redisClient;
     @Autowired
     private SmsService smsService;
+    @Autowired
+    private UsrPINService pinService;
     @Autowired
     private UsrCertificationDao usrCertificationDao;
     @Autowired
@@ -228,6 +231,166 @@ public class UsrService {
 
     @WriteDataSource
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public void signupV3(UsrRequst usrRequst) throws Exception {
+        String mobileNumber = usrRequst.getMobileNumber();
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+
+        if (checkUserMobileNumberEmailIsExist(usrRequst)) {
+            throw new ServiceException(ExceptionEnum.USER_IS_EXIST);
+        } 
+        else{
+            if (usrRequst.getClient_type().equals("iOS")) {
+                throw new ServiceException(ExceptionEnum.SYSTEM_UPGRADE);
+            }
+            pinService.newPIN(usrRequst.getMobileNumber(), usrRequst.getEmail());
+            addUser(usrRequst);
+        }
+    }
+
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public LoginSession signin(UsrRequst usrRequst) throws Exception {
+
+        LoginSession loginSession = new LoginSession();
+        String mobileNumber = usrRequst.getMobileNumber();
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+
+        List<UsrUser> userList = this.scanUser(usrRequst);
+        if (!CollectionUtils.isEmpty(userList)) {
+            if("".equals(userList.get(0).getEmailAddress()) || userList.get(0).getEmailAddress() == null){
+                throw new ServiceException(ExceptionEnum.INVALID_EMAIL_NOT_FOUND);
+            }
+            else{
+                String emailAddress = DESUtils.decrypt(userList.get(0).getEmailAddress());
+                if(pinService.isLoginTemporary(usrRequst.getMobileNumber(), emailAddress, usrRequst.getCurrentPIN())){
+                    loginSession = login(usrRequst);
+                }
+                else{
+                    loginSession = login(usrRequst);
+                    loginSession.setIsTempPIN(1);
+                }
+            }
+        }
+        else{
+            throw new ServiceException(ExceptionEnum.USER_NOT_FOUND);
+        }
+        
+        return loginSession;
+    }
+
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public void changePIN(UsrRequst usrRequst) throws Exception {
+
+        String mobileNumber = usrRequst.getMobileNumber();
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+
+        List<UsrUser> userList = this.scanUser(usrRequst);
+        if (!CollectionUtils.isEmpty(userList)) {
+            if("".equals(userList.get(0).getEmailAddress()) || userList.get(0).getEmailAddress() == null){
+                throw new ServiceException(ExceptionEnum.INVALID_EMAIL_NOT_FOUND);
+            }
+            else{
+                String emailAddress = DESUtils.decrypt(userList.get(0).getEmailAddress());
+                pinService.changePIN(usrRequst.getMobileNumber(), emailAddress, usrRequst.getCurrentPIN(), usrRequst.getNewPIN());
+            }
+        }
+        else{
+            throw new ServiceException(ExceptionEnum.INVALID_PIN);
+        }
+    }
+
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public void forgotPIN(UsrRequst usrRequst) throws Exception {
+        String mobileNumber = usrRequst.getMobileNumber();
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+
+        List<UsrUser> userList = this.scanUser(usrRequst);
+        if (!CollectionUtils.isEmpty(userList)) {
+            if("".equals(userList.get(0).getEmailAddress()) || userList.get(0).getEmailAddress() == null){
+                throw new ServiceException(ExceptionEnum.INVALID_EMAIL_NOT_FOUND);
+            }
+            else{
+                String emailAddress = DESUtils.decrypt(userList.get(0).getEmailAddress());
+                usrRequst.setEmail(emailAddress);
+                pinService.forgotPIN(usrRequst.getMobileNumber(), emailAddress);
+            }
+        }
+        else{
+            throw new ServiceException(ExceptionEnum.USER_NOT_FOUND);
+        }
+    }
+
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public Boolean verifyOTP(UsrRequst usrRequst) throws Exception {
+
+        String mobileNumber = usrRequst.getMobileNumber();
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+
+        UsrUser user = new UsrUser();
+        user.setUuid(usrRequst.getUserUuid());
+        user.setDisabled(0);
+        List<UsrUser> users = usrDao.scan(user);
+        user.setIsMobileValidated(1);
+        if(users.isEmpty()){
+            throw new ServiceException(ExceptionEnum.USER_NOT_FOUND);
+        }
+        else{
+            users.get(0).setIsMobileValidated(1);
+            usrDao.update(users.get(0));
+        }
+
+        return smsService.verifyOTP(mobileNumber, usrRequst.getSmsCode());
+    }
+
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public Boolean isMobileValidated(UsrRequst usrRequst) throws Exception {
+
+        UsrUser user = new UsrUser();
+        user.setUuid(usrRequst.getUserUuid());
+        user.setDisabled(0);
+        List<UsrUser> users = usrDao.scan(user);
+
+        if(users.isEmpty()){
+            throw new ServiceException(ExceptionEnum.USER_NOT_FOUND);
+        }
+        else{
+            return !(users.get(0).getIsMobileValidated() == 0);
+        }
+    }
+
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
+    public Boolean isMobileValidated(String userUuid) throws Exception {
+
+        UsrUser user = new UsrUser();
+        user.setUuid(userUuid);
+        user.setDisabled(0);
+        List<UsrUser> users = usrDao.scan(user);
+
+        if(users.isEmpty()){
+            throw new ServiceException(ExceptionEnum.USER_NOT_FOUND);
+        }
+        else{
+            return !(users.get(0).getIsMobileValidated() == 0);
+        }
+    }
+
+    @WriteDataSource
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
     public JSONObject inviteSignup(UsrRequst usrRequst) throws Exception {
         JSONObject jsonObject = new JSONObject();
         String mobileNumber = usrRequst.getMobileNumber();
@@ -283,21 +446,18 @@ public class UsrService {
             throw new ServiceException(ExceptionEnum.ORDER_COMMIT_REPEAT);
         }
         try {
-            //??????????????????????????????????
             RegisterDeviceInfo registerDeviceInfo = new RegisterDeviceInfo();
             registerDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
             registerDeviceInfo.setDisabled(0);
-            //????????????????????
+
             Boolean isWhiteUser = false;
             if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
-
                 // 首先检查是否在设备白名单里面
                 SysDeviceIdWhiteList whiteScan = new SysDeviceIdWhiteList();
                 whiteScan.setDeviceId(usrRequst.getDeviceId());
                 whiteScan.setDisabled(0);
                 List<SysDeviceIdWhiteList> whiteLists = this.sysDeviceIdWhiteListDao.scan(whiteScan);
                 if (CollectionUtils.isEmpty(whiteLists)) {
-
                     // 在检查该设备是否注册过
                     List<RegisterDeviceInfo> registerDeviceInfoList = registerDeviceInfoDao.scan(registerDeviceInfo);
                     if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
@@ -333,12 +493,15 @@ public class UsrService {
                 user.setUserSource(Integer.valueOf(usrRequst.getUserSource()));
             }
             user.setUserType(1);
+            user.setIsMobileValidated(0);
+            user.setEmailAddress(DESUtils.decrypt(usrRequst.getEmail()));
             this.usrDao.insert(user);
 
             //???????????????
             if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
                 //????????
                 if (!isWhiteUser) {
+
                     registerDeviceInfo.setUserUuid(user.getUuid());
                     registerDeviceInfo.setIpAddress(usrRequst.getIPAdress());
                     registerDeviceInfo.setDeviceType(usrRequst.getClient_type());
@@ -354,6 +517,79 @@ public class UsrService {
         }finally {
             redisClient.unlockRepeat(lockKey);
         }
+    }
+
+    private void addUser(UsrRequst usrRequst) throws ServiceException {
+
+        RegisterDeviceInfo registerDeviceInfo = new RegisterDeviceInfo();
+        registerDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+        //janhsen: no need check disabled = 0 because devicenumber is unique in table without disabled
+        //registerDeviceInfo.setDisabled(0);
+
+        Boolean isWhiteUser = false;
+        if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
+
+            // 首先检查是否在设备白名单里面
+            SysDeviceIdWhiteList whiteScan = new SysDeviceIdWhiteList();
+            whiteScan.setDeviceId(usrRequst.getDeviceId());
+            whiteScan.setDisabled(0);
+            List<SysDeviceIdWhiteList> whiteLists = this.sysDeviceIdWhiteListDao.scan(whiteScan);
+            if (CollectionUtils.isEmpty(whiteLists)) {
+
+                // 在检查该设备是否注册过
+                List<RegisterDeviceInfo> registerDeviceInfoList = registerDeviceInfoDao.scan(registerDeviceInfo);
+                if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
+                    log.info("??????????", registerDeviceInfoList);
+                    throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
+                }
+            } else {
+                isWhiteUser = true;
+            }
+        }
+        UsrUser user = new UsrUser();
+        //???????????0??0???
+        String mobileNumber = CheakTeleUtils.telephoneNumberValid2(usrRequst.getMobileNumber());
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+        //????6???
+        String mobile = mobileNumber.substring(0, mobileNumber.length() - 6) + "******";
+        user.setMobileNumber(mobile);
+        //?????
+        String setMobileNumberDES = DESUtils.encrypt(mobileNumber);
+        user.setMobileNumberDES(setMobileNumberDES);
+        //客户端类型
+        user.setUserSource(usrRequst.getClient_type().equals("iOS") ? 2 : 1);
+        if (usrRequst.getChannel_name().equals("Samsung")) {
+            user.setUserSource(20);
+        } else if (usrRequst.getChannel_name().equals("CashCash")) {
+            user.setUserSource(Integer.valueOf(UserSourceEnum.CashCash.getCode()));
+        } else if (usrRequst.getChannel_name().equals("Cheetah")) {
+            user.setUserSource(Integer.valueOf(UserSourceEnum.Cheetah.getCode()));
+        }
+        if (UserSourceEnum.CashCash.getCode().equals(usrRequst.getUserSource())) {
+            user.setUserSource(Integer.valueOf(usrRequst.getUserSource()));
+        }
+        user.setUserType(1);
+        user.setIsMobileValidated(0);
+        user.setEmailAddress(DESUtils.encrypt(usrRequst.getEmail()));
+        this.usrDao.insert(user);
+
+        //???????????????
+        if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
+            //????????
+            if (!isWhiteUser) {
+                registerDeviceInfo.setUserUuid(user.getUuid());
+                registerDeviceInfo.setIpAddress(usrRequst.getIPAdress());
+                registerDeviceInfo.setDeviceType(usrRequst.getClient_type());
+                registerDeviceInfo.setMacAddress(usrRequst.getMac());
+                registerDeviceInfo.setFcmToken(usrRequst.getFcmToken());
+                this.registerDeviceInfoDao.insert(registerDeviceInfo);
+            }
+        }
+        //????????
+        usrRequst.setUserUuid(user.getUuid());
+        this.addUsrLoginHistory(usrRequst);
     }
 
     private void bindInvite(UsrUser user, String userUuid) {
@@ -394,8 +630,25 @@ public class UsrService {
             log.info("????", "users--->" + users);
             throw new ServiceException(ExceptionEnum.USER_LOGIN_ERROR);
         }
+
         usrRequst.setUserUuid(users.get(0).getUuid());
-        //????????
+        users.get(0).setEmailAddress(DESUtils.decrypt(users.get(0).getEmailAddress()));
+
+        RegisterDeviceInfo registerDeviceInfo = new RegisterDeviceInfo();
+        registerDeviceInfo.setUserUuid(users.get(0).getUuid());
+        registerDeviceInfo.setDisabled(0);
+        List<RegisterDeviceInfo> registerDeviceInfoList = registerDeviceInfoDao.scan(registerDeviceInfo);
+
+        if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
+            RegisterDeviceInfo regDeviceInfo = registerDeviceInfoList.get(0);
+            regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
+            regDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+            regDeviceInfo.setDeviceType(usrRequst.getClient_type());
+            regDeviceInfo.setMacAddress(usrRequst.getMac());
+            regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
+            registerDeviceInfoDao.update(regDeviceInfo);
+        }
+
         this.addUsrLoginHistory(usrRequst);
         return this.generateSession(users.get(0), 1);
     }
@@ -437,13 +690,19 @@ public class UsrService {
         UsrUser usrUser = new UsrUser();
         if (!StringUtils.isEmpty(usrRequst.getMobileNumber())) {
             String mobileNumber = CheakTeleUtils.telephoneNumberValid2(usrRequst.getMobileNumber());
-//            String mobileNumber = usrRequst.getMobileNumber();
-            //???????????0??0???
             if (mobileNumber.substring(0, 1).equals("0")) {
                 mobileNumber = mobileNumber.substring(1, mobileNumber.length());
             }
+
+            if(StringUtils.isEmpty(mobileNumber)){
+                throw new ServiceException(ExceptionEnum.INVALID_MOBILE_NO_OR_PIN);
+            }
             usrUser.setMobileNumberDES(DESUtils.encrypt(mobileNumber));
         }
+        else{
+            throw new ServiceException(ExceptionEnum.INVALID_MOBILE_NO_OR_PIN);
+        }
+        
         if (!StringUtils.isEmpty(usrRequst.getUserUuid())) {
             usrUser.setUuid(usrRequst.getUserUuid());
         }
@@ -454,6 +713,30 @@ public class UsrService {
         usrUser.setDisabled(0);
         List<UsrUser> userList = this.usrDao.scan(usrUser);
         return userList;
+    }
+
+    public Boolean checkUserMobileNumberEmailIsExist(UsrRequst usrRequst) throws ServiceException {
+        String mobileNumber = CheakTeleUtils.telephoneNumberValid2(usrRequst.getMobileNumber());
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+
+        String mobileNumberDES = DESUtils.encrypt(mobileNumber);
+        String emailAddressDES = DESUtils.encrypt(usrRequst.getEmail());
+        
+        return (this.usrDao.getUserByMobileOrEmail(mobileNumberDES, emailAddressDES) != 0);
+    }
+
+    public Boolean checkUserMobileNumberEmailIsExist(String mobileNo, String email) throws ServiceException {
+        String mobileNumber = CheakTeleUtils.telephoneNumberValid2(mobileNo);
+        if (mobileNumber.substring(0, 1).equals("0")) {
+            mobileNumber = mobileNumber.substring(1, mobileNumber.length());
+        }
+
+        String mobileNumberDES = DESUtils.encrypt(mobileNumber);
+        String emailAddressDES = DESUtils.encrypt(email);
+        
+        return (this.usrDao.getUserByMobileOrEmail(mobileNumberDES, emailAddressDES) != 0);
     }
 
     /**
@@ -473,6 +756,8 @@ public class UsrService {
         loginSession.setIdCard(idCardNo);
         loginSession.setRealName(realName);
         loginSession.setIsLogin(isLogin);
+        loginSession.setEmailAddress(user.getEmailAddress());
+        loginSession.setIsMobileValidated(user.getIsMobileValidated());
         return loginSession;
     }
 

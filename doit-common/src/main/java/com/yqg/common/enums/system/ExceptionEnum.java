@@ -9,7 +9,7 @@ import java.text.MessageFormat;
  */
 public enum ExceptionEnum {
     SESSION_UN_LOGIN(1000, "Belum masuk"),//未登录
-    USER_NOT_FOUND(1001, "Pengguna tidak terdaftar, silahkan login kembali"),//用户不存在
+    USER_NOT_FOUND(1001, "Pengguna tidak terdaftar"),//用户不存在
     USER_IS_EXIST(1002, "Pengguna sudah terdaftar"),//用户已存在
     USER_LOGIN_ERROR(1003, "Login gagal"),//登录失败
     USER_LOGOUT_ERROR(1004, "Keluar gagal"),//退出失败
@@ -24,7 +24,7 @@ public enum ExceptionEnum {
     USER_NO_VIFIFY(1016,"Pengguna belum terotentikasi"),//用户未实名认证
     USER_INFO_ERROR(1021,"Terdapat kesalahan dalam pengisian identitas Anda, silakan isi kembali"),//您的身份信息填写有误，请重新输入
     USER_IP_ADDRESS_COUNT(1022,"Operasi Anda terlalu sering, tunggu sebentar dan coba lagi."),//您的操作太过频繁，稍等片刻，欢迎回来！
-    USER_RANDOMIMAGE_CHECK_ERROR(1024,"Kode verifikasi gambar salah Silakan periksa dan coba lagi"),//图形验证码有误,请检查后重试
+    USER_RANDOMIMAGE_CHECK_ERROR(1024,"Kode verifikasi gambar salah. Silakan periksa dan coba lagi"),//图形验证码有误,请检查后重试
     USER_REGIST_DEVICENO_IDENTICAL(1025,"Coba gunakan perangkat lain untuk mendaftar"),//请换一个设备进行注册
     USER_BANK_IS_NOT_SUPPER(1026,"Bank sementara tidak mendukung, mohon ganti bank lain dan coba lagi."),//该银行暂时不支持，请更换其他银行重试！
     USER_ID_CARD_IS_EXIST(1029,"Nomor KTP sudah pernah digunakan, tidak dapat melakukan sertifikasi ulang. Jika ada pertanyaan, hubungi customer service"),//该身份证号已绑定用户，无法再次认证,如有疑问,请联系客服！
@@ -115,6 +115,15 @@ public enum ExceptionEnum {
     FREQUENT_OPERATION(10021,"Anda terlalu cepat, tunggu sebentar！"),
     VALITYDATE_FORMAT_IS_ERROR(10022, "validity startTime or endTime format is error!"),
     MANAGE_CANCEL_ORDER_ERROR(10023,"Tidak dapat membatalkan permohonan yang telah diproses"),
+    INVALID_MOBILE_NO_OR_EMAIL(10024, "No HP dan atau email yang Anda masukkan tidak valid"),
+    INVALID_EMAIL(10025, "Email yang Anda masukkan tidak valid"),
+    INVALID_ACTION(10026, "Action tidak dapat dilakukan. Cek kembali parameter anda"),
+    INVALID_EMAIL_NOT_FOUND(10027, "Email tidak ditemukan."),
+    INVALID_PIN(10028, "PIN tidak sesuai."),
+    INVALID_TEMPORARY_PIN(10029, "Anda menggunakan PIN sementara. Mohon segera ganti PIN sementara ini."),
+    INVALID_RESET_PIN_LONG(10030, "Reset kembali PIN Anda dalam beberapa menit."),
+    INVALID_MOBILE_NO_OR_PIN(10031, "No HP dan atau PIN yang Anda masukkan tidak valid."),
+    INVALID_EMAIL_DUPLICATE(10032, "Email yang Anda masukkan sudah digunakan.")
     ;
     private int code;
     private String message;

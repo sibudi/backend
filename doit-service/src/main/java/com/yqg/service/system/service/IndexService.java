@@ -231,12 +231,7 @@ public class IndexService {
                     loadingResponse.setShowState(ShowStatusEnum.REVIEWING_STAGE.getCode());
                     loadingResponse.setOrderStatus(ordService.boxShowOrderStatus(status).get(KEY));
                     loadingResponse.setOrderStatusMsg(ordService.boxShowOrderStatus(status).get(VALUE));
-                    
-                    confMap.put("date", "");
-                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                    confList.add(confMap);
-                    loadingResponse.setConfList(confList);
+                    loadingResponse.setConfList(getConfList(orderObj));
 
                     return loadingResponse;
                 }
@@ -250,11 +245,7 @@ public class IndexService {
                     backNoOverResponse.setShouldPayTime(DateUtils.DateToString5(refundDate));
                     backNoOverResponse.setShowState(ShowStatusEnum.LOAN_CONFIRMING_STAGE.getCode());
 
-                    confMap.put("date", "");
-                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                    confList.add(confMap);
-                    backNoOverResponse.setConfList(confList);
+                    backNoOverResponse.setConfList(getConfList(orderObj));
 
                     return backNoOverResponse;
                 }
@@ -269,11 +260,7 @@ public class IndexService {
                     backNoOverResponse.setShowState(ShowStatusEnum.DIGI_SIGN_STAGE.getCode());
                     backNoOverResponse.setSignInfo(contractSignService.getUserCurrentSignData(baseRequest.getUserUuid(),orderObj.getUuid()));
                     
-                    confMap.put("date", "");
-                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                    confList.add(confMap);
-                    backNoOverResponse.setConfList(confList);
+                    backNoOverResponse.setConfList(getConfList(orderObj));
 
                     return backNoOverResponse;
                 }
@@ -302,11 +289,7 @@ public class IndexService {
                         }
                     }
 
-                    confMap.put("date", "");
-                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                    confList.add(confMap);
-                    loadingResponse.setConfList(confList);
+                    loadingResponse.setConfList(getConfList(orderObj));
                     
                     return loadingResponse;
                 }
@@ -314,11 +297,7 @@ public class IndexService {
                     HomeOrdWithTimeResponse backNoOverResponse = notPayOrderAndNotOverDue(orderObj,status,type);
                     this.getCollectorInfo(backNoOverResponse, orderObj.getUuid());
 
-                    confMap.put("date", "");
-                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                    confList.add(confMap);
-                    backNoOverResponse.setConfList(confList);
+                    backNoOverResponse.setConfList(getConfList(orderObj));
                     return backNoOverResponse;
                 case 8:// 待还款（已逾期）
                     // ????= ????-?????
@@ -330,11 +309,7 @@ public class IndexService {
                         HomeOrdWithTimeResponse backOverResponse = notPayOrderAndOverDue(orderObj, status, dayNum,type);
                         this.getCollectorInfo(backOverResponse, orderObj.getUuid());
 
-                        confMap.put("date", "");
-                        confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                        confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                        confList.add(confMap);
-                        backOverResponse.setConfList(confList);
+                        backOverResponse.setConfList(getConfList(orderObj));
                         return backOverResponse;
                     } catch (ParseException e) {
                         e.printStackTrace();
@@ -354,11 +329,7 @@ public class IndexService {
                             backResponse = notPayOrderAndOverDue(orderObj,status,dayNum,type);
                         }
 
-                        confMap.put("date", "");
-                        confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                        confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                        confList.add(confMap);
-                        backResponse.setConfList(confList);
+                        backResponse.setConfList(getConfList(orderObj));
                     } catch (ParseException e) {
                         e.printStackTrace();
                     } catch (Exception e) {
@@ -393,11 +364,7 @@ public class IndexService {
                         loadingResponse.setOrderStatusMsg(ordService.boxShowOrderStatus(status).get(VALUE));
                         loadingResponse.setRejectStatusDescription(rejectStatusDescription); //budi: add reject description
 
-                        confMap.put("date", "");
-                        confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                        confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                        confList.add(confMap);
-                        loadingResponse.setConfList(confList);
+                        loadingResponse.setConfList(getConfList(orderObj));
 
                         return loadingResponse;
                     }
@@ -424,11 +391,7 @@ public class IndexService {
                     // 订单类型
                     loadingResponse.setOrderType(String.valueOf(type));
 
-                    confMap.put("date", "");
-                    confMap.put("Tenor", getProductTenor(orderObj.getProductUuid()));
-                    confMap.put("Period", getProductPeriod(orderObj.getProductUuid()));
-                    confList.add(confMap);
-                    loadingResponse.setConfList(confList);
+                    loadingResponse.setConfList(getConfList(orderObj));
 
                     return loadingResponse;
                 }
@@ -1287,8 +1250,10 @@ public class IndexService {
             confMap.put(MONEY,StringUtils.formatMoney(borrowingAmount.doubleValue()).replaceAll(",","."));// ????
             confMap.put(DATE,item.getBorrowingTerm().toString());
             // check product type object for detail explanation of product type
-            confMap.put("Tenor", getProductTenor(item.getProductCode()));
-            confMap.put("Period", getProductPeriod(item.getProductCode()));
+            String periodLabel = getProductPeriod(item.getProductCode());
+            String tenorLabel = getProductTenor(item.getProductCode());
+            confMap.put("Tenor", tenorLabel == "" ? item.getBorrowingTerm() + " Hari" : tenorLabel);
+            confMap.put("Period", periodLabel == "" ? item.getBorrowingTerm() + " Hari" : periodLabel);
             confMap.put(ARRIVED,StringUtils.formatMoney(borrowingAmount.subtract(item.getDueFee()).doubleValue()).replaceAll(",",".")); // ????
             confMap.put(DUEFEE,StringUtils.formatMoney(item.getDueFee().doubleValue()).replaceAll(",",".")); // ???
             confMap.put(MATURE,StringUtils.formatMoney(borrowingAmount.add(item.getInterest()).doubleValue()).replaceAll(",",".")); // ??????
@@ -1370,6 +1335,20 @@ public class IndexService {
         return set;
     }
 
+    public List<Map<String,String>> getConfList(OrdOrder orderObj){
+        List<Map<String,String>> confList = new ArrayList<>();
+        Map<String,String> confMap = new HashMap<>();
+
+        String periodLabel = getProductPeriod(orderObj.getProductUuid());
+        String tenorLabel = getProductTenor(orderObj.getProductUuid());
+        confMap.put("Tenor", tenorLabel == "" ? orderObj.getBorrowingTerm() + " Hari" : tenorLabel);
+        confMap.put("Period", periodLabel == "" ? orderObj.getBorrowingTerm() + " Hari" : periodLabel);
+        confMap.put("date", "");
+        confList.add(confMap);
+
+        return confList;
+    }
+
     public String getProductTenor(String productUuid){
         
         SysProduct product = new SysProduct();
@@ -1391,8 +1370,7 @@ public class IndexService {
             else if(result.getProductType() == 1){
                 return Integer.toString(result.getBorrowingTerm()) + " Bulan";
             }
-            
-            return  Integer.toString(result.getBorrowingTerm()) + " Hari"; 
+            return Integer.toString(result.getBorrowingTerm()) + " Hari"; 
         }
         
         return "";
@@ -1420,10 +1398,10 @@ public class IndexService {
                 return "Bulan";
             }
 
-            return  Integer.toString(result.getBorrowingTerm()) + " Hari";   
+            return Integer.toString(result.getBorrowingTerm()) + " Hari"; 
         }
 
-        return "";
+        return ""; 
     }
 
     public void setInstallmentProductAsDefault(String userUuid){

@@ -3,6 +3,7 @@ package com.yqg.service.pay.request;
 import com.yqg.common.models.BaseRequest;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * Created by arief.halim on 2020-01-21.
@@ -13,10 +14,12 @@ public class RdnRepayRequest {
     private String parentOrderNo;
     private String orderNo;
     private BigDecimal amount;
+    private BigDecimal serviceFee;
     private BigDecimal interest;
     private BigDecimal overdueFee;
     private BigDecimal penalty; //ahalim: Currently this value contains penaltyfee without limit
     private OrderType orderType;
+    private Date lendingTime;
 
     public enum OrderType{
         //Refer to ordTypeEnum.java at table doit.ordOrder

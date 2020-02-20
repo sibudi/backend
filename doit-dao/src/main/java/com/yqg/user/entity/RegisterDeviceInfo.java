@@ -20,5 +20,6 @@ public class RegisterDeviceInfo extends BaseEntity implements Serializable {
     private String deviceType;
     private String macAddress;
     private String ipAddress;
+    private String fcmToken;
 
 }

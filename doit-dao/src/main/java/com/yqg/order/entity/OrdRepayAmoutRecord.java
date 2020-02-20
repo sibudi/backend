@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * Created by Didit Dwianto on 2018/2/2.
@@ -39,4 +40,5 @@ public class OrdRepayAmoutRecord extends BaseEntity implements Serializable{
     private String repayMethod; // ALFAMART,INDOMARET, BCA, MANDIRI, BNI, BRI, CIMB, PERMATA, OTHERS, OVO, MANUAL (from T_LPAY_DEPOSIT_METHOD.deposit_method)
 
     private String status;
+
 }

@@ -52,5 +52,8 @@ public class ManUserUserRequest{
     @ApiModelProperty(value = "被投诉催收人名")
     @JsonProperty
     private String collectionName;
+    @ApiModelProperty(value = "")
+    @JsonProperty
+    private String emailAddress;
 
 }
