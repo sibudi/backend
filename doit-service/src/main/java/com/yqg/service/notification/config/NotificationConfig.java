@@ -23,5 +23,8 @@ public class NotificationConfig {
 
     @Value("${slack.webhook.url}")
     private String webhookUrl;
+
+    @Value("${notification.service.origin}")
+    private String origin;
     
 }

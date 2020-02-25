@@ -540,7 +540,7 @@ public class PayService {
                 //Actual overdue fee based on overdue date, without limit.
                 //Currently the penaltyfee in ordRepayAmoutRecord is actual overdue fee without limit
                 record.setPenaltyFee(repayService.calculatePenaltyFee(dealOrder));
-                record.setActualDisbursedAmount(new BigDecimal(dealOrder.getApprovedAmount()));
+                record.setActualDisbursedAmount(new BigDecimal("".equals(dealOrder.getApprovedAmount()) ? "0.00" : dealOrder.getApprovedAmount()));
                 record.setServiceFee(dealOrder.getServiceFee());
                 record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
                 record.setRepayChannel("3");

@@ -103,7 +103,7 @@ public class ChangeOrderService {
         record.setInterest(dealOrder.getInterest()+"");
         record.setOverDueFee(repayService.calculateOverDueFee(dealOrder, overdueDay));
         record.setPenaltyFee(repayService.calculatePenaltyFeeByRepayDays(dealOrder, overdueDay));
-        record.setActualDisbursedAmount(new BigDecimal(dealOrder.getApprovedAmount()));
+        record.setActualDisbursedAmount(new BigDecimal("".equals(dealOrder.getApprovedAmount()) ? "0.00" : dealOrder.getApprovedAmount()));
         record.setServiceFee(dealOrder.getServiceFee());
         record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
         record.setRepayChannel("3");

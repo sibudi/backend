@@ -142,9 +142,13 @@ risk:
 spring:
   freemarker:
     checkTemplateLocation: false
+  http:
+    encoding:
+      force: false
 
 endpoints.enabled: false
 
-notification.service.url: https://notificationapi.doitglotech.co.id
+notification.service.url: https://notificationapi-uat.doitglotech.co.id
 notification.service.token: lgezRLxR84n$9@
+notification.service.origin: https://doit-pay-uat.doitglotech.co.id
 slack.webhook.url: https://hooks.slack.com/services/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
