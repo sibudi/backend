@@ -22,13 +22,15 @@ import com.yqg.service.loan.request.RepayPlan;
 import com.yqg.service.loan.request.RepayPlanRequest;
 import com.yqg.service.loan.response.CheckRepayResponse;
 import com.yqg.service.loan.response.LoanResponse;
+import com.yqg.service.notification.request.NotificationRequest;
+import com.yqg.service.notification.service.EmailNotificationService;
+import com.yqg.service.notification.service.FcmNotificationService;
 import com.yqg.service.order.OrdBillService;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.p2p.service.P2PService;
 import com.yqg.service.p2p.utils.P2PMD5Util;
 import com.yqg.service.pay.RepayService;
 import com.yqg.service.system.service.CouponService;
-import com.yqg.service.system.service.IndexService;
 import com.yqg.service.system.service.SmsRemindService;
 import com.yqg.service.system.service.StagingProductWhiteListService;
 import com.yqg.service.third.sms.SmsServiceUtil;
@@ -39,6 +41,7 @@ import com.yqg.system.entity.StagingProductWhiteList;
 import com.yqg.system.entity.SysProduct;
 import com.yqg.user.dao.ManCollectionOrderDetailDao;
 import com.yqg.user.dao.ManCollectionOrderHistorysDao;
+import com.yqg.user.dao.RegisterDeviceInfoDao;
 import com.yqg.user.dao.UsrProductRecordDao;
 import com.yqg.user.entity.UsrProductRecord;
 import com.yqg.user.entity.UsrUser;
@@ -67,6 +70,10 @@ public class LoanInfoService {
     @Autowired
     private SmsRemindService smsRemindService;
     @Autowired
+    private EmailNotificationService emailNotificationService;
+    @Autowired
+    private FcmNotificationService fcmNotificationService;
+    @Autowired
     private OrdLoanAmoutRecordDao ordLoanAmoutRecordDao;
     @Autowired
     private SmsServiceUtil smsServiceUtil;
@@ -81,6 +88,8 @@ public class LoanInfoService {
 
     @Autowired
     private OrderUserDataDal orderUserDataDal;
+    @Autowired
+    private RegisterDeviceInfoDao registerDeviceInfoDao;
     @Autowired
     private UserCallRecordsDal userCallRecordsDal;
     @Autowired
@@ -668,12 +677,19 @@ public class LoanInfoService {
     private void sendIssuedSuccessMsg(OrdOrder order) {
         executorService.submit(()->{
             try {
-                UsrUser user = usrService.getUserByUuid(order.getUserUuid());
-                String smsContent = "<Dt-It> Selamat! dana pinjaman Anda sudah dicairkan ke rekening Anda. Berikan kami penilaian 5 bintang, pinjman selanjutnya tidak perlu verifikasi lagi.";
-                //  打款成功 发送短信
-                String mobileNumberDes = user.getMobileNumberDES();
-                String mobileNumber = "62" + DESUtils.decrypt(mobileNumberDes);
-                smsServiceUtil.sendTypeSmsCode("LOAN_SUCCESS_REMIND", mobileNumber, smsContent);
+                //budi: add fcm & email notif when disburse completed
+                NotificationRequest notificationRequest = new NotificationRequest();
+                UsrUser userUser = usrService.getUserByUuid(order.getUserUuid());
+                String fcmToken = registerDeviceInfoDao.getFcmTokenByUserUuid(order.getUserUuid());
+                String content = String.format("Selamat! Dana pinjaman sudah dicairkan ke rekening Anda, silakan cek aplikasi untuk info jatuh tempo. Dukung kami dengan rating bintang 5 di Playstore!");
+                ArrayList<String> registration_ids = new ArrayList<String>();
+                registration_ids.add(fcmToken);                
+                notificationRequest.setRegistration_ids(registration_ids);
+                notificationRequest.setSubject("Dana Anda sudah cair!");
+                notificationRequest.setMessage(content);
+                fcmNotificationService.SendNotification(notificationRequest);
+                notificationRequest.setTo(DESUtils.decrypt(userUser.getEmailAddress()));
+                emailNotificationService.SendNotification(notificationRequest);
             } catch (Exception e) {
                 log.error("send LOAN_SUCCESS_REMIND message error ,orderNo: " + order.getUuid(), e);
             }
