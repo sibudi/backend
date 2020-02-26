@@ -109,7 +109,7 @@ HttpUrl:
   smsUrlInforbipVerify: http://invalid_url.doitglotech.co.id/infobip/verify/pin #:8899/infobip/verify/pin
   smsUrlInforbipVerifyV2: http://api.uat.doitglotech.cloud/infobip/verify/pin #:8899/infobip/verify/pin
 SmsChannelType:
-  type: ZENZIVA
+  type: ZENZIVA_MASKING
 third:
   advance:
     accessKey:  invalidKey

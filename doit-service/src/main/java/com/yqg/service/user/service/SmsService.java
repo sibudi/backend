@@ -38,6 +38,8 @@ public class SmsService {
     private UsrDao usrDao;
     @Value("${count.smsCount}")
     private String smsCount;
+    @Value("${SmsChannelType.type}")
+    private String smsChannelType;
     @Autowired
     private SmsServiceUtil smsServiceUtil;
 
@@ -314,17 +316,10 @@ public class SmsService {
                     }
                 }
 
-                usrUser.setMobileNumberDES(mobileNumberDES);
-                usrUser.setStatus(1);
-                usrUser.setDisabled(0);
-                List<UsrUser> userList = this.usrDao.scan(usrUser);
-                String content="";
+                
+                
                 String smsCode= SmsCodeUtils.sendSmsCode();
-                if (CollectionUtils.isEmpty(userList)) {
-                    content = "<Do-It> Kode Anda adalah "+smsCode+", gunakan kode untuk pendaftaran di Do-It. Terima kasih atas kepercayaan Anda.";
-                }else {
-                    content="<Do-It> Kode masuk Anda adalah "+smsCode+".ini adalah rahasia, DILARANG MEMBERIKAN KODE KE SIAPAPUN.";
-                }
+                String content="[DO-IT] Kode masuk OTP Anda adalah "+smsCode+". Jaga OTP Anda dan jangan pernah memberikan OTP ini kepada siapa pun.";
                 int smsCount=Integer.valueOf(this.smsCount);//??? ????????
                 //1.校验短信验证码次数
                 this.getSmsCodeCount(mobileNumber,smsCount);
@@ -345,13 +340,13 @@ public class SmsService {
                 }
                 else {
 
-                    smsServiceUtil.sendTypeSmsCodeWithTypeV2("LOGIN",mobileNumber,content,"ZENZIVA");
+                    smsServiceUtil.sendTypeSmsCodeWithTypeV2("LOGIN",mobileNumber,content,smsChannelType);
                     //3.保存到redis
                     this.setSmsCode(mobileNumber,smsCode);
                     //            4.存到数据库
                     smsServiceUtil.insertSysSmsCode(smsRequest.getMobileNumber(),smsCode,2);
 
-                    log.info("sendSmsCodeV2 sms using ZENZIVA {0} {1}", mobileNumber, smsCode);
+                    log.info("sendSmsCodeV2 sms using {2} {0} {1}", mobileNumber, smsCode, smsChannelType);
                 }
             }
         }else {

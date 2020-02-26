@@ -48,7 +48,6 @@ public class UsrPINService {
                 userPIN.setIsTemporaryPIN(1);
                 String pin = generatePIN();
                 userPIN.setPinDES(DESUtils.encrypt(pin));
-                userPIN.setRemark(pin);
                 userPIN.setExpiration(new Date());
                 usrPINDao.insert(userPIN);
 
@@ -89,7 +88,6 @@ public class UsrPINService {
             userPIN.setIsTemporaryPIN(1);
             String pin = generatePIN();
             userPIN.setPinDES(DESUtils.encrypt(pin));
-            userPIN.setRemark(pin);
             usrPINDao.insert(userPIN);
 
             EmailUtils.sendEmail(emailAddress, 
@@ -124,7 +122,6 @@ public class UsrPINService {
             userPIN.setIsTemporaryPIN(0);
             userPIN.setIsPhoneNumberVerified(0);
             userPIN.setPinDES(DESUtils.encrypt(newPIN));
-            userPIN.setRemark(newPIN);
             usrPINDao.insert(userPIN);
 
             EmailUtils.sendEmail(emailAddress, MessageConstants.CHANGE_PIN_MESSAGE, MessageConstants.CHANGE_PIN_SUBJECT);

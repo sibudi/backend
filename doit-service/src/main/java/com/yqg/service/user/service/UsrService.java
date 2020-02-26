@@ -506,6 +506,8 @@ public class UsrService {
                     registerDeviceInfo.setIpAddress(usrRequst.getIPAdress());
                     registerDeviceInfo.setDeviceType(usrRequst.getClient_type());
                     registerDeviceInfo.setMacAddress(usrRequst.getMac());
+                    registerDeviceInfo.setFcmToken(usrRequst.getFcmToken());
+                    registerDeviceInfo.setIpAddress(usrRequst.getIPAdress());
                     this.registerDeviceInfoDao.insert(registerDeviceInfo);
                 }
             }
@@ -647,6 +649,18 @@ public class UsrService {
             regDeviceInfo.setMacAddress(usrRequst.getMac());
             regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
             registerDeviceInfoDao.update(regDeviceInfo);
+        }
+        else{
+            if(!StringUtils.isEmpty(usrRequst.getDeviceId())){
+                RegisterDeviceInfo regDeviceInfo = new RegisterDeviceInfo();
+                regDeviceInfo.setUserUuid(users.get(0).getUuid());
+                regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
+                regDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+                regDeviceInfo.setDeviceType(usrRequst.getClient_type());
+                regDeviceInfo.setMacAddress(usrRequst.getMac());
+                regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
+                registerDeviceInfoDao.insert(regDeviceInfo);
+            }
         }
 
         this.addUsrLoginHistory(usrRequst);

@@ -12,4 +12,4 @@ SET p.mobileNumberDES = t.emailAddressDES
 #update email to mobile
 UPDATE usrPIN p
 INNER JOIN usrPINTemp t on t.uuid = p.uuid
-SET p.emailAddressDES = t.emailAddressDES
+SET p.emailAddressDES = t.mobileNumberDES

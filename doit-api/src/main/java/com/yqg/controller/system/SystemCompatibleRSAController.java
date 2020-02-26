@@ -142,7 +142,7 @@ public class SystemCompatibleRSAController {
         log.info("/users/otp/verify - request body {}", JsonUtils.serialize(usrRequst));
         String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
         log.info("request ip address {}", ipAddr);
-        this.usrService.verifyOTP(usrRequst);
+        //this.usrService.verifyOTP(usrRequst);
 
         return ResponseEntityBuilder.success(this.usrService.verifyOTP(usrRequst));
         
