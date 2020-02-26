@@ -800,7 +800,8 @@ public class PayService {
                                                     try {
                                                         String mobileNumberDes = usrUser.getMobileNumberDES();
                                                         String mobileNumber = "62" + DESUtils.decrypt(mobileNumberDes);
-                                                        smsServiceUtil.sendTypeSmsCode("BANK_CARD_REMIND", mobileNumber, smsContent);
+                                                        //budi: remark kirim sms jika kabin check failed
+                                                        //smsServiceUtil.sendTypeSmsCode("BANK_CARD_REMIND", mobileNumber, smsContent);
                                                         this.redisClient.set(RedisContants.SMS_BANK_CADR_LOCK + order.getUuid(), order.getUuid(), 3600 * 120);
                                                     } catch (Exception e) {
                                                         log.info("发送绑卡提醒短信异常");

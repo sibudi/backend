@@ -180,7 +180,8 @@ public class LoanService {
                                 try {
                                     String mobileNumberDes = userUser.getMobileNumberDES();
                                     String mobileNumber = "62" + DESUtils.decrypt(mobileNumberDes);
-                                    smsServiceUtil.sendTypeSmsCode("BANK_CARD_REMIND", mobileNumber, smsContent);
+                                    //budi: remark kirim sms jika kabin check failed
+                                    //smsServiceUtil.sendTypeSmsCode("BANK_CARD_REMIND", mobileNumber, smsContent);
                                     this.redisClient.set(RedisContants.SMS_BANK_CADR_LOCK + order.getUuid(), order.getUuid(), 3600 * 24 * 7);
                                 } catch (Exception e) {
                                     log.error("Sending a card binding alert message is abnormal", e);
@@ -568,7 +569,8 @@ public class LoanService {
                         try {
                             String mobileNumberDes = userUser.getMobileNumberDES();
                             String mobileNumber = "62" + DESUtils.decrypt(mobileNumberDes);
-                            smsServiceUtil.sendTypeSmsCode("BANK_CARD_REMIND", mobileNumber, smsContent);
+                            //budi: remark kirim sms jika kabin check failed
+                            //smsServiceUtil.sendTypeSmsCode("BANK_CARD_REMIND", mobileNumber, smsContent);
                             this.redisClient.set(RedisContants.SMS_BANK_CADR_LOCK + order.getUuid(), order.getUuid(), 3600 * 24);
                         } catch (Exception e) {
                             log.info("??????????");
