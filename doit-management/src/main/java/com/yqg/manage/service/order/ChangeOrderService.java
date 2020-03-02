@@ -100,11 +100,17 @@ public class ChangeOrderService {
         record.setTransactionId("");
 //        record.setActualRepayAmout(repayService.calculateRepayAmount(dealOrder,"1"));
         record.setActualRepayAmout(repayService.calculateShouldRepayAmount(dealOrder, overdueDay));
-        record.setInterest(dealOrder.getInterest()+"");
+        //record.setInterest(dealOrder.getInterest()+"");
         record.setOverDueFee(repayService.calculateOverDueFee(dealOrder, overdueDay));
         record.setPenaltyFee(repayService.calculatePenaltyFeeByRepayDays(dealOrder, overdueDay));
         record.setActualDisbursedAmount(new BigDecimal("".equals(dealOrder.getApprovedAmount()) ? "0.00" : dealOrder.getApprovedAmount()));
-        record.setServiceFee(dealOrder.getServiceFee());
+        BigDecimal interestRatio = new BigDecimal("0.001");     //0.1%
+        //Interest is calculated based on amount apply
+        BigDecimal interest = dealOrder.getAmountApply().multiply(interestRatio).multiply(BigDecimal.valueOf(dealOrder.getBorrowingTerm()));
+        //Actual serviceFee is ordOrder serviceFee - Interest
+        BigDecimal serviceFee = dealOrder.getServiceFee().subtract(interest);
+        record.setServiceFee(serviceFee);
+        record.setInterest(interest.toString());
         record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
         record.setRepayChannel("3");
         this.ordRepayAmoutRecordDao.insert(record);

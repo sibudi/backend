@@ -1105,7 +1105,8 @@ public class RepayService {
                     rdnRepayRequest.setParentOrderNo(orderRepayAmountRecordExtended.getParentOrderNo());
                     rdnRepayRequest.setOrderNo(orderRepayAmountRecordExtended.getOrderNo());
                     rdnRepayRequest.setAmount(orderRepayAmountRecordExtended.getActualDisbursedAmount());
-                    rdnRepayRequest.setInterest(orderRepayAmountRecordExtended.getServiceFee());
+                    rdnRepayRequest.setServiceFee(orderRepayAmountRecordExtended.getServiceFee());
+                    rdnRepayRequest.setInterest(new BigDecimal(orderRepayAmountRecordExtended.getInterest()));
                     rdnRepayRequest.setLendingTime(orderRepayAmountRecordExtended.getLendingTime());
                     rdnRepayRequest.setOverdueFee(new BigDecimal(orderRepayAmountRecordExtended.getOverDueFee()));
                     rdnRepayRequest.setPenalty(new BigDecimal(orderRepayAmountRecordExtended.getPenaltyFee()));

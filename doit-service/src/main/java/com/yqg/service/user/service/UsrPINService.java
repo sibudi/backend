@@ -23,16 +23,22 @@ import com.yqg.common.utils.DESUtils;
 import com.yqg.user.dao.UsrPINDao;
 import com.yqg.user.entity.UsrPIN;
 import com.yqg.common.utils.EmailUtils;
+import com.yqg.service.notification.request.NotificationRequest;
+import com.yqg.service.notification.service.EmailNotificationService;
+import com.yqg.service.notification.service.NotificationService;
 
 @Service
 @Slf4j
 public class UsrPINService {
     
-    private int expirationDays = 30;
-    private int expirationTempDays = 1;
+    // private int expirationDays = 30;
+    // private int expirationTempDays = 1;
 
     @Autowired
     private UsrPINDao usrPINDao;
+
+    @Autowired
+    private EmailNotificationService notifService;
 
     public void newPIN(String mobileNumber, String emailAddress) throws Exception{
 
@@ -51,9 +57,11 @@ public class UsrPINService {
                 userPIN.setExpiration(new Date());
                 usrPINDao.insert(userPIN);
 
-                EmailUtils.sendEmail(emailAddress, 
-                    MessageFormat.format(MessageConstants.REGISTER_PIN_MESSAGE, pin), 
-                    MessageConstants.REGISTER_PIN_SUBJECT);
+                NotificationRequest notifRequest = new NotificationRequest();
+                notifRequest.setTo(emailAddress);
+                notifRequest.setSubject(MessageConstants.REGISTER_PIN_SUBJECT);
+                notifRequest.setMessage(MessageFormat.format(MessageConstants.REGISTER_PIN_MESSAGE, pin));
+                notifService.SendNotification(notifRequest);
             }
             else{
                 throw new ServiceException(ExceptionEnum.INVALID_ACTION);
@@ -90,9 +98,11 @@ public class UsrPINService {
             userPIN.setPinDES(DESUtils.encrypt(pin));
             usrPINDao.insert(userPIN);
 
-            EmailUtils.sendEmail(emailAddress, 
-                MessageFormat.format(MessageConstants.RESET_PIN_MESSAGE, pin), 
-                MessageConstants.RESET_PIN_SUBJECT);
+            NotificationRequest notifRequest = new NotificationRequest();
+            notifRequest.setTo(emailAddress);
+            notifRequest.setSubject(MessageConstants.RESET_PIN_SUBJECT);
+            notifRequest.setMessage(MessageFormat.format(MessageConstants.RESET_PIN_MESSAGE, pin));
+            notifService.SendNotification(notifRequest);
         }
         else{
             throw new ServiceException(ExceptionEnum.INVALID_MOBILE_NO_OR_EMAIL);
@@ -124,7 +134,11 @@ public class UsrPINService {
             userPIN.setPinDES(DESUtils.encrypt(newPIN));
             usrPINDao.insert(userPIN);
 
-            EmailUtils.sendEmail(emailAddress, MessageConstants.CHANGE_PIN_MESSAGE, MessageConstants.CHANGE_PIN_SUBJECT);
+            NotificationRequest notifRequest = new NotificationRequest();
+            notifRequest.setTo(emailAddress);
+            notifRequest.setSubject(MessageConstants.CHANGE_PIN_MESSAGE);
+            notifRequest.setMessage(MessageConstants.CHANGE_PIN_SUBJECT);
+            notifService.SendNotification(notifRequest);
         }
         else{
             throw new ServiceException(ExceptionEnum.INVALID_MOBILE_NO_OR_EMAIL);

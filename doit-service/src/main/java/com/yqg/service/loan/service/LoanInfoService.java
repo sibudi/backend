@@ -774,13 +774,18 @@ public class LoanInfoService {
         String userUuid = "";
         BigDecimal actualDisbursedAmount = BigDecimal.ZERO;
         BigDecimal serviceFee = BigDecimal.ZERO;
-
+        BigDecimal interest = BigDecimal.ZERO;
+        BigDecimal interestRatio = new BigDecimal("0.001");     //0.1%
+       
         if (object instanceof OrdOrder){
             OrdOrder order = (OrdOrder) object;
             orderNo = order.getUuid();
             userUuid = order.getUserUuid();
-            serviceFee = order.getServiceFee();
             actualDisbursedAmount = new BigDecimal(order.getApprovedAmount());
+            //Interest is calculated based on amount apply
+            interest = order.getAmountApply().multiply(interestRatio).multiply(BigDecimal.valueOf(order.getBorrowingTerm()));
+            //Actual serviceFee is ordOrder serviceFee - Interest
+            serviceFee = order.getServiceFee().subtract(interest);
         }else if(object instanceof OrdBill){
             OrdBill bill = (OrdBill) object;
             orderNo = bill.getUuid();
@@ -791,10 +796,38 @@ public class LoanInfoService {
             billOrder.setDisabled(0);
             List<OrdOrder> scanList = this.ordDao.scan(billOrder);
             if (!CollectionUtils.isEmpty(scanList)) {
-                //For installment, borrowing term in ordOrder contains installment count (ex: 3 times)
-                //Notes that for normal order, borrowing term in ordOrder contains the borrowing duration (ex: 30 days)
-                actualDisbursedAmount = new BigDecimal(scanList.get(0).getApprovedAmount()).divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
-                serviceFee = scanList.get(0).getServiceFee().divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
+                BigDecimal outstandingAmount = scanList.get(0).getAmountApply().subtract(
+                    (
+                        new BigDecimal(bill.getBillTerm()).subtract(BigDecimal.ONE)   //billTerm-1
+                    ).multiply(bill.getBillAmout()) //(billTerm-1)*bill amount -> ex: 0, 400k, 800k
+                ); //amountApply - ((billTerm-1)*billAmount) -> ex: 1200k, 800k, 400k
+                //Interest is calculated based on amount apply
+                //TotalTerm is only available for installment
+                log.info("Outstanding amount: {}", outstandingAmount);
+                interest = outstandingAmount
+                    .multiply(interestRatio)
+                    .multiply(BigDecimal.valueOf(scanList.get(0).getTotalTerm())
+                        .divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP));
+                log.info("Interest: {}", interest);
+                
+                //For installment, borrowing term in ordOrder contains installment count (ex: 3 times), borrowing duration is stored in TotalTerm
+                //Notes that for normal order, borrowingTerm in ordOrder contains the borrowing duration (ex: 30 days), TotalTerm is null
+                actualDisbursedAmount = new BigDecimal(scanList.get(0).getApprovedAmount())
+                    .divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
+                log.info("Actual disburse amount: {}", actualDisbursedAmount);
+                //There is no service fee on ordBill. Service Fee can be calculated from ordOrder serviceFee divided by borrowingTerm
+                //This service fee comprise of the actual serviceFee + interest
+                BigDecimal billTermServiceFee = scanList.get(0).getServiceFee()
+                    .divide(BigDecimal.valueOf(scanList.get(0).getBorrowingTerm()),2,BigDecimal.ROUND_HALF_UP);
+                log.info("Bill term service fee: {}", billTermServiceFee);
+                //Actual serviceFee is ordBill serviceFee - interest
+                serviceFee = billTermServiceFee.subtract(interest);
+                log.info("Actual service fee: {}", serviceFee);
+                //budi: diskon 50ribu if no overdue in all term
+                if(ordBillDao.getOverdueBillWithOrderNo(bill.getOrderNo()) == null && bill.getBillTerm().equals("3")) {
+                    serviceFee = serviceFee.subtract(BigDecimal.valueOf(50000));
+                    log.info("Final service fee: {}", serviceFee);
+                }
             }
         }
         OrdRepayAmoutRecord record = new OrdRepayAmoutRecord();
@@ -822,9 +855,10 @@ public class LoanInfoService {
             if (!StringUtils.isEmpty(paymentCode.getActualRepayAmout())){
                 record.setActualRepayAmout(paymentCode.getActualRepayAmout());
             }
-            if (!StringUtils.isEmpty(paymentCode.getInterest())){
-                record.setInterest(paymentCode.getInterest());;
-            }
+            //ahalim: Calculate interest based on outstanding amount
+            //if (!StringUtils.isEmpty(paymentCode.getInterest())){
+            //    record.setInterest(paymentCode.getInterest());;
+            //}
             if (!StringUtils.isEmpty(paymentCode.getOverDueFee())){
                 record.setOverDueFee(paymentCode.getOverDueFee());;
             }
@@ -835,6 +869,7 @@ public class LoanInfoService {
                 record.setRepayChannel(paymentCode.getCodeType());;
             }
             record.setActualDisbursedAmount(actualDisbursedAmount);
+            record.setInterest(interest.toString());
             record.setServiceFee(serviceFee);
             record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
 

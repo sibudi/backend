@@ -22,7 +22,9 @@ public interface OrdRepayAmoutRecordDao extends BaseMapper<OrdRepayAmoutRecord>{
         + " repay.* FROM ordRepayAmoutRecord AS repay "
         + " LEFT OUTER JOIN ordOrder AS ord ON repay.orderNo=ord.uuid  AND ord.lendingTime >= '2018-12-26' AND ord.disabled=0 "
         + " LEFT OUTER JOIN ordBill as bill on repay.orderNo=bill.uuid AND bill.createTime >= '2018-12-26' AND bill.disabled=0 "
-        + " WHERE repay.repayMethod='CIMB' AND repay.status='WAITING_REPAYMENT_TO_RDN' AND repay.disabled=0 AND (ord.uuid is not null or bill.uuid is not null)")   //Ignore 90+ //Ignore Lending Time before TCC contracts
+        + " WHERE repay.repayMethod=#{repayChannel} AND repay.status='WAITING_REPAYMENT_TO_RDN' AND repay.disabled=0 "
+        + " AND (ord.uuid is not null or bill.uuid is not null) AND COALESCE(ord.orderType, 3) NOT IN (1,2)")   
+        //Ignore Lending Time before TCC contracts, Ignore Extension order
     List<OrderRepayAmountRecordExtended> getOrderRepayRecordWaitingRepaymentToRdn(@Param("repayChannel") String repayChannel);
 
     @Update("<script>"

@@ -278,8 +278,9 @@ tongdun:
   partnerKey: invalid_key
   appName: DoIt2_and
   checkBeforeCreditUrl: https://apitest.tongdun.net/aurora/apply/v1
-notificationservice:
-  emailUrl: https://notificationapi-uat.doitglotech.co.id/email
-  token: lgezRLxR84n$9@
-  
+
+notification.service.url: https://notificationapi-uat.doitglotech.co.id
+notification.service.token: lgezRLxR84n$9@
+notification.service.origin: https://doitapi-uat.doitglotech.co.id
+
 endpoints.enabled: false

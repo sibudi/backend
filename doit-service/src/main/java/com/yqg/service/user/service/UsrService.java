@@ -53,6 +53,7 @@ import com.yqg.user.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -641,26 +642,31 @@ public class UsrService {
         registerDeviceInfo.setDisabled(0);
         List<RegisterDeviceInfo> registerDeviceInfoList = registerDeviceInfoDao.scan(registerDeviceInfo);
 
-        if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
-            RegisterDeviceInfo regDeviceInfo = registerDeviceInfoList.get(0);
-            regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
-            regDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
-            regDeviceInfo.setDeviceType(usrRequst.getClient_type());
-            regDeviceInfo.setMacAddress(usrRequst.getMac());
-            regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
-            registerDeviceInfoDao.update(regDeviceInfo);
-        }
-        else{
-            if(!StringUtils.isEmpty(usrRequst.getDeviceId())){
-                RegisterDeviceInfo regDeviceInfo = new RegisterDeviceInfo();
-                regDeviceInfo.setUserUuid(users.get(0).getUuid());
+        try{
+            if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
+                RegisterDeviceInfo regDeviceInfo = registerDeviceInfoList.get(0);
                 regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
                 regDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
                 regDeviceInfo.setDeviceType(usrRequst.getClient_type());
                 regDeviceInfo.setMacAddress(usrRequst.getMac());
                 regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
-                registerDeviceInfoDao.insert(regDeviceInfo);
+                registerDeviceInfoDao.update(regDeviceInfo);
             }
+            else{
+                if(!StringUtils.isEmpty(usrRequst.getDeviceId())){
+                    RegisterDeviceInfo regDeviceInfo = new RegisterDeviceInfo();
+                    regDeviceInfo.setUserUuid(users.get(0).getUuid());
+                    regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
+                    regDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+                    regDeviceInfo.setDeviceType(usrRequst.getClient_type());
+                    regDeviceInfo.setMacAddress(usrRequst.getMac());
+                    regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
+                    registerDeviceInfoDao.insert(regDeviceInfo);
+                }
+            }
+        }
+        catch(DataIntegrityViolationException e){
+            throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL); 
         }
 
         this.addUsrLoginHistory(usrRequst);
@@ -1541,22 +1547,27 @@ public class UsrService {
                 }
             }
             else{
-                if(!StringUtils.isEmpty(request.getDeviceId())){
-                    RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
-                    newRegDeviceInfo.setCreateUser(0);
-                    newRegDeviceInfo.setUserUuid(request.getUserUuid());
-                    newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
-                    newRegDeviceInfo.setDeviceType(request.getClient_type());
-                    newRegDeviceInfo.setIpAddress(request.getIPAdress());
-                    newRegDeviceInfo.setFcmToken(request.getFcmToken());
-                    newRegDeviceInfo.setMacAddress(request.getMac());
-                    registerDeviceInfoDao.insert(newRegDeviceInfo);
-
-                    redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                try{
+                    if(!StringUtils.isEmpty(request.getDeviceId())){
+                        RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
+                        newRegDeviceInfo.setCreateUser(0);
+                        newRegDeviceInfo.setUserUuid(request.getUserUuid());
+                        newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
+                        newRegDeviceInfo.setDeviceType(request.getClient_type());
+                        newRegDeviceInfo.setIpAddress(request.getIPAdress());
+                        newRegDeviceInfo.setFcmToken(request.getFcmToken());
+                        newRegDeviceInfo.setMacAddress(request.getMac());
+                        registerDeviceInfoDao.insert(newRegDeviceInfo);
+    
+                        redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                    }
+                    else{
+                        log.info("No device id for user: {0}", request.getUserUuid());
+                        throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
+                    }
                 }
-                else{
-                    log.info("No device id for user: {0}", request.getUserUuid());
-                    throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
+                catch(DataIntegrityViolationException e){
+                    throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL); 
                 }
             }
         }
@@ -1568,22 +1579,27 @@ public class UsrService {
                     redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
                 }
                 else{
-                    if(!StringUtils.isEmpty(request.getDeviceId())){
-                        RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
-                        newRegDeviceInfo.setCreateUser(0);
-                        newRegDeviceInfo.setUserUuid(request.getUserUuid());
-                        newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
-                        newRegDeviceInfo.setDeviceType(request.getClient_type());
-                        newRegDeviceInfo.setIpAddress(request.getIPAdress());
-                        newRegDeviceInfo.setFcmToken(request.getFcmToken());
-                        newRegDeviceInfo.setMacAddress(request.getMac());
-                        registerDeviceInfoDao.insert(newRegDeviceInfo);
-
-                        redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                    try{
+                        if(!StringUtils.isEmpty(request.getDeviceId())){
+                            RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
+                            newRegDeviceInfo.setCreateUser(0);
+                            newRegDeviceInfo.setUserUuid(request.getUserUuid());
+                            newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
+                            newRegDeviceInfo.setDeviceType(request.getClient_type());
+                            newRegDeviceInfo.setIpAddress(request.getIPAdress());
+                            newRegDeviceInfo.setFcmToken(request.getFcmToken());
+                            newRegDeviceInfo.setMacAddress(request.getMac());
+                            registerDeviceInfoDao.insert(newRegDeviceInfo);
+    
+                            redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                        }
+                        else{
+                            log.info("No device id for user: {0}", request.getUserUuid());
+                            throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
+                        }
                     }
-                    else{
-                        log.info("No device id for user: {0}", request.getUserUuid());
-                        throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
+                    catch(DataIntegrityViolationException e){
+                        throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL); 
                     }
                 }
             }

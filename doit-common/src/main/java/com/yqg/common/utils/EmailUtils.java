@@ -18,18 +18,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmailUtils 
 { 
-    private static String notificationServiceEmailURL = "";
-    public static String notificationServiceEmailToken = "";
+    // private static String notificationServiceEmailURL = "";
+    // public static String notificationServiceEmailToken = "";
 
-    @Value("${notificationservice.emailUrl}")
-    public void setEmailURL(String url) {
-        notificationServiceEmailURL = url;
-    }
+    // @Value("${notificationservice.emailUrl}")
+    // public void setEmailURL(String url) {
+    //     notificationServiceEmailURL = url;
+    // }
 
-    @Value("${notificationservice.token}")
-    public void setToken(String token) {
-        notificationServiceEmailToken = token;
-    }
+    // @Value("${notificationservice.token}")
+    // public void setToken(String token) {
+    //     notificationServiceEmailToken = token;
+    // }
     
     public static boolean isValid(String email) 
     { 
@@ -44,26 +44,27 @@ public class EmailUtils
         return pat.matcher(email).matches(); 
     }
 
-    public static String sendEmail(String email, String message, String subject) throws Exception{
-        if(isValid(email)){
-            Map<String, String> headers = new HashMap<>();
-            headers.put("x-authorization-token", notificationServiceEmailToken);
-            headers.put("Content-Type", "application/json");
-            JSONObject json = new JSONObject();
-            json.put("message", message);
-            json.put("to", email);
-            json.put("subject", subject);
-            json.put("attachments", new JSONArray());
+    // janhsen: deprecated please use notificationservice
+    // public static String sendEmail(String email, String message, String subject) throws Exception{
+    //     if(isValid(email)){
+    //         Map<String, String> headers = new HashMap<>();
+    //         headers.put("x-authorization-token", notificationServiceEmailToken);
+    //         headers.put("Content-Type", "application/json");
+    //         JSONObject json = new JSONObject();
+    //         json.put("message", message);
+    //         json.put("to", email);
+    //         json.put("subject", subject);
+    //         json.put("attachments", new JSONArray());
 
-            String resultRes = HttpTools.post(notificationServiceEmailURL, headers, json.toString(), 30000, 30000);
+    //         String resultRes = HttpTools.post(notificationServiceEmailURL, headers, json.toString(), 30000, 30000);
 
-            return resultRes;
-        }
-        else{
-            throw new ServiceException(ExceptionEnum.INVALID_MOBILE_NO_OR_EMAIL);
-        }
+    //         return resultRes;
+    //     }
+    //     else{
+    //         throw new ServiceException(ExceptionEnum.INVALID_MOBILE_NO_OR_EMAIL);
+    //     }
         
-    }
+    // }
 
     public static String maskEmail(String email){
         if(isValid(email)){

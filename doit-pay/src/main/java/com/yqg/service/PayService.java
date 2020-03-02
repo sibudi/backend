@@ -534,14 +534,20 @@ public class PayService {
                 record.setRepayMethod("MANUAL");
                 record.setTransactionId("");
                 record.setActualRepayAmout(repayService.calculateRepayAmount(dealOrder,"1"));
-                record.setInterest(dealOrder.getInterest()+"");
+                //record.setInterest(dealOrder.getInterest()+"");
                 //Overdue service fee regardless overdue date
                 record.setOverDueFee(repayService.calculateOverDueFee(dealOrder));
                 //Actual overdue fee based on overdue date, without limit.
                 //Currently the penaltyfee in ordRepayAmoutRecord is actual overdue fee without limit
                 record.setPenaltyFee(repayService.calculatePenaltyFee(dealOrder));
                 record.setActualDisbursedAmount(new BigDecimal("".equals(dealOrder.getApprovedAmount()) ? "0.00" : dealOrder.getApprovedAmount()));
-                record.setServiceFee(dealOrder.getServiceFee());
+                BigDecimal interestRatio = new BigDecimal("0.001");     //0.1%
+                //Interest is calculated based on amount apply
+                BigDecimal interest = dealOrder.getAmountApply().multiply(interestRatio).multiply(BigDecimal.valueOf(dealOrder.getBorrowingTerm()));
+                //Actual serviceFee is ordOrder serviceFee - Interest
+                BigDecimal serviceFee = dealOrder.getServiceFee().subtract(interest);
+                record.setServiceFee(serviceFee);
+                record.setInterest(interest.toString());
                 record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
                 record.setRepayChannel("3");
                 this.ordRepayAmoutRecordDao.insert(record);

@@ -58,7 +58,7 @@ public class RepairOrderService {
         }
 
         log.info("Total repayment orders without repayment flow" + list.size());
-
+        BigDecimal interestRatio = new BigDecimal("0.001");     //0.1%
         for (OrdOrder order : list) {
             UsrUser user = this.usrService.getUserByUuid(order.getUserUuid());
             // Query repayment status on table T_LPAY_DEPOSIT
@@ -71,7 +71,12 @@ public class RepairOrderService {
                         record.setOrderNo(order.getUuid());
                         record.setUserUuid(order.getUserUuid());
                         record.setActualDisbursedAmount(new BigDecimal(order.getApprovedAmount()));
-                        record.setServiceFee(order.getServiceFee());
+                        //Interest is calculated based on amount apply
+                        BigDecimal interest = order.getAmountApply().multiply(interestRatio).multiply(BigDecimal.valueOf(order.getBorrowingTerm()));
+                        //Actual serviceFee is ordOrder serviceFee - Interest
+                        BigDecimal serviceFee = order.getServiceFee().subtract(interest);
+                        record.setServiceFee(serviceFee);
+                        record.setInterest(interest.toString());
                         record.setStatus(OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString());
                         record.setRemark("Manual Fix");
                         if (!StringUtils.isEmpty(response.getDepositMethod())) {
@@ -95,9 +100,10 @@ public class RepairOrderService {
                         List<OrdPaymentCode> codeList = this.ordPaymentCodeDao.scan(scan);
                         if (!CollectionUtils.isEmpty(codeList)) {
                             OrdPaymentCode paymentCode = codeList.get(0);
-                            if (!StringUtils.isEmpty(paymentCode.getInterest())) {
-                                record.setInterest(paymentCode.getInterest());
-                            }
+                            //ahalim: Calculate interest based on outstanding amount
+                            //if (!StringUtils.isEmpty(paymentCode.getInterest())) {
+                            //    record.setInterest(paymentCode.getInterest());
+                            //}
                             if (!StringUtils.isEmpty(paymentCode.getOverDueFee())) {
                                 record.setOverDueFee(paymentCode.getOverDueFee());
                             }
