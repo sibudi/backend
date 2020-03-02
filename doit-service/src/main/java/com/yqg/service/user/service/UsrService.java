@@ -1528,5 +1528,66 @@ public class UsrService {
             return userList.get(0);
         }
     }
+
+    public void updateFcmToken(BaseRequest request) throws ServiceException{
+        String fcmTokenCache = redisClient.get("fcm_" + request.getUserUuid());
+        if(StringUtils.isEmpty(fcmTokenCache)){
+            RegisterDeviceInfo registerDeviceInfo = registerDeviceInfoDao.getRegisterDeviceByUserUuid(request.getUserUuid());
+            if(registerDeviceInfo != null){
+                if(StringUtils.isEmpty(registerDeviceInfo.getFcmToken()) || !registerDeviceInfo.getFcmToken().equals(request.getFcmToken()) ){
+                    registerDeviceInfo.setFcmToken(request.getFcmToken());
+                    registerDeviceInfoDao.update(registerDeviceInfo);
+                    redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                }
+            }
+            else{
+                if(!StringUtils.isEmpty(request.getDeviceId())){
+                    RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
+                    newRegDeviceInfo.setCreateUser(0);
+                    newRegDeviceInfo.setUserUuid(request.getUserUuid());
+                    newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
+                    newRegDeviceInfo.setDeviceType(request.getClient_type());
+                    newRegDeviceInfo.setIpAddress(request.getIPAdress());
+                    newRegDeviceInfo.setFcmToken(request.getFcmToken());
+                    newRegDeviceInfo.setMacAddress(request.getMac());
+                    registerDeviceInfoDao.insert(newRegDeviceInfo);
+
+                    redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                }
+                else{
+                    log.info("No device id for user: {0}", request.getUserUuid());
+                    throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
+                }
+            }
+        }
+        else{
+            if(!fcmTokenCache.equals(request.getFcmToken()) && !StringUtils.isEmpty(request.getFcmToken())){
+                RegisterDeviceInfo registerDeviceInfo = registerDeviceInfoDao.getRegisterDeviceByUserUuid(request.getUserUuid());
+                if(registerDeviceInfo != null){
+                    registerDeviceInfoDao.updateFcmToken(request.getUserUuid(), request.getFcmToken());
+                    redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                }
+                else{
+                    if(!StringUtils.isEmpty(request.getDeviceId())){
+                        RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
+                        newRegDeviceInfo.setCreateUser(0);
+                        newRegDeviceInfo.setUserUuid(request.getUserUuid());
+                        newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
+                        newRegDeviceInfo.setDeviceType(request.getClient_type());
+                        newRegDeviceInfo.setIpAddress(request.getIPAdress());
+                        newRegDeviceInfo.setFcmToken(request.getFcmToken());
+                        newRegDeviceInfo.setMacAddress(request.getMac());
+                        registerDeviceInfoDao.insert(newRegDeviceInfo);
+
+                        redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
+                    }
+                    else{
+                        log.info("No device id for user: {0}", request.getUserUuid());
+                        throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
+                    }
+                }
+            }
+        }
+    }
 }
 

@@ -61,4 +61,9 @@ public class BaseRequest {
     private String deviceSysModel;//方便定位问题添加
 
     private String androidId;
+
+    @ApiModelProperty(value = "")
+    @JsonProperty("fcmtoken")
+    private String fcmToken;
+
 }

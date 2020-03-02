@@ -143,12 +143,15 @@ public class IndexService {
      * @param baseRequest
      * @return
      */
-    public Object initHomeView(BaseRequest baseRequest) {
+    public Object initHomeView(BaseRequest baseRequest) throws ServiceException{
+
+        // janhsen: add action in here for every request need to save something
+        addInitHomeViewAction(baseRequest);
 
         try {
+            
             String version=baseRequest.getClient_version();
             String clientType=baseRequest.getClient_type();
-//        boolean tempFlag=true;
             if(clientType.equals("iOS") || (clientType.equals("android") && (version.compareTo("1.7.1")<0))){
                 return  getIndexConfig(baseRequest,1);
             }else {
@@ -1423,6 +1426,10 @@ public class IndexService {
                 }
             }
         }
+    }
+
+    private void addInitHomeViewAction(BaseRequest request) throws ServiceException{
+        usrService.updateFcmToken(request);
     }
 
 }
