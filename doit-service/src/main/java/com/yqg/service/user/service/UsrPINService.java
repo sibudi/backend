@@ -136,8 +136,8 @@ public class UsrPINService {
 
             NotificationRequest notifRequest = new NotificationRequest();
             notifRequest.setTo(emailAddress);
-            notifRequest.setSubject(MessageConstants.CHANGE_PIN_MESSAGE);
-            notifRequest.setMessage(MessageConstants.CHANGE_PIN_SUBJECT);
+            notifRequest.setSubject(MessageConstants.CHANGE_PIN_SUBJECT);
+            notifRequest.setMessage(MessageConstants.CHANGE_PIN_MESSAGE);
             notifService.SendNotification(notifRequest);
         }
         else{
