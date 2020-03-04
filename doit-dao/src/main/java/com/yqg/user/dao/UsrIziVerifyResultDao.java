@@ -12,6 +12,6 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface UsrIziVerifyResultDao extends BaseMapper<UsrIziVerifyResult> {
     @Select("\n" +
-            "select * from (select *from usrIziVerifyResult where userUuid =#{userUuid} and iziVerifyType = #{iziVerifyType} order by createTime desc) a limit 1;")
+            "select * from usrIziVerifyResult where userUuid =#{userUuid} and iziVerifyType = #{iziVerifyType} order by createTime desc limit 1;")
     UsrIziVerifyResult getLatestResult(@Param("userUuid") String userUuid ,@Param("iziVerifyType") String type);
 }
