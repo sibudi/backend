@@ -14,7 +14,8 @@ public class AutoCallReSendScheduler {
     private AutoCallErrorService autoCallErrorService;
 
     //印尼时间每天下午3天重新外呼一次
-    @Scheduled(cron = "0 7 9-21 * * ?")
+    //budi: disable because include in slow log query and the query return 0 rows
+    //@Scheduled(cron = "0 7 9-21 * * ?")
     public void reSend() {
         log.info("start auto call resend...");
         Long startTime = System.currentTimeMillis();
