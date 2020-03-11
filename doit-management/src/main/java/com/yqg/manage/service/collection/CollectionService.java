@@ -423,14 +423,16 @@ public class CollectionService {
             AssignableCollectionOrderReq req) {
 
         getManOrderOrderRequest(req);
-        PageHelper.startPage(req.getPageNo(), req.getPageSize());
+        
         List<CollectionOrderResponse> orderList;
-        if (req.getSourceType().equals(0)) {
-            orderList = manCollectionDao
-                    .getAssignableCollectionOrderList(req);
+        if (req.getSourceType() != null && req.getSourceType().equals(0)) {
+            PageHelper.startPage(req.getPageNo(), req.getPageSize());
+            orderList = manCollectionDao.getAssignableCollectionOrderList(req);
+        } else if (req.getSourceType() != null && req.getSourceType().equals(1)) {
+            PageHelper.startPage(req.getPageNo(), req.getPageSize());
+            orderList = manCollectionDao.getAssignableQualityCheckOrderList(req);
         } else {
-            orderList = manCollectionDao
-                    .getAssignableQualityCheckOrderList(req);
+            orderList = new ArrayList<CollectionOrderResponse>();
         }
 
         PageInfo pageInfo = new PageInfo(orderList);

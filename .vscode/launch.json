@@ -212,6 +212,14 @@
         },
         {
             "type": "java",
+            "name": "Remote Debug (Launch)-ManageApplication<doit-management>",
+            "request": "attach",
+            "projectName": "doit-management",
+            "hostName": "10.24.30.72",
+            "port": 8082
+        },
+        {
+            "type": "java",
             "name": "Remote Debug (Launch)-APIApplication<doit-api>",
             "request": "attach",
             "projectName": "doit-api",

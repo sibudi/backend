@@ -374,7 +374,7 @@ public class CollectionSqlProvider {
 //        }
 
 //        if(request.getOverdueDayMin()!=null){
-        sql.append(" and datediff(now(),o.refundTime)>=#{AssignableCollectionOrderReq.overdueDayMin}");
+        sql.append(" and datediff(now(),o.refundTime)>=#{AssignableCollectionOrderReq.overdueDayMin} and datediff(now(),o.refundTime)<=210");
 //        }
         logger.info("collleciton list sql: " + sql.toString());
         return sql.toString();
