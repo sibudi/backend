@@ -52,4 +52,13 @@ public enum OrdStateEnum {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public static OrdStateEnum getEnum(int code) {
+        for (OrdStateEnum e : values()) {
+            if (e.code == code) {
+                return e;
+            }
+        }
+        return null;
+    }
 }

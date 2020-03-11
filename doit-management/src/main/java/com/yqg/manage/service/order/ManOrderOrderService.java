@@ -144,9 +144,6 @@ public class ManOrderOrderService {
     private OrderUserDataDal orderUserDataDal;
 
     @Autowired
-    private RepayService repayService;
-
-    @Autowired
     private OrdRepayAmoutRecordDao ordRepayAmoutRecordDao;
 
     @Autowired
@@ -180,6 +177,9 @@ public class ManOrderOrderService {
 
     @Autowired
     private OrdService ordService;
+
+    @Autowired
+    private RepayService repayService;
 
     /**
      * 全部订单列表查询接口
@@ -390,6 +390,55 @@ public class ManOrderOrderService {
         return response;
     }
 
+    //janhsen: show va in control
+    public OrderSimpleInfoResponse orderSimpleInfoByUuid(String orderUuid, Integer outsourceId) throws ServiceExceptionSpec {
+
+        String orderNo = orderUuid;
+        if (StringUtils.isEmpty(orderNo)) {
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_SEARCH_ERROR);
+        }
+
+        if(outsourceId >= 0 && !manUserService.isAllowToSearchOrder(orderUuid, outsourceId)){
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_SEARCH_ERROR);
+        }
+
+        OrdOrder order = this.getOrderInfoByUuid(orderNo);
+        if (order == null) {
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_SEARCH_ERROR);
+        }
+
+        UsrUser user = this.userUserService.userInfoByUuid(order.getUserUuid());
+        if (user == null) {
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_SEARCH_ERROR);
+        }
+
+        OrderSimpleInfoResponse response = new OrderSimpleInfoResponse();
+
+        response.setOrderUuid(order.getUuid());
+        response.setUserUuid(user.getUuid());
+        response.setRealName(user.getRealName());
+        response.setEmailAddress(DESUtils.decrypt(user.getEmailAddress()));
+        response.setUserMobileNo(DESUtils.decrypt(user.getMobileNumberDES()));
+        response.setApplyTime(order.getApplyTime());
+        if(order.getStatus() >= 0 && OrdStateEnum.values().length > order.getStatus()){
+            response.setOrderStatusId(order.getStatus());
+            response.setOrderStatusName(OrdStateEnum.getEnum(order.getStatus()).toString());
+        }
+        
+        if(!StringUtils.isEmpty(order.getOrderType()) && OrderTypeEnum.values().length > Integer.parseInt(order.getOrderType())){
+            response.setOrderTypeId(Integer.parseInt(order.getOrderType()));
+            response.setOrderTypeName(OrderTypeEnum.getEnum(order.getOrderType()).toString());
+        }
+
+        if (order.getStatus() > OrdStateEnum.LOANING_DEALING.getCode()) {
+            getOverdueMoney(response, order);
+        }
+
+        response.setAmountApply(com.yqg.common.utils.StringUtils.formatMoney(order.getAmountApply().doubleValue()).replaceAll(",",".").toString());
+
+        return response;
+    }
+
     /**
      * 封装订单逾期账户管理费、逾期账户滞纳金、应还款总额
      * @param response
@@ -480,6 +529,99 @@ public class ManOrderOrderService {
         }
 //        }
     }
+
+/**
+     * 封装订单逾期账户管理费、逾期账户滞纳金、应还款总额
+     * @param response
+     * @param order
+     */
+    private void getOverdueMoney(OrderSimpleInfoResponse response, OrdOrder order) {
+        int dayNum = 0;
+        try {
+            if (order.getRefundTime() == null) {
+                return ;
+            }
+            //判断不同订单状态，其时间不同
+            String nowDate = com.yqg.common.utils.DateUtils.formDate
+                    (new Date(), "yyyy-MM-dd");
+            if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()) {
+                nowDate = com.yqg.common.utils.DateUtils.formDate
+                        (order.getRefundTime(), "yyyy-MM-dd");
+            } else if (order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()) {
+                nowDate = com.yqg.common.utils.DateUtils.formDate
+                        (order.getActualRefundTime(),"yyyy-MM-dd");
+            }
+            dayNum = (int) com.yqg.common.utils.DateUtils.daysBetween(com.yqg.common.utils.DateUtils.formDate
+                    (order.getRefundTime(), "yyyy-MM-dd"), nowDate);
+            if (dayNum <= 0) {
+                response.setOverdueFee("0");
+                response.setOverdueMoney("0");
+                BigDecimal tempMoney = order.getAmountApply().add(order.getInterest());
+                response.setShouldPayAmount(com.yqg.common.utils.StringUtils.
+                        formatMoney(tempMoney
+                                .doubleValue()).replaceAll(",",".").toString());
+
+                //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+                BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
+                if (tempMoney.compareTo(limit) > 0 ){
+                    tempMoney = limit;
+                }
+                //实际应还款金额
+                response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(tempMoney.doubleValue()).replaceAll(",",".").toString());
+                return ;
+            }
+
+            //逾期账户管理费
+            BigDecimal overdueFee = new BigDecimal(this.repayService.calculateOverDueFee(order));
+            response.setOverdueFee(com.yqg.common.utils.StringUtils.formatMoney(overdueFee.doubleValue()).replaceAll(",",".").toString());
+
+            //Overdue account penalty fees based on overdue duration (without limit)
+            BigDecimal overdueMoney = new BigDecimal(this.repayService.calculatePenaltyFee(order));
+            // (Overdue) Repayable amount: Borrowing amount + interest + overdue fees
+            BigDecimal shouldPayAmount = BigDecimal.ZERO;
+
+            if (!order.getOrderType().equals("0")){
+                //There is already a limit set in repayService.calculateRepayAmount
+                shouldPayAmount  = new BigDecimal(this.repayService.calculateRepayAmount(order,"2"));
+                //Delay fee is service fee for extending the order (regardless of overdue duration)
+                response.setExtendServiceFee(com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(this.repayService.calculateDelayFee(order))).replaceAll(",",".").toString());
+            }else {
+                if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()  || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()){
+                    //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount 
+                    OrdRepayAmoutRecord ordRepayAmoutRecord = new OrdRepayAmoutRecord();
+                    ordRepayAmoutRecord.setDisabled(0);
+                    ordRepayAmoutRecord.setOrderNo(order.getUuid());
+                    List<OrdRepayAmoutRecord> recordList = this.ordRepayAmoutRecordDao.scan(ordRepayAmoutRecord);
+                    if (!CollectionUtils.isEmpty(recordList)) {
+                        shouldPayAmount  = new BigDecimal(recordList.get(0).getActualRepayAmout());
+                    }
+                }else {
+                    //There is already a limit set in repayService.calculateRepayAmount
+                    shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "1"));
+                }
+            }
+            // Repayable Amount (currently the same with ActualPayAmount)
+            response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
+
+            //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+            BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
+            if (shouldPayAmount.compareTo(limit) > 0 ){
+                shouldPayAmount = limit;
+            }
+
+            //Actual Repayment Amount (currently the same with ShouldPayAmount)
+            response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
+
+            //Overdue account penalty fee based on overdue duration. 
+            //It is intended to show the real overdue fee without limit, but it's not the amount that the user should pay 
+            response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overdueMoney.doubleValue()).replaceAll(",",".").toString());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+//        }
+    }
+
+
     /**
      * 修改订单状态
      */
@@ -1254,7 +1396,7 @@ public class ManOrderOrderService {
                             if (response.getErrorMessage().equals(errorMsg)) {
                                 //1.使淼科那边的订单号无效化
                                 changeOrderWithMK(order);
-                                //2.清除redis里面的放款记录(为了相同订单号能够继续打款 删除之前在redis里面的order)
+                                //2.清除redis�����������������������������������������记录(��了�����同订单号能够继续打款 删除之前在redis里面的order)
                                 this.redisClient.del(RedisContants.ORDER_LOAN_LOCK_NEW + order.getUuid());
                                 //3.更改订单状态为待放款
 

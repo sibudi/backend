@@ -55,4 +55,12 @@ public interface ManUserDao extends BaseMapper<ManUser> {
 
     @Select("select * from manUser where parentId = #{id} and id <> #{id} and disabled = 0 and status = 0 order by updateTime desc")
     List<ManUser> listTeam (@Param("id") Integer id);
+
+    //janhsen: check order allow to access
+    @Select("SELECT COUNT(o.uuid) FROM ordOrder o " + 
+    "INNER JOIN collectionOrderDetail coll ON coll.orderUUID = o.uuid " + 
+    "INNER JOIN manUser man ON coll.outsourceId = man.id " + 
+    "WHERE o.disabled = 0 AND coll.disabled = 0 and man.disabled = 0 " + 
+    "AND (man.parentId = #{outsourceId} or man.id = #{outsourceId}) AND o.uuid = #{orderUuid}") 
+    Integer isAllowToSearchOrder(@Param("orderUuid") String orderUuid, @Param("outsourceId") Integer outsourceId) ;
 }

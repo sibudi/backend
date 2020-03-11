@@ -32,4 +32,7 @@ public interface OrdBillDao extends BaseMapper<OrdBill> {
     //get overdue bill
     @Select("select * from ordBill where disabled = 0 and status in (2, 4) and orderNo = #{orderNo} limit 1;")
     public OrdBill getOverdueBillWithOrderNo(@Param("orderNo") String orderNo);
+
+    @Select("select * from ordBill where disabled = 0 and orderNo = #{orderNo} and status in (1,2)  order by billTerm limit 1")
+    OrdBill getFirstBillNeedPay(@Param("orderNo") String orderNo);
 }

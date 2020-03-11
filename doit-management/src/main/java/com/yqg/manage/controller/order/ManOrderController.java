@@ -57,6 +57,14 @@ public class ManOrderController {
                 .success(this.manOrderOrderService.orderInfoByUuid(orderSearchResquest));
     }
 
+    @ApiOperation("Get Order Info with simple format")
+    @RequestMapping(value = "/orderSimpleInfoByUuid", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntitySpec<OrderSimpleInfoResponse> orderSimpleInfoByUuid(String orderUuid, Integer outsourceId) throws Exception {
+        return ResponseEntitySpecBuilder
+            .success(this.manOrderOrderService.orderSimpleInfoByUuid(orderUuid, outsourceId));
+    }
+
     @ApiOperation("根据用户uuid查询订单历史列表")
     @RequestMapping(value = "/orderHistoryListByUserUuid", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
     @ResponseBody

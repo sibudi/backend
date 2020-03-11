@@ -33,4 +33,13 @@ public enum OrderTypeEnum {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public static OrderTypeEnum getEnum(String code) {
+        for (OrderTypeEnum e : values()) {
+            if (e.code.equalsIgnoreCase(code)) {
+                return e;
+            }
+        }
+        return null;
+    }
 }

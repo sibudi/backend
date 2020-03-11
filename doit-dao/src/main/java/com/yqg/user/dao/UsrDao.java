@@ -423,5 +423,6 @@ public interface UsrDao extends BaseMapper<UsrUser> {
     //invite
     @Select("select 1 from usrUser a left join ordOrder b on a.uuid = b.userUuid and b.disabled = 0 where a.mobileNumberDES =#{mobileDES} and (a.isInvited = 1 or b.status in (2, 5, 6, 20, 7, 8, 12)) and a.disabled=0 group by a.mobileNumberDES, a.isInvited;")
     List<Integer> isInvitedAndNeedRepay(@Param("mobileDES") String mobileDES) ;
+
 }
 

@@ -36,4 +36,6 @@ public class RepayRequest extends BaseRequest {
     private String principal;  //  还款本金
 
     private String ovoAccount; //Ovo account
+
+    private Integer outsourceId; //outsource id for doit manage to get va info
 }

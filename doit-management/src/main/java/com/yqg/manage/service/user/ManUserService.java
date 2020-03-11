@@ -748,4 +748,9 @@ public class ManUserService {
         return manUserDao.scan(manUser).stream().findFirst();
     }
 
+    public Boolean isAllowToSearchOrder(String orderNo, Integer outsourceId){
+        Integer allow = manUserDao.isAllowToSearchOrder(orderNo, outsourceId);
+        return allow > 0;
+    }
+
 }

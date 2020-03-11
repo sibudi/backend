@@ -102,7 +102,7 @@ p2p:
   sendOrderInfoUrl: http://10.24.30.70:9090/doit/investment/getCreditRightTask
 des:
   file:
-    path: C:/SECRET/des-test.cer
+    path: /SECRET/des-test.cer
 upload:
   path: http://www.do-it.id
   #imagePath: http://control2.uanguang.co.id/manage/showStreamOnBrowser?path=
@@ -206,6 +206,7 @@ pay:
   cheakBcaBalanceUrl: http://api.uat.doitglotech.cloud/balance/bca #:8888/balance/bca
   cheakXenditBalanceUrl: http://api.uat.doitglotech.cloud/balance/xendit #:8888/balance/xendit
   cheakLoanUrl: http://api.uat.doitglotech.cloud/payment/ #:8888/payment/
+  commitRepayUrl: http://api.uat.doitglotech.cloud/repayment/deposit #:8888/repayment/deposit
 
 spring:
   mail:

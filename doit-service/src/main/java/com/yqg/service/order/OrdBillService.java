@@ -39,4 +39,8 @@ public class OrdBillService {
             return bills.get(0);
         }
     }
+
+    public OrdBill getFirstBillNeedPay(String orderNo){
+        return ordBillDao.getFirstBillNeedPay(orderNo);
+    }
 }
