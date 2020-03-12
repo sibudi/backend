@@ -369,13 +369,20 @@ public class CollectionSqlProvider {
             }
         }
 
-//        if(request.getOverdueDayMax()!=null){
         sql.append(" and datediff(now(),o.refundTime)<=#{AssignableCollectionOrderReq.overdueDayMax}");
-//        }
 
-//        if(request.getOverdueDayMin()!=null){
-        sql.append(" and datediff(now(),o.refundTime)>=#{AssignableCollectionOrderReq.overdueDayMin} and datediff(now(),o.refundTime)<=210");
-//        }
+        sql.append(" and datediff(now(),o.refundTime)>=#{AssignableCollectionOrderReq.overdueDayMin}");
+
+        if (StringUtils.isEmpty(request.getUuid()) 
+                && request.getIsRepeatBorrowing() == null 
+                && request.getIsAssigned() == null 
+                && request.getOrderTag() == null
+                && request.getOutsourceId() == null
+                && request.getAmountApply() == null
+                && request.getIsTerms() == null) {
+            sql.append(" and datediff(now(),o.refundTime)<=210 ");
+        }
+        
         logger.info("collleciton list sql: " + sql.toString());
         return sql.toString();
     }
