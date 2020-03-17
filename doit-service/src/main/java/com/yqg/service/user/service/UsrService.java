@@ -162,7 +162,7 @@ public class UsrService {
         feedBack.setClientType(usrFeedBackRequest.getClient_type());
         feedBack.setChannelSn(usrFeedBackRequest.getChannel_sn());
         feedBack.setChannelName(usrFeedBackRequest.getChannel_name());
-        feedBack.setDeviceId(usrFeedBackRequest.getDeviceId());
+        feedBack.setDeviceId(UUID.randomUUID().toString());
         feedBack.setResolution(usrFeedBackRequest.getResolution());
         feedBack.setIPAdress(usrFeedBackRequest.getIPAdress());
         feedBack.setSourceType(usrFeedBackRequest.getSourceType());
@@ -441,6 +441,8 @@ public class UsrService {
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = false)
     public LoginSession logup(UsrRequst usrRequst) throws ServiceException {
 
+        String deviceNumber = UUID.randomUUID().toString();
+
         String lockKey = "logup" + usrRequst.getUserUuid();
         if (!redisClient.lockRepeatWithSeconds(lockKey, 60)) {
             log.error("------------in progress------------");
@@ -448,14 +450,14 @@ public class UsrService {
         }
         try {
             RegisterDeviceInfo registerDeviceInfo = new RegisterDeviceInfo();
-            registerDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+            registerDeviceInfo.setDeviceNumber(deviceNumber);
             registerDeviceInfo.setDisabled(0);
 
             Boolean isWhiteUser = false;
-            if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
+            if (!StringUtils.isEmpty(usrRequst.getMac())) {
                 // 首先检查是否在设备白名单里面
                 SysDeviceIdWhiteList whiteScan = new SysDeviceIdWhiteList();
-                whiteScan.setDeviceId(usrRequst.getDeviceId());
+                whiteScan.setDeviceId(deviceNumber);
                 whiteScan.setDisabled(0);
                 List<SysDeviceIdWhiteList> whiteLists = this.sysDeviceIdWhiteListDao.scan(whiteScan);
                 if (CollectionUtils.isEmpty(whiteLists)) {
@@ -494,12 +496,20 @@ public class UsrService {
                 user.setUserSource(Integer.valueOf(usrRequst.getUserSource()));
             }
             user.setUserType(1);
-            user.setIsMobileValidated(0);
+
+            String result = redisClient.get(RedisContants.SMS_OTP_OFF);
+            if(result.equals("1")){
+                user.setIsMobileValidated(1);
+                user.setRemark("sms otp is off");
+            } else {
+                user.setIsMobileValidated(0);
+            }
+            
             user.setEmailAddress(DESUtils.decrypt(usrRequst.getEmail()));
             this.usrDao.insert(user);
 
             //???????????????
-            if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
+            if (!StringUtils.isEmpty(deviceNumber)) {
                 //????????
                 if (!isWhiteUser) {
 
@@ -524,17 +534,18 @@ public class UsrService {
 
     private void addUser(UsrRequst usrRequst) throws ServiceException {
 
+        String deviceNumber = UUID.randomUUID().toString();
         RegisterDeviceInfo registerDeviceInfo = new RegisterDeviceInfo();
-        registerDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+        registerDeviceInfo.setDeviceNumber(deviceNumber);
         //janhsen: no need check disabled = 0 because devicenumber is unique in table without disabled
         //registerDeviceInfo.setDisabled(0);
 
         Boolean isWhiteUser = false;
-        if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
+        if (!StringUtils.isEmpty(deviceNumber)) {
 
             // 首先检查是否在设备白名单里面
             SysDeviceIdWhiteList whiteScan = new SysDeviceIdWhiteList();
-            whiteScan.setDeviceId(usrRequst.getDeviceId());
+            whiteScan.setDeviceId(deviceNumber);
             whiteScan.setDisabled(0);
             List<SysDeviceIdWhiteList> whiteLists = this.sysDeviceIdWhiteListDao.scan(whiteScan);
             if (CollectionUtils.isEmpty(whiteLists)) {
@@ -574,12 +585,20 @@ public class UsrService {
             user.setUserSource(Integer.valueOf(usrRequst.getUserSource()));
         }
         user.setUserType(1);
-        user.setIsMobileValidated(0);
+        
+        String result = redisClient.get(RedisContants.SMS_OTP_OFF);
+        if(result.equals("1")){
+            user.setIsMobileValidated(1);
+            user.setRemark("sms otp is off");
+        } else {
+            user.setIsMobileValidated(0);
+        }
+        
         user.setEmailAddress(DESUtils.encrypt(usrRequst.getEmail()));
         this.usrDao.insert(user);
 
         //???????????????
-        if (!StringUtils.isEmpty(usrRequst.getDeviceId())) {
+        if (!StringUtils.isEmpty(deviceNumber)) {
             //????????
             if (!isWhiteUser) {
                 registerDeviceInfo.setUserUuid(user.getUuid());
@@ -628,6 +647,8 @@ public class UsrService {
      * @throws Exception
      */
     public LoginSession login(UsrRequst usrRequst) throws ServiceException {
+        String deviceNumber = UUID.randomUUID().toString();
+
         List<UsrUser> users = this.scanUser(usrRequst);
         if (CollectionUtils.isEmpty(users)) {
             log.info("????", "users--->" + users);
@@ -646,18 +667,18 @@ public class UsrService {
             if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
                 RegisterDeviceInfo regDeviceInfo = registerDeviceInfoList.get(0);
                 regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
-                regDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+                regDeviceInfo.setDeviceNumber(deviceNumber);
                 regDeviceInfo.setDeviceType(usrRequst.getClient_type());
                 regDeviceInfo.setMacAddress(usrRequst.getMac());
                 regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
                 registerDeviceInfoDao.update(regDeviceInfo);
             }
             else{
-                if(!StringUtils.isEmpty(usrRequst.getDeviceId())){
+                if(!StringUtils.isEmpty(usrRequst.getMac())){
                     RegisterDeviceInfo regDeviceInfo = new RegisterDeviceInfo();
                     regDeviceInfo.setUserUuid(users.get(0).getUuid());
                     regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
-                    regDeviceInfo.setDeviceNumber(usrRequst.getDeviceId());
+                    regDeviceInfo.setDeviceNumber(deviceNumber);
                     regDeviceInfo.setDeviceType(usrRequst.getClient_type());
                     regDeviceInfo.setMacAddress(usrRequst.getMac());
                     regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
@@ -681,9 +702,12 @@ public class UsrService {
      */
     public void addUsrLoginHistory(UsrRequst usrRequst) {
         //????????
+
+        String deviceNumber = UUID.randomUUID().toString();
+
         UsrLoginHistory usrLoginHistory = new UsrLoginHistory();
         usrLoginHistory.setUserUuid(usrRequst.getUserUuid());
-        usrLoginHistory.setDeviceNomber(usrRequst.getDeviceId());
+        usrLoginHistory.setDeviceNomber(deviceNumber);
         usrLoginHistory.setDeviceType(usrRequst.getClient_type());
         usrLoginHistory.setMacAddress(usrRequst.getMac());
         usrLoginHistory.setIpAddress(usrRequst.getIPAdress());
@@ -1536,6 +1560,8 @@ public class UsrService {
     }
 
     public void updateFcmToken(BaseRequest request) throws ServiceException{
+        String deviceNumber = UUID.randomUUID().toString();
+
         String fcmTokenCache = redisClient.get("fcm_" + request.getUserUuid());
         if(StringUtils.isEmpty(fcmTokenCache)){
             RegisterDeviceInfo registerDeviceInfo = registerDeviceInfoDao.getRegisterDeviceByUserUuid(request.getUserUuid());
@@ -1548,11 +1574,11 @@ public class UsrService {
             }
             else{
                 try{
-                    if(!StringUtils.isEmpty(request.getDeviceId())){
+                    if(!StringUtils.isEmpty(deviceNumber)){
                         RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
                         newRegDeviceInfo.setCreateUser(0);
                         newRegDeviceInfo.setUserUuid(request.getUserUuid());
-                        newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
+                        newRegDeviceInfo.setDeviceNumber(deviceNumber);
                         newRegDeviceInfo.setDeviceType(request.getClient_type());
                         newRegDeviceInfo.setIpAddress(request.getIPAdress());
                         newRegDeviceInfo.setFcmToken(request.getFcmToken());
@@ -1580,11 +1606,11 @@ public class UsrService {
                 }
                 else{
                     try{
-                        if(!StringUtils.isEmpty(request.getDeviceId())){
+                        if(!StringUtils.isEmpty(deviceNumber)){
                             RegisterDeviceInfo newRegDeviceInfo = new RegisterDeviceInfo();
                             newRegDeviceInfo.setCreateUser(0);
                             newRegDeviceInfo.setUserUuid(request.getUserUuid());
-                            newRegDeviceInfo.setDeviceNumber(request.getDeviceId());
+                            newRegDeviceInfo.setDeviceNumber(deviceNumber);
                             newRegDeviceInfo.setDeviceType(request.getClient_type());
                             newRegDeviceInfo.setIpAddress(request.getIPAdress());
                             newRegDeviceInfo.setFcmToken(request.getFcmToken());

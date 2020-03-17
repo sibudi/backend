@@ -317,5 +317,7 @@ public class RedisContants {
     
     public static final String AIQQON_SWITCH ="aiqqon:switch";
 
+    public  static final String SMS_OTP_OFF ="sms:otp:off";//电子签约开关
+
 
 }
