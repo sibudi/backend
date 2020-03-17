@@ -7,9 +7,9 @@ mysql:
     type: com.alibaba.druid.pool.DruidDataSource
     write:
       name: yishu_write
-      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
-      username: userdoit
-      password: PJf4jqQZ0igtKQ
+      url: jdbc:mysql://doit-polardb.uat.doitglotech.cloud:3306/doit?useUnicode=true&characterEncoding=utf-8
+      username: doit
+      password: 9p!U4M&o3*ANk#
       # 使用druid数据源
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
@@ -28,9 +28,9 @@ mysql:
       maxOpenPreparedStatements: 20
     read01:
       name: yishu_read01
-      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
-      username: userdoit
-      password: PJf4jqQZ0igtKQ
+      url: jdbc:mysql://doit-polardb.uat.doitglotech.cloud:3306/doit?useUnicode=true&characterEncoding=utf-8
+      username: doit
+      password: 9p!U4M&o3*ANk#
       # 使用druid数据源
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
@@ -49,9 +49,9 @@ mysql:
       maxOpenPreparedStatements: 20
     read02:
       name: yishu_read02
-      url: jdbc:mysql://maxscale.uat.doitglotech.cloud:3388/doit?useUnicode=true&characterEncoding=utf-8
-      username: userdoit
-      password: PJf4jqQZ0igtKQ
+      url: jdbc:mysql://doit-polardb.uat.doitglotech.cloud:3306/doit?useUnicode=true&characterEncoding=utf-8
+      username: doit
+      password: 9p!U4M&o3*ANk#
       # 使用druid数据源
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver

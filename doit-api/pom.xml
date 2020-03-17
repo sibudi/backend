@@ -113,7 +113,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.21</version><!--$NO-MVN-MAN-VER$ -->
+			<version>5.1.45</version><!--$NO-MVN-MAN-VER$ -->
 		</dependency>
 		<dependency>
 			<groupId>org.mybatis.spring.boot</groupId>
