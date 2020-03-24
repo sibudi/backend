@@ -1,6 +1,9 @@
 ##### Publish to TEST #####
 aliyun oss cp doit-pay/target/doit-pay-0.0.1-SNAPSHOT.jar oss://doit-build-5263863254564512/doit-pay/doit-pay-0.0.1-SNAPSHOT.jar
 aliyun oss cp doit-api/target/doit-api-0.0.1-SNAPSHOT.jar oss://doit-build-5263863254564512/doit-api/doit-api-0.0.1-SNAPSHOT.jar
+aliyun oss cp doit-risk/target/doit-risk-0.0.1-SNAPSHOT.jar oss://doit-build-5263863254564512/doit-risk/doit-risk-0.0.1-SNAPSHOT.jar
+aliyun oss cp doit-task/target/doit-task-0.0.1-SNAPSHOT.jar oss://doit-build-5263863254564512/doit-task/doit-task-0.0.1-SNAPSHOT.jar
+aliyun oss cp doit-manage/target/doit-management-0.0.1-SNAPSHOT.jar oss://doit-build-5263863254564512/doit-manage/doit-management-0.0.1-SNAPSHOT.jar
 
 
 
