@@ -162,17 +162,17 @@
 			<artifactId>aspectjweaver</artifactId>
 			<version>1.8.9</version><!--$NO-MVN-MAN-VER$ -->
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.taobao</groupId>
 			<artifactId>zhima</artifactId>
 			<version>1.0.0</version>
-		</dependency>
+		</dependency> -->
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.taobao</groupId>
 			<artifactId>alipay</artifactId>
 			<version>1.0.0</version>
-		</dependency>
+		</dependency> -->
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -201,7 +201,7 @@
 		</dependency>
 	</dependencies>
 
-	<build>
+	<!-- <build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -219,6 +219,6 @@
 				</executions>
 			</plugin>
 		</plugins>
-	</build>
+	</build> -->
 
 </project>
