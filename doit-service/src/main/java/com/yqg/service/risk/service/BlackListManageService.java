@@ -118,7 +118,7 @@ public class BlackListManageService {
                 continue;
             }
             //欺诈用户放到usrBlackList表(type5)
-            usrBlackListDao.addFraudUser(userUuid);
+            usrBlackListDao.addFraudUser(userUuid, "");
             needCacheList.add(userUuid);
         }
         //查询刚刚插入的订单

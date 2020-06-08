@@ -156,11 +156,8 @@ third:
     whatsAppFrom: whatsapp:+6285574676558
     url: http://control2.uanguang.co.id/manage/
   inforbip:
-    #userName: do-it
-    #password: do-it2018
-    userName: invalid_user
-    password: invalid_password
-    #host: https://api.infobip.com
+    userName: do-it
+    password: do-it2018
     host: https://api-id1.infobip.com
     mobileLookUpUrl: /tts/3/single
     mobileLookUpUrlMulti: /tts/3/multi
@@ -174,32 +171,6 @@ third:
     identityCheckApi: /openapi/anti-fraud/v2/identity-check
     blacklistCheck: /openapi/anti-fraud/v5/blacklist-check
     multiPlatform: /openapi/default-detection/v5/multi-platform
-  digiSign:
-    token: atXytejhMO5pMsaAtLdcrkQ2WFlb7uHSCBXXhmnv6jV5AWIdFGofaM4nD6EGQT
-    doitAdminEmail: it@do-it.id
-    #test env
-    #      registerUrl: https://api.tandatanganku.com/REG-MITRA.html
-    #      activationUrl: https://api.tandatanganku.com/ACTMitra-M.html
-    #      sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
-    #      signUrl: https://api.tandatanganku.com/SignWebView.html
-    #      tmpContractDir: C:/Users/zxc20/Desktop/digSign/contract-tmp
-    #      automaticSignKUser: e8r5QbytnJ5g2HOo
-    #      apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
-    #      apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
-    #      apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA.html
-
-    #uat env
-    registerUrl: https://apiuat.tandatanganku.com/REG-MITRA.html
-    activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
-    sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
-    signUrl: https://apiuat.tandatanganku.com/SignWebView.html
-    contractDir: /mnt/MyUpload/DOIT_CONTRACT
-    automaticSignKUser: e8r5QbytnJ5g2HOo
-    automaticSignEmail: it@do-it.id
-    automaticSignRealName: it@do-it.id
-    apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
-    apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
-    apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
 pay:
   inactiveOrderUrl: http://api.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
   token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA

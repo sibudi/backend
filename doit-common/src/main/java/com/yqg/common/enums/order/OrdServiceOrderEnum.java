@@ -5,12 +5,12 @@ package com.yqg.common.enums.order;
  */
 public enum OrdServiceOrderEnum {
 
-    INIT(1,"初始化"),//初始化
-    LOAN(2,"待打款"),// 待打款(原订单打款成功后)
-    LOANING(3,"放款中"),// 放款中
-    LOAN_SUCCESS(4,"打款成功"),//打款成功
-    LOAN_FAILD(5,"打款失败"),//打款失败
-    TRANS_SUCCESS(6,"转账成功");//转账成功
+    INIT(1,"初始化"),       // Init
+    LOAN(2,"待打款"),       // Pending Payment (after the original order has been successfully sent)
+    LOANING(3,"放款中"),    // Loaning
+    LOAN_SUCCESS(4,"打款成功"),     // Successfully hit money
+    LOAN_FAILD(5,"打款失败"),       // Failed to make money
+    TRANS_SUCCESS(6,"转账成功");    // Transfer successful
 
     private int code;
     private String message;

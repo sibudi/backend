@@ -1,5 +1,6 @@
 package com.yqg.service.p2p.request;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -20,4 +21,10 @@ public class UserRepayRequest extends P2PInvokeBaseParam{
 
     private String repaymentType; // 还款类型 1正常还款 2分期还款 3展期还款
     private Integer periodNo; // 分期还款期数
+    private String bankCode; // 分期还款期数
+    private String depositStatus;
+    private String  paymentcode;
+    private String  externalId;
+    private String  depositChannel;
+    private String  depositMethod;
 }

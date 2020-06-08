@@ -221,7 +221,7 @@ public class UserBackupLinkmanService {
     public boolean needAutoUpdateBackupLinkman(String orderNo, String userUuid){
         List<BackupLinkmanItem> dbList = getBackupLinkmanList(orderNo,userUuid);
         if(CollectionUtils.isEmpty(dbList)){
-            //无备选联系人，判定是否有紧急联系人
+            //No alternative contact, determine if there is an emergency contact
             List<UsrLinkManInfo> dbLinkManList = getLinkManInfo(userUuid);
             if(CollectionUtils.isEmpty(dbLinkManList)||dbLinkManList.size()!=4){
                 return false;

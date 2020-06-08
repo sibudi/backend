@@ -22,7 +22,7 @@ public class RiskDataSysnTask {
     /***
      * 每隔两分钟将mongo数据同步到风控库的mysql表中
      */
-    @Scheduled(cron = "0 0/2 * * * ?")
+    //@Scheduled(cron = "0 0/2 * * * ?")
     public void mongo2MySQL() {
         try {
             riskDataSynService.syncMongo2MySQL();

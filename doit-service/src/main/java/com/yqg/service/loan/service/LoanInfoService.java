@@ -18,6 +18,7 @@ import com.yqg.mongo.entity.UserCallRecordsMongo;
 import com.yqg.mongo.entity.UserContactsMongo;
 import com.yqg.order.dao.*;
 import com.yqg.order.entity.*;
+import com.yqg.order.entity.OrdOrder.P2PLoanStatusEnum;
 import com.yqg.service.loan.request.RepayPlan;
 import com.yqg.service.loan.request.RepayPlanRequest;
 import com.yqg.service.loan.response.CheckRepayResponse;
@@ -167,6 +168,10 @@ public class LoanInfoService {
             entity.setUpdateTime(new Date());
             entity.setLendingTime(new Date());
             entity.setRefundTime(DateUtils.addDate(new Date(),order.getBorrowingTerm()-1));
+            //ahalim update mark status if p2p order
+            if (p2PService.isP2PIssuedLoan(P2PLoanStatusEnum.getEnumFromValue(order.getMarkStatus()))) {
+                entity.setMarkStatus(P2PLoanStatusEnum.REPAYMENT_PENDING.getStatusCode());
+            }
             this.ordService.updateOrder(entity);
 
             order.setStatus(OrdStateEnum.RESOLVING_NOT_OVERDUE.getCode());
@@ -218,9 +223,9 @@ public class LoanInfoService {
                         billList.add(bill);
                     }
 
-//                    TODO: p2p 待上线
-//                    // 推送还款计划到p2p
-//                    sendRepayPlanToP2P(order,billList);
+//
+//                  // Rizky enable sendtop2p
+                    sendRepayPlanToP2P(order,billList);
 
                 }catch (Exception e){
                     log.error("分期订单生成还款计划失败,orderNo: " + order.getUuid(), e);

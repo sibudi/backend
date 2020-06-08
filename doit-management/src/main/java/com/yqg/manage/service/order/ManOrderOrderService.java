@@ -59,6 +59,8 @@ import com.yqg.service.system.service.SysDicService;
 import com.yqg.service.system.service.SysThirdLogsService;
 import com.yqg.service.user.response.UsrAttachmentResponse;
 import com.yqg.service.user.service.UsrService;
+import com.yqg.system.dao.SysProductDao;
+import com.yqg.system.entity.SysProduct;
 import com.yqg.system.entity.SysThirdLogs;
 import com.yqg.user.dao.UsrCertificationInfoDao;
 import com.yqg.user.dao.UsrStudentDetailDao;
@@ -83,6 +85,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -121,6 +124,9 @@ public class ManOrderOrderService {
 
     @Autowired
     private ManUserDao manUserDao;
+
+    @Autowired
+    private SysProductDao sysProductDao;
 
     @Autowired
     private SysDicService sysDicService;
@@ -451,7 +457,6 @@ public class ManOrderOrderService {
             if (order.getRefundTime() == null) {
                 return ;
             }
-            //判断不同订单状态，其时间不同
             String nowDate = com.yqg.common.utils.DateUtils.formDate
                     (new Date(), "yyyy-MM-dd");
             if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()) {
@@ -463,67 +468,151 @@ public class ManOrderOrderService {
             }
             dayNum = (int) com.yqg.common.utils.DateUtils.daysBetween(com.yqg.common.utils.DateUtils.formDate
                     (order.getRefundTime(), "yyyy-MM-dd"), nowDate);
-            if (dayNum <= 0) {
-                response.setOverdueFee("0");
-                response.setOverdueMoney("0");
-                BigDecimal tempMoney = order.getAmountApply().add(order.getInterest());
-                response.setShouldPayAmount(com.yqg.common.utils.StringUtils.
-                        formatMoney(tempMoney
-                                .doubleValue()).replaceAll(",",".").toString());
+
+            if(order.getOrderType().equals(OrderTypeEnum.STAGING.getCode())){
+                BigDecimal overDueFee = BigDecimal.ZERO;
+                SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(order.getProductUuid());
+                if(dayNum>0) {
+                    overDueFee = sysProd.getOverdueFee();
+                }
+                response.setOverdueFee(com.yqg.common.utils.StringUtils.formatMoney(overDueFee.doubleValue()).replaceAll(",", "."));
+
+                BigDecimal billAmount = order.getAmountApply().divide(
+                        BigDecimal.valueOf(order.getBorrowingTerm()), 2, RoundingMode.HALF_UP);
+
+                BigDecimal shouldPayAmount = BigDecimal.ZERO;
+                BigDecimal overDueMoney = BigDecimal.ZERO;
+                if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode() || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()) {
+                    //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount
+                    //get ids from ordBills
+                    List<OrdBill> billList = this.ordBillDao.billsWithUserUuidAndOrderNo(order.getUserUuid(),order.getUuid());
+                    if (!CollectionUtils.isEmpty(billList)) {
+                        List<String> Ids = billList
+                                .stream()
+                                .map(a -> String.valueOf(a.getUuid()))
+                                .collect(Collectors.toList());
+                        //query ordRepayAmout with bill ids
+                        List<OrdRepayAmoutRecord> records = this.ordRepayAmoutRecordDao.getOrdRepayRecordfromBills(Ids);
+                        String amount = records
+                                .stream()
+                                .map(a -> com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(a.getActualRepayAmout())).replaceAll(",", "."))
+                                .collect(Collectors.joining(", "));
+                        String overdufee = records
+                                .stream()
+                                .map(a -> com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(a.getOverDueFee())).replaceAll(",", "."))
+                                .collect(Collectors.joining(", "));
+                        String overdueMoney = records
+                                .stream()
+                                .map(a -> com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(a.getPenaltyFee())).replaceAll(",", "."))
+                                .collect(Collectors.joining(", "));
+
+                        response.setShouldPayAmount(amount);
+                        response.setActualPayAmount(amount);
+                        response.setOverdueFee(overdufee);
+                        response.setOverdueMoney(overdueMoney);
+
+                    }
+                }
+                else {
+                    if (dayNum <= 0){
+                        response.setOverdueFee("0");
+                        response.setOverdueMoney("0");
+                        response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(billAmount.doubleValue()));
+                        response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(billAmount.doubleValue()));
+                        return;
+                    }
+                    else if (dayNum <= 3L) {
+                        // ????? = ????+  ????? + ?? + ????????*??????*??????
+                        shouldPayAmount = billAmount
+                                .add(order.getInterest().divide(BigDecimal.valueOf(order.getBorrowingTerm()), 2, RoundingMode.HALF_UP))
+                                .add(sysProd.getOverdueFee())
+                                .add(billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(dayNum)));
+                        overDueMoney = billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(dayNum));
+
+                    } else {
+
+                        shouldPayAmount = billAmount
+                                .add(order.getInterest().divide(BigDecimal.valueOf(order.getBorrowingTerm()), 2, RoundingMode.HALF_UP))
+                                .add(sysProd.getOverdueFee())
+                                .add(billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
+                                .add(billAmount.multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(dayNum - 3)));
+
+                        overDueMoney = (billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
+                                .add(billAmount.multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(dayNum - 3)));
+                    }
+                }
+                BigDecimal limit = (order.getAmountApply().subtract(order.getServiceFee())).divide(BigDecimal.valueOf(3),RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(2)).setScale(2);
+                if (shouldPayAmount.compareTo(limit) > 0) {
+                    shouldPayAmount = limit;
+                    overDueMoney = limit.subtract(sysProd.getOverdueFee()).subtract(billAmount);
+                }
+                response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", "."));
+                response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", "."));
+                response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overDueMoney.doubleValue()).replaceAll(",", "."));
+            }
+            else {
+                if (dayNum <= 0) {
+                    response.setOverdueFee("0");
+                    response.setOverdueMoney("0");
+                    BigDecimal tempMoney = order.getAmountApply().add(order.getInterest());
+                    response.setShouldPayAmount(com.yqg.common.utils.StringUtils.
+                            formatMoney(tempMoney
+                                    .doubleValue()).replaceAll(",", ".").toString());
+
+                    //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+                    BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
+                    if (tempMoney.compareTo(limit) > 0) {
+                        tempMoney = limit;
+                    }
+                    //实际应还款金额
+                    response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(tempMoney.doubleValue()).replaceAll(",", ".").toString());
+                    return;
+                }
+
+                //逾期账户管理费
+                response.setOverdueFee(this.repayService.calculateOverDueFee(order));
+
+                //Overdue account penalty fees based on overdue duration (without limit)
+                BigDecimal overdueMoney = new BigDecimal(this.repayService.calculatePenaltyFee(order));
+                // (Overdue) Repayable amount: Borrowing amount + interest + overdue fees
+                BigDecimal shouldPayAmount = BigDecimal.ZERO;
+
+                if (!order.getOrderType().equals("0")) {
+                    //There is already a limit set in repayService.calculateRepayAmount
+                    shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "2"));
+                    //Delay fee is service fee for extending the order (regardless of overdue duration)
+                    response.setExtendServiceFee(com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(this.repayService.calculateDelayFee(order))).replaceAll(",", ".").toString());
+                } else {
+                    if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode() || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()) {
+                        //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount
+                        OrdRepayAmoutRecord ordRepayAmoutRecord = new OrdRepayAmoutRecord();
+                        ordRepayAmoutRecord.setDisabled(0);
+                        ordRepayAmoutRecord.setOrderNo(order.getUuid());
+                        List<OrdRepayAmoutRecord> recordList = this.ordRepayAmoutRecordDao.scan(ordRepayAmoutRecord);
+                        if (!CollectionUtils.isEmpty(recordList)) {
+                            shouldPayAmount = new BigDecimal(recordList.get(0).getActualRepayAmout());
+                        }
+                    } else {
+                        //There is already a limit set in repayService.calculateRepayAmount
+                        shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "1"));
+                    }
+                }
+                // Repayable Amount (currently the same with ActualPayAmount)
+                response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", ".").toString());
 
                 //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
                 BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
-                if (tempMoney.compareTo(limit) > 0 ){
-                    tempMoney = limit;
+                if (shouldPayAmount.compareTo(limit) > 0) {
+                    shouldPayAmount = limit;
                 }
-                //实际应还款金额
-                response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(tempMoney.doubleValue()).replaceAll(",",".").toString());
-                return ;
+
+                //Actual Repayment Amount (currently the same with ShouldPayAmount)
+                response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", ".").toString());
+
+                //Overdue account penalty fee based on overdue duration.
+                //It is intended to show the real overdue fee without limit, but it's not the amount that the user should pay
+                response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overdueMoney.doubleValue()).replaceAll(",", ".").toString());
             }
-
-            //逾期账户管理费
-            response.setOverdueFee(this.repayService.calculateOverDueFee(order));
-
-            //Overdue account penalty fees based on overdue duration (without limit)
-            BigDecimal overdueMoney = new BigDecimal(this.repayService.calculatePenaltyFee(order));
-            // (Overdue) Repayable amount: Borrowing amount + interest + overdue fees
-            BigDecimal shouldPayAmount = BigDecimal.ZERO;
-
-            if (!order.getOrderType().equals("0")){
-                //There is already a limit set in repayService.calculateRepayAmount
-                shouldPayAmount  = new BigDecimal(this.repayService.calculateRepayAmount(order,"2"));
-                //Delay fee is service fee for extending the order (regardless of overdue duration)
-                response.setExtendServiceFee(com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(this.repayService.calculateDelayFee(order))).replaceAll(",",".").toString());
-            }else {
-                if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()  || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()){
-                    //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount 
-                    OrdRepayAmoutRecord ordRepayAmoutRecord = new OrdRepayAmoutRecord();
-                    ordRepayAmoutRecord.setDisabled(0);
-                    ordRepayAmoutRecord.setOrderNo(order.getUuid());
-                    List<OrdRepayAmoutRecord> recordList = this.ordRepayAmoutRecordDao.scan(ordRepayAmoutRecord);
-                    if (!CollectionUtils.isEmpty(recordList)) {
-                        shouldPayAmount  = new BigDecimal(recordList.get(0).getActualRepayAmout());
-                    }
-                }else {
-                    //There is already a limit set in repayService.calculateRepayAmount
-                    shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "1"));
-                }
-            }
-            // Repayable Amount (currently the same with ActualPayAmount)
-            response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
-
-            //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
-            BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
-            if (shouldPayAmount.compareTo(limit) > 0 ){
-                shouldPayAmount = limit;
-            }
-
-            //Actual Repayment Amount (currently the same with ShouldPayAmount)
-            response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
-
-            //Overdue account penalty fee based on overdue duration. 
-            //It is intended to show the real overdue fee without limit, but it's not the amount that the user should pay 
-            response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overdueMoney.doubleValue()).replaceAll(",",".").toString());
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -541,7 +630,6 @@ public class ManOrderOrderService {
             if (order.getRefundTime() == null) {
                 return ;
             }
-            //判断不同订单状态，其时间不同
             String nowDate = com.yqg.common.utils.DateUtils.formDate
                     (new Date(), "yyyy-MM-dd");
             if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()) {
@@ -549,73 +637,155 @@ public class ManOrderOrderService {
                         (order.getRefundTime(), "yyyy-MM-dd");
             } else if (order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()) {
                 nowDate = com.yqg.common.utils.DateUtils.formDate
-                        (order.getActualRefundTime(),"yyyy-MM-dd");
+                        (order.getActualRefundTime(), "yyyy-MM-dd");
             }
             dayNum = (int) com.yqg.common.utils.DateUtils.daysBetween(com.yqg.common.utils.DateUtils.formDate
                     (order.getRefundTime(), "yyyy-MM-dd"), nowDate);
-            if (dayNum <= 0) {
-                response.setOverdueFee("0");
-                response.setOverdueMoney("0");
-                BigDecimal tempMoney = order.getAmountApply().add(order.getInterest());
-                response.setShouldPayAmount(com.yqg.common.utils.StringUtils.
-                        formatMoney(tempMoney
-                                .doubleValue()).replaceAll(",",".").toString());
+            if(order.getOrderType().equals(OrderTypeEnum.STAGING.getCode())){
+                BigDecimal overDueFee = BigDecimal.ZERO;
+                SysProduct sysProd = sysProductDao.getProductInfoIgnorDisabled(order.getProductUuid());
+                if(dayNum>0) {
+                    overDueFee = sysProd.getOverdueFee();
+                }
+                response.setOverdueFee(com.yqg.common.utils.StringUtils.formatMoney(overDueFee.doubleValue()).replaceAll(",", "."));
+
+                BigDecimal billAmount = order.getAmountApply().divide(
+                BigDecimal.valueOf(order.getBorrowingTerm()), 2, RoundingMode.HALF_UP);
+
+                BigDecimal shouldPayAmount = BigDecimal.ZERO;
+                BigDecimal overDueMoney = BigDecimal.ZERO;
+                if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode() || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()) {
+                    //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount
+                    List<OrdBill> billList = this.ordBillDao.billsWithUserUuidAndOrderNo(order.getUserUuid(),order.getUuid());
+                    if (!CollectionUtils.isEmpty(billList)) {
+                        List<String> Ids = billList
+                                .stream()
+                                .map(a -> String.valueOf(a.getUuid()))
+                                .collect(Collectors.toList());
+                        List<OrdRepayAmoutRecord> records = this.ordRepayAmoutRecordDao.getOrdRepayRecordfromBills(Ids);
+                        String amount = records
+                                .stream()
+                                .map(a -> com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(a.getActualRepayAmout())).replaceAll(",", "."))
+                                .collect(Collectors.joining(", "));
+                        String overdufee = records
+                                .stream()
+                                .map(a -> com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(a.getOverDueFee())).replaceAll(",", "."))
+                                .collect(Collectors.joining(", "));
+                        String overdueMoney = records
+                                .stream()
+                                .map(a -> com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(a.getPenaltyFee())).replaceAll(",", "."))
+                                .collect(Collectors.joining(", "));
+
+                        response.setShouldPayAmount(amount);
+                        response.setActualPayAmount(amount);
+                        response.setOverdueFee(overdufee);
+                        response.setOverdueMoney(overdueMoney);
+
+                    }
+                }
+                else {
+                    if (dayNum <= 0){
+                        response.setOverdueFee("0");
+                        response.setOverdueMoney("0");
+                        response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(billAmount.doubleValue()));
+                        response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(billAmount.doubleValue()));
+                        return;
+                    }
+                    else if (dayNum <= 3L) {
+                        // ????? = ????+  ????? + ?? + ????????*??????*??????
+                        shouldPayAmount = billAmount
+                                .add(order.getInterest().divide(BigDecimal.valueOf(order.getBorrowingTerm()), 2, RoundingMode.HALF_UP))
+                                .add(overDueFee)
+                                .add(billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(dayNum)));
+                        overDueMoney = billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(dayNum));
+
+                    } else {
+
+                        shouldPayAmount = billAmount
+                                .add(order.getInterest().divide(BigDecimal.valueOf(order.getBorrowingTerm()), 2, RoundingMode.HALF_UP))
+                                .add(overDueFee)
+                                .add(billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
+                                .add(billAmount.multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(dayNum - 3)));
+
+                        overDueMoney = (billAmount.multiply(sysProd.getOverdueRate1()).multiply(BigDecimal.valueOf(3)))
+                                .add(billAmount.multiply(sysProd.getOverdueRate2()).multiply(BigDecimal.valueOf(dayNum - 3)));
+                    }
+                    BigDecimal limit = (order.getAmountApply().subtract(order.getServiceFee())).divide(BigDecimal.valueOf(3),RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(2)).setScale(2);
+                    if (shouldPayAmount.compareTo(limit) > 0) {
+                        shouldPayAmount = limit;
+                        overDueMoney = limit.subtract(overDueFee).subtract(billAmount);
+                    }
+                    response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", "."));
+                    response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", "."));
+                    response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overDueMoney.doubleValue()).replaceAll(",", "."));
+                }
+
+            }
+            else {
+                if (dayNum <= 0) {
+                    response.setOverdueFee("0");
+                    response.setOverdueMoney("0");
+                    BigDecimal tempMoney = order.getAmountApply().add(order.getInterest());
+                    response.setShouldPayAmount(com.yqg.common.utils.StringUtils.
+                            formatMoney(tempMoney
+                                    .doubleValue()).replaceAll(",", ".").toString());
+
+                    //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
+                    BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
+                    if (tempMoney.compareTo(limit) > 0) {
+                        tempMoney = limit;
+                    }
+                    //实际应还款金额
+                    response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(tempMoney.doubleValue()).replaceAll(",", ".").toString());
+                    return;
+                }
+
+                //逾期账户管理费
+                BigDecimal overdueFee = new BigDecimal(this.repayService.calculateOverDueFee(order));
+                response.setOverdueFee(com.yqg.common.utils.StringUtils.formatMoney(overdueFee.doubleValue()).replaceAll(",", ".").toString());
+
+                //Overdue account penalty fees based on overdue duration (without limit)
+                BigDecimal overdueMoney = new BigDecimal(this.repayService.calculatePenaltyFee(order));
+                // (Overdue) Repayable amount: Borrowing amount + interest + overdue fees
+                BigDecimal shouldPayAmount = BigDecimal.ZERO;
+
+                if (!order.getOrderType().equals("0")) {
+                    //There is already a limit set in repayService.calculateRepayAmount
+                    shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "2"));
+                    //Delay fee is service fee for extending the order (regardless of overdue duration)
+                    response.setExtendServiceFee(com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(this.repayService.calculateDelayFee(order))).replaceAll(",", ".").toString());
+                } else {
+                    if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode() || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()) {
+                        //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount
+                        OrdRepayAmoutRecord ordRepayAmoutRecord = new OrdRepayAmoutRecord();
+                        ordRepayAmoutRecord.setDisabled(0);
+                        ordRepayAmoutRecord.setOrderNo(order.getUuid());
+                        List<OrdRepayAmoutRecord> recordList = this.ordRepayAmoutRecordDao.scan(ordRepayAmoutRecord);
+                        if (!CollectionUtils.isEmpty(recordList)) {
+                            shouldPayAmount = new BigDecimal(recordList.get(0).getActualRepayAmout());
+                        }
+                    } else {
+                        //There is already a limit set in repayService.calculateRepayAmount
+                        shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "1"));
+                    }
+                }
+                // Repayable Amount (currently the same with ActualPayAmount)
+                response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", ".").toString());
 
                 //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
                 BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
-                if (tempMoney.compareTo(limit) > 0 ){
-                    tempMoney = limit;
+                if (shouldPayAmount.compareTo(limit) > 0) {
+                    shouldPayAmount = limit;
                 }
-                //实际应还款金额
-                response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(tempMoney.doubleValue()).replaceAll(",",".").toString());
-                return ;
+
+                //Actual Repayment Amount (currently the same with ShouldPayAmount)
+                response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",", ".").toString());
+
+                //Overdue account penalty fee based on overdue duration.
+                //It is intended to show the real overdue fee without limit, but it's not the amount that the user should pay
+                response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overdueMoney.doubleValue()).replaceAll(",", ".").toString());
             }
-
-            //逾期账户管理费
-            BigDecimal overdueFee = new BigDecimal(this.repayService.calculateOverDueFee(order));
-            response.setOverdueFee(com.yqg.common.utils.StringUtils.formatMoney(overdueFee.doubleValue()).replaceAll(",",".").toString());
-
-            //Overdue account penalty fees based on overdue duration (without limit)
-            BigDecimal overdueMoney = new BigDecimal(this.repayService.calculatePenaltyFee(order));
-            // (Overdue) Repayable amount: Borrowing amount + interest + overdue fees
-            BigDecimal shouldPayAmount = BigDecimal.ZERO;
-
-            if (!order.getOrderType().equals("0")){
-                //There is already a limit set in repayService.calculateRepayAmount
-                shouldPayAmount  = new BigDecimal(this.repayService.calculateRepayAmount(order,"2"));
-                //Delay fee is service fee for extending the order (regardless of overdue duration)
-                response.setExtendServiceFee(com.yqg.common.utils.StringUtils.formatMoney(Double.valueOf(this.repayService.calculateDelayFee(order))).replaceAll(",",".").toString());
-            }else {
-                if (order.getStatus() == OrdStateEnum.RESOLVED_NOT_OVERDUE.getCode()  || order.getStatus() == OrdStateEnum.RESOLVED_OVERDUE.getCode()){
-                    //If order has been resolved, doesn't need to calculate, Get data from actual repayment amount 
-                    OrdRepayAmoutRecord ordRepayAmoutRecord = new OrdRepayAmoutRecord();
-                    ordRepayAmoutRecord.setDisabled(0);
-                    ordRepayAmoutRecord.setOrderNo(order.getUuid());
-                    List<OrdRepayAmoutRecord> recordList = this.ordRepayAmoutRecordDao.scan(ordRepayAmoutRecord);
-                    if (!CollectionUtils.isEmpty(recordList)) {
-                        shouldPayAmount  = new BigDecimal(recordList.get(0).getActualRepayAmout());
-                    }
-                }else {
-                    //There is already a limit set in repayService.calculateRepayAmount
-                    shouldPayAmount = new BigDecimal(this.repayService.calculateRepayAmount(order, "1"));
-                }
-            }
-            // Repayable Amount (currently the same with ActualPayAmount)
-            response.setShouldPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
-
-            //Janhsen: change 1.2 to 2 because max repayment overdue fee is 200%
-            BigDecimal limit = order.getAmountApply().subtract(order.getServiceFee()).multiply(BigDecimal.valueOf(2)).setScale(2);
-            if (shouldPayAmount.compareTo(limit) > 0 ){
-                shouldPayAmount = limit;
-            }
-
-            //Actual Repayment Amount (currently the same with ShouldPayAmount)
-            response.setActualPayAmount(com.yqg.common.utils.StringUtils.formatMoney(shouldPayAmount.doubleValue()).replaceAll(",",".").toString());
-
-            //Overdue account penalty fee based on overdue duration. 
-            //It is intended to show the real overdue fee without limit, but it's not the amount that the user should pay 
-            response.setOverdueMoney(com.yqg.common.utils.StringUtils.formatMoney(overdueMoney.doubleValue()).replaceAll(",",".").toString());
-        } catch (ParseException e) {
+            } catch (ParseException e) {
             e.printStackTrace();
         }
 //        }

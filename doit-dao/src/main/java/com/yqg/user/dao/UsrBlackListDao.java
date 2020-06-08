@@ -247,12 +247,13 @@ public interface UsrBlackListDao extends BaseMapper<UsrBlackList> {
     List<UsrBlackList> getCurrentDayOverdue7();
 
 
-    @Insert("insert into usrBlackList(uuid,userUuid,deviceId,imei,idCardNo,mobileDes,linkManContactNumber1,linkManContactNumber2," +
+    @Insert("insert into usrBlackList(uuid,userUuid,remark,deviceId,imei,idCardNo,mobileDes,linkManContactNumber1,linkManContactNumber2," +
             "bankCardNumber,createTime,\n"+
                    "                         updateTime,type)\n"+
                    "SELECT\n"+
                    "  REPLACE(UUID(), '-', ''),\n"+
                    "  u.uuid userUuid,\n"+
+                   " #{remark} remark,\n" +
                    "  d.deviceId,\n"+
                    "  d.IMEI,\n"+
                    "  u.idCardNo,\n"+
@@ -294,10 +295,13 @@ public interface UsrBlackListDao extends BaseMapper<UsrBlackList> {
                    "WHERE\n"+
                    "  u.disabled = 0\n"+
                    "  AND u.uuid = #{userUuid}")
-    Integer addFraudUser(@Param("userUuid") String userUuid);
+    Integer addFraudUser(@Param("userUuid") String userUuid, @Param("remark") String remark);
 
     @Select("select count(1) from usrBlackList where disabled=0 and userUuid = #{userUuid} and type = 5")
     Integer existsFraudUser(@Param("userUuid") String userUuid);
+
+    @Select("select count(1) from usrBlackList where disabled=0 and idCardNo = #{idCardNo} and type = 5")
+    Integer existsFraudUserByIdCardNo(@Param("idCardNo") String idCardNo);
 
 
     /***

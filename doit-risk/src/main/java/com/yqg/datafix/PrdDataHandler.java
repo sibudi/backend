@@ -20,8 +20,8 @@ import com.yqg.risk.dao.AdvanceBlacklistDao;
 import com.yqg.risk.dao.AdvanceMultiPlatformDao;
 import com.yqg.risk.entity.AdvanceBlacklist;
 import com.yqg.risk.entity.AdvanceMultiPlatform;
-import com.yqg.service.AutoCallErrorService;
-import com.yqg.service.AutoCallService;
+//import com.yqg.service.AutoCallErrorService;
+//import com.yqg.service.AutoCallService;
 import com.yqg.service.order.OrdDeviceExtendInfoService;
 import com.yqg.service.order.OrdDeviceInfoService;
 import com.yqg.service.order.OrdService;
@@ -66,15 +66,15 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class PrdDataHandler {
-    @Autowired
-    private AutoCallService autoCallService;
+    //@Autowired
+    //private AutoCallService autoCallService;
     @Autowired
     private InforbipService inforbipService;
     @Autowired
     private TeleCallResultDao teleCallResultDao;
 
-    @Autowired
-    private AutoCallErrorService autoCallErrorService;
+    //@Autowired
+    //private AutoCallErrorService autoCallErrorService;
     @Autowired
     private UsrDao usrDao;
     @Autowired
@@ -83,81 +83,83 @@ public class PrdDataHandler {
     private UsrService usrService;
 
 
-    public void iziHistory() {
-        List<OrdOrder> orders = teleCallResultDao.getHistoryDataToRunIzi();
-        if (CollectionUtils.isEmpty(orders)) {
-            return;
-        }
-        int i = 0;
-        for (OrdOrder order : orders) {
-            i++;
-            try {
-                if (i % 100 == 0) {
-                    Thread.sleep(1000 * 60);
-                }
+    //ahalim remark unused code
+    // public void iziHistory() {
+    //     List<OrdOrder> orders = teleCallResultDao.getHistoryDataToRunIzi();
+    //     if (CollectionUtils.isEmpty(orders)) {
+    //         return;
+    //     }
+    //     int i = 0;
+    //     for (OrdOrder order : orders) {
+    //         i++;
+    //         try {
+    //             if (i % 100 == 0) {
+    //                 Thread.sleep(1000 * 60);
+    //             }
 
-                UsrUser user = usrDao.getUserInfoById(order.getUserUuid());
-                String phone = DESUtils.decrypt(user.getMobileNumberDES());
-                String idCard = user.getIdCardNo();
-                IziResponse phoneAgeResponse = iziService.getPhoneAge(phone, order.getUuid(), order.getUserUuid());
+    //             UsrUser user = usrDao.getUserInfoById(order.getUserUuid());
+    //             String phone = DESUtils.decrypt(user.getMobileNumberDES());
+    //             String idCard = user.getIdCardNo();
+    //             IziResponse phoneAgeResponse = iziService.getPhoneAge(phone, order.getUuid(), order.getUserUuid());
 
-                IziResponse phoneVerifyResponse = iziService.getPhoneVerify(phone, idCard, order.getUuid(), order.getUserUuid());
-
-
-            } catch (Exception e) {
-
-            }
-        }
-
-        log.info("finished the izi history data return");
-    }
+    //             IziResponse phoneVerifyResponse = iziService.getPhoneVerify(phone, idCard, order.getUuid(), order.getUserUuid());
 
 
-    public void reSendErrorData() {
-        List<TeleCallResult> list = teleCallResultDao.getErrorList190219();
-        autoCallErrorService.resendCall(list);
-    }
+    //         } catch (Exception e) {
 
-    private void sendEmergencyCall() {
-        List<OrdOrder> orderList = teleCallResultDao.reRunOrders();
-        for (OrdOrder order : orderList) {
-            try {
-                boolean callOwner = false;
-                boolean callCompanyTel = false;
-                boolean callallLinkman = false;
-                List<InforbipRequest> sendList = new ArrayList<>();
+    //         }
+    //     }
+
+    //     log.info("finished the izi history data return");
+    // }
+
+    // ahalim: Remark unused method
+    // public void reSendErrorData() {
+    //     List<TeleCallResult> list = teleCallResultDao.getErrorList190219();
+    //     autoCallErrorService.resendCall(list);
+    // }
+
+    // ahalim: Remark unused method
+//     private void sendEmergencyCall() {
+//         List<OrdOrder> orderList = teleCallResultDao.reRunOrders();
+//         for (OrdOrder order : orderList) {
+//             try {
+//                 boolean callOwner = false;
+//                 boolean callCompanyTel = false;
+//                 boolean callallLinkman = false;
+//                 List<InforbipRequest> sendList = new ArrayList<>();
 
 
-                //联系人信息
-                List<InforbipRequest> linkManRequestParam = autoCallService.getLinkmanAutoCallRequest(order);
-                if (CollectionUtils.isEmpty(linkManRequestParam)) {
-                    log.warn("the linkman auto call request param is empty, orderNo: {}", order.getUuid());
-                } else {
-                    sendList.addAll(linkManRequestParam);
-                    callallLinkman = true;
-                }
+//                 //联系人信息
+//                 List<InforbipRequest> linkManRequestParam = autoCallService.getLinkmanAutoCallRequest(order);
+//                 if (CollectionUtils.isEmpty(linkManRequestParam)) {
+//                     log.warn("the linkman auto call request param is empty, orderNo: {}", order.getUuid());
+//                 } else {
+//                     sendList.addAll(linkManRequestParam);
+//                     callallLinkman = true;
+//                 }
 
-                if (CollectionUtils.isEmpty(sendList)) {
-                    log.info("no linkman info to send auto call, orderNo: {}, userUuid: {}", order.getUuid(), order.getUserUuid());
-                    continue;
-                }
-                //查找调用inforbip失败的手机号
-//                   TeleCallResult search = new TeleCallResult();
-//                   search.setDisabled(0);
-//                   search.setOrderNo(order.getUuid());
-//                   search.setCallType(3);
-//                   search.setCallResultType(2,3);
-                List<TeleCallResult> searchResultList = teleCallResultDao.getErrorResultByOrderNo(order.getUuid());
-                if (!CollectionUtils.isEmpty(searchResultList)) {
-                    List<String> errorPhone = searchResultList.stream().map(TeleCallResult::getTellNumber).collect(Collectors.toList());
-                    sendList = sendList.stream().filter(elem -> errorPhone.contains(elem.getMobileNumber())).collect(Collectors.toList());
-                }
-                inforbipService.sendVoiceMessage(sendList);
-            } catch (Exception e) {
-                log.error("send call error,orderNo: " + order.getUuid(), e);
-            }
-        }
-    }
+//                 if (CollectionUtils.isEmpty(sendList)) {
+//                     log.info("no linkman info to send auto call, orderNo: {}, userUuid: {}", order.getUuid(), order.getUserUuid());
+//                     continue;
+//                 }
+//                 //查找调用inforbip失败的手机号
+// //                   TeleCallResult search = new TeleCallResult();
+// //                   search.setDisabled(0);
+// //                   search.setOrderNo(order.getUuid());
+// //                   search.setCallType(3);
+// //                   search.setCallResultType(2,3);
+//                 List<TeleCallResult> searchResultList = teleCallResultDao.getErrorResultByOrderNo(order.getUuid());
+//                 if (!CollectionUtils.isEmpty(searchResultList)) {
+//                     List<String> errorPhone = searchResultList.stream().map(TeleCallResult::getTellNumber).collect(Collectors.toList());
+//                     sendList = sendList.stream().filter(elem -> errorPhone.contains(elem.getMobileNumber())).collect(Collectors.toList());
+//                 }
+//                 inforbipService.sendVoiceMessage(sendList);
+//             } catch (Exception e) {
+//                 log.error("send call error,orderNo: " + order.getUuid(), e);
+//             }
+//         }
+//     }
 
 
     @Autowired
@@ -521,22 +523,22 @@ public class PrdDataHandler {
         }
     }
 
+    //ahalim remark unused method
+    // public void getHistoryReportForInforbip() {
+    //     Timer timer = new Timer();
+    //     TimerTask task = new TimerTask() {
+    //         @Override
+    //         public void run() {
+    //             try{
+    //             inforbipService.getReportWithOldEndPoint();}catch (Exception e){
+    //                 log.error("error for old endPoint to get data");
+    //             }
+    //         }
+    //     };
 
-    public void getHistoryReportForInforbip() {
-        Timer timer = new Timer();
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                try{
-                inforbipService.getReportWithOldEndPoint();}catch (Exception e){
-                    log.error("error for old endPoint to get data");
-                }
-            }
-        };
+    //     timer.schedule(task, 10 * 1000, 60 * 1000);
 
-        timer.schedule(task, 10 * 1000, 60 * 1000);
-
-    }
+    // }
 
     @Autowired
     private JXLService jxlService;

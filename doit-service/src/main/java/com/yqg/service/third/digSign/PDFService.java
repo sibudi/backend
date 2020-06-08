@@ -8,9 +8,7 @@ import freemarker.template.TemplateExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 import java.util.Map;
 
@@ -48,11 +46,10 @@ public class PDFService {
      * @param destFileName
      * @throws Exception
      */
-    public static File html2Pdf(String htmlData,String destFileName) throws Exception {
-        File destFile = new File(destFileName);
-        BufferedOutputStream outStream = new BufferedOutputStream(new FileOutputStream(destFile));
-        HtmlConverter.convertToPdf(htmlData, outStream);
-        return destFile;
+    public static ByteArrayOutputStream html2Pdf(String htmlData) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        HtmlConverter.convertToPdf(htmlData, baos);
+        return baos;
     }
 
 

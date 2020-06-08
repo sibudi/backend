@@ -177,7 +177,7 @@ public class ApplicationService {
 
 
     /***
-     * 外呼规则
+     * Outbound rules
      * @param order
      * @param allRules
      */

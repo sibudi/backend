@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * 审核
+ * Risk
  * Created by Didit Dwianto on 2017/12/21.
  */
 @Component
@@ -18,81 +18,103 @@ public class RiskScheduling {
     private RiskService riskService;
 
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk0() {// 审核
-        log.info("审核0 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk0() {
+        log.info("Risk0 begin");
         this.riskService.risk(0);
-        log.info("审核0 end0");
+        log.info("Risk0 end0");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk1() {// 审核
-        log.info("审核1 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk1() {
+        log.info("Risk1 begin");
         this.riskService.risk(1);
-        log.info("审核1 end");
+        log.info("Risk1 end");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk2() {// 审核
-        log.info("审核2 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk2() {
+        log.info("Risk2 begin");
         this.riskService.risk(2);
-        log.info("审核2 end");
+        log.info("Risk2 end");
     }
 
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk3() {// 审核
-        log.info("审核3 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk3() {
+        log.info("Risk3 begin");
         this.riskService.risk(3);
-        log.info("审核3 end");
+        log.info("Risk3 end");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk4() {// 审核
-        log.info("审核4 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk4() {
+        log.info("Risk4 begin");
         this.riskService.risk(4);
-        log.info("审核4 end");
+        log.info("Risk4 end");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk5() {// 审核
-        log.info("审核5 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk5() {
+        log.info("Risk5 begin");
         this.riskService.risk(5);
-        log.info("审核5 end");
+        log.info("Risk5 end");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk6() {// 审核
-        log.info("审核6 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk6() {
+        log.info("Risk6 begin");
         this.riskService.risk(6);
-        log.info("审核6 end");
+        log.info("Risk6 end");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk7() {// 审核
-        log.info("审核7 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk7() {
+        log.info("Risk7 begin");
         this.riskService.risk(7);
-        log.info("审核7 end");
+        log.info("Risk7 end");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk8() {// 审核
-        log.info("审核8 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk8() {
+        log.info("Risk8 begin");
         this.riskService.risk(8);
-        log.info("审核8 end");
+        log.info("Risk8 end");
     }
 
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk9() {// 审核
-        log.info("审核9 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk9() {
+        log.info("Risk9 begin");
         this.riskService.risk(9);
-        log.info("审核9 end");
+        log.info("Risk9 end");
     }
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void risk10() {// 审核
-        log.info("审核10 begin");
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
+    public void risk10() {
+        log.info("Risk10 begin");
         this.riskService.risk(10);
-        log.info("审核10 end");
+        log.info("Risk10 end");
     }
 
 //    @Scheduled(cron = "0 0/1 * * * ? ")
@@ -115,7 +137,7 @@ public class RiskScheduling {
 //
 //        @Override
 //        public void run() {
-//            log.info("审核{} begin", orderIdSuffix);
+//            log.info("Risk{} begin", orderIdSuffix);
 //           // riskService.risk(orderIdSuffix);
 //            if(orderIdSuffix==7){
 //                try {
@@ -124,7 +146,7 @@ public class RiskScheduling {
 //                    e.printStackTrace();
 //                }
 //            }
-//            log.info("审核{} end", orderIdSuffix);
+//            log.info("Risk{} end", orderIdSuffix);
 //        }
 //    }
 

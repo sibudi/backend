@@ -15,6 +15,7 @@ import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.order.dao.OrdDao;
 import com.yqg.order.entity.OrdOrder;
+import com.yqg.order.entity.OrdOrder.P2PLoanStatusEnum;
 import com.yqg.service.activity.ActivityAccountRecordService;
 import com.yqg.service.activity.request.ActivityAccountRecordReq;
 import com.yqg.service.externalChannel.service.Cash2OrderService;
@@ -191,11 +192,33 @@ public class LoanService {
                         continue;
                     }
 
+                    String switchValue = sysParamService.getSysParamValue(SysParamContants.PAY_ISSUING_TO_P2P_SWITCH);
                     if (p2PService.isLoanNeedSendToP2P(order, bankEntity)) {
+                        // SysParamContants.PAY_ISSUING_TO_P2P_SWITCH = true
+                        // ordOrder status = 5, MarkStatus != 8,30
+
+                        // Send order to p2p if Code from p2p == 1002
                         p2pLoanIssuing(order, userUser);
-                    } else {
+                    }
+                    else if (!StringUtils.isEmpty(order.getMarkStatus()) 
+                        && P2PLoanStatusEnum.WAITING_DISBURSE.getStatusCode().equals(order.getMarkStatus())) {
+                        // ordOrder status = 5, MarkStatus == 30
+                        
+                        // Send order to pay-rest
+                        normalLoanIssuing(order, userUser, bankEntity);
+                    } 
+                    else if (!"true".equals(switchValue) && order.getMarkStatus().equals("0")) {
+                        // SysParamContants.PAY_ISSUING_TO_P2P_SWITCH != true
+                        // ordOrder status = 5, MarkStatus == 0
+                        // Send order to pay-rest
                         normalLoanIssuing(order, userUser, bankEntity);
                     }
+                    // else {      
+                    //   SysParamContants.PAY_ISSUING_TO_P2P_SWITCH != true
+                    //   ordOrder status = 5, MarkStatus == 0,1,20,21
+                    //   Send order to p2p if Code from p2p != 1002
+                    //   // Swithback from p2p to normal currently Unhandled
+                    // }
                 }
             }
         } else {
@@ -308,11 +331,12 @@ public class LoanService {
             } else if (P2PResponse.isSuccessResponse(statusResponse) && statusResponse.getData() != null) {
                 RepaySuccessStatusDetail detail = JsonUtils.deserialize(JsonUtils.serialize(statusResponse.getData()),
                         P2PResponseDetail.RepaySuccessStatusDetail.class);
-                //有状态信息，说明之前已经推送过，更加状态做相应的处理(更新doit数据库)
+                //Order found in p2p
+                //process status accordingly (update the doit database)
                 p2PService.handleP2PLoanStatus(order.getUuid(), detail.getStatus(), detail);
             }
         } catch (Exception e) {
-            log.error("调用p2p放款失败,orderNo: " + order.getUuid(), e);
+            log.error("p2pLoanIssuing - Failed to call p2p loan,orderNo: " + order.getUuid(), e);
         } finally {
             redisClient.unLock(lockKey);
         }
@@ -452,7 +476,7 @@ public class LoanService {
 
     public void cheakLoaningOrder(OrdOrder order, UsrUser user) {
         try {
-            log.info("查询订单号:{}", order.getUuid());
+            log.info("cheakLoaningOrder:{}", order.getUuid());
             if (p2PService.isP2PIssuedLoan(order.getUuid())) {
                 //p2p平台处理的放款
                 P2PResponse statusResponse = p2PService.checkOrderInfo(order);
@@ -479,7 +503,7 @@ public class LoanService {
 
                     } else if (response.getDisburseStatus().equals("FAILED")) {
 
-                        log.info("放款失败,订单号:{},失败原因：{}", order.getUuid(), response.getErrorMessage());
+                        log.info("Loan failed, order number: {}, reason for failure：{}", order.getUuid(), response.getErrorMessage());
                         if (response.getErrorCode().equals("RECIPIENT_ACCOUNT_NUMBER_ERROR") ||
                                 response.getErrorCode().equals("INVALID_DESTINATION") ||
                                 response.getErrorCode().equals("BANK_CODE_NOT_SUPPORTED_ERROR")
@@ -505,7 +529,7 @@ public class LoanService {
             }
 
         } catch (Exception e) {
-            log.error("查询订单异常,单号:" + order.getUuid(), e);
+            log.error("Query order is abnormal, order no:" + order.getUuid(), e);
         }
 
     }

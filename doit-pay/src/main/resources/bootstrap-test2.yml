@@ -98,22 +98,21 @@ HttpUrl:
   #smsUrlTwilio: http://api.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
   #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 p2p:
-  repaySuccessUrl: http://10.24.30.70:9090/doit/investment/getNormalRefundTask
-  host: http://10.24.30.70:9020
+  #repaySuccessUrl: http://10.24.30.70:9090/doit/investment/getNormalRefundTask
+  host: https://lender-uat.doitglotech.co.id
   url:
     #推送标的
-    #sendCreditorInfo: /api-order/doit/sendCreditorinfo
-    sendCreditorInfo: /doit/sendCreditorinfo
+    sendCreditorInfo: /api-order/doit/sendCreditorinfo
     #是否有再投
-    haveInvesting: /doit/haveInvesting
+    haveInvesting: /api-order/doit/haveInvesting
     #查询订单状态
-    checkOrderStatus: /doit/selectScatterstandard
+    checkOrderStatus: /api-order/doit/selectScatterstandard
     #还款
-    userRepay: /doit/userRepay
+    userRepay: /api-order/doit/userRepay
     #推送还款计划
-    sendRepayPlan: /doit/repaymentPlan/addRepaymentPlan
+    sendRepayPlan: /api-order/doit/repaymentPlan/addRepaymentPlan
     #查询账单状态
-    checkOrderBillStatus: /doit/repaymentPlan/findStatus
+    checkOrderBillStatus: /api-order/doit/repaymentPlan/findStatus
 
 SmsChannelType:
   type: ZENZIVA

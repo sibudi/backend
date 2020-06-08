@@ -99,6 +99,10 @@ public class HttpUtil {
 
     public static CustomHttpResponse sendMultiPartRequest(String url, Map<String, String> dataParam, Map<String, byte[]> fileParam,
                                                           Map<String,String> headerMap) {
+        return sendMultiPartRequest(url, dataParam, fileParam, headerMap, false);
+    }
+    public static CustomHttpResponse sendMultiPartRequest(String url, Map<String, String> dataParam, Map<String, byte[]> fileParam,
+                                                          Map<String,String> headerMap, Boolean hideLog) {
         Long startTime = System.currentTimeMillis();
         log.info("start request url: {} with param: {}", url, JsonUtils.serialize(dataParam));
         CloseableHttpResponse response = null;
@@ -144,7 +148,12 @@ public class HttpUtil {
                 String responseContent = EntityUtils.toString(responseEntity, "UTF-8");
                 customHttpResponse.setContent(responseContent);
             }
-            log.info("the response of url: {} is: {}", url, JsonUtils.serialize(customHttpResponse));
+            if (Boolean.TRUE.equals(hideLog)) {
+                log.info("the response of url: {} is: <hidden>", url);
+            }
+            else {
+                log.info("the response of url: {} is: {}", url, JsonUtils.serialize(customHttpResponse));
+            }
             return customHttpResponse;
         } catch (Exception e) {
             log.error("send data to url: " + url + ", error with param: " + JsonUtils.serialize(dataParam), e);

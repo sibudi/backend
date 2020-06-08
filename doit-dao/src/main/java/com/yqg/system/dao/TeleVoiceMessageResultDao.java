@@ -42,6 +42,6 @@ public interface TeleVoiceMessageResultDao extends BaseMapper<TeleVoiceMessageRe
 
     @Select("select * from teleVoiceMessageResult where callState = 1 and disabled = 0 and datediff(now(),createTime) < 2 and mod(id,3)=#{mode} order by " +
             "createTime desc;")
-    List<TeleVoiceMessageResult> getTeleCallResult(int mode);
+    List<TeleVoiceMessageResult> getTeleVoiceMessageResult(int mode);
 
 }

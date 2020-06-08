@@ -8,15 +8,18 @@ import com.yqg.common.utils.JsonUtils;
 import com.yqg.service.signcontract.ContractSignService;
 import com.yqg.service.signcontract.request.SignConfirmRequest;
 import com.yqg.service.signcontract.response.SignInfoResponse;
+import com.yqg.service.third.digSign.DocumentService;
+import com.yqg.signcontract.entity.OrderContract;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.core.MediaType;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Optional;
 
 /***
  * 签约相关
@@ -28,6 +31,9 @@ public class ContractSignController {
 
     @Autowired
     private ContractSignService contractSignService;
+
+    @Autowired
+    private DocumentService documentService;
 
     @ApiOperation("用户激活回调")
     @RequestMapping(value = "/user-activation-confirmation", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
@@ -67,6 +73,22 @@ public class ContractSignController {
         }catch (Exception e1) {
             log.info("confirmation sign contract exception,orderNo: " + request.getOrderNo(), e1);
             throw new ServiceException(ExceptionEnum.SYSTEM_TIMEOUT);
+        }
+    }
+
+
+    @ApiOperation("查询用户当前签约状态，待激活，待签约，待发送文档等")
+    @RequestMapping(value = "/showcontract"+"/{creditorNo}", method = RequestMethod.GET, produces = "application/pdf")
+    public byte[] getSignContract(@PathVariable String creditorNo) throws Exception {
+
+        Optional<OrderContract> document = documentService.getOrderContract(creditorNo);
+        if(document.isPresent()){
+            InputStream stream = new FileInputStream(document.get().getDownloadedPath());
+
+            return IOUtils.toByteArray(stream);
+        }
+        else {
+            throw new ServiceException(ExceptionEnum.INVALID_ACTION);
         }
     }
 }

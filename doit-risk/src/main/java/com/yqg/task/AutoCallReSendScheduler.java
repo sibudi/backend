@@ -13,31 +13,32 @@ public class AutoCallReSendScheduler {
     @Autowired
     private AutoCallErrorService autoCallErrorService;
 
-    //印尼时间每天下午3天重新外呼一次
-    //budi: disable because include in slow log query and the query return 0 rows
-    //@Scheduled(cron = "0 7 9-21 * * ?")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ?")
+    //@Scheduled(cron = "0 7 9-18 * * ?")
     public void reSend() {
-        log.info("start auto call resend...");
+        log.info("AutoCallReSendScheduler reSend - Start");
         Long startTime = System.currentTimeMillis();
         try {
             autoCallErrorService.reSend();
         } catch (Exception e) {
-            log.info("resend error", e);
+            log.info("AutoCallReSendScheduler reSend - error", e);
         } finally {
-            log.info("the cost of resend: {} ms", (System.currentTimeMillis() - startTime));
+            log.info("AutoCallReSendScheduler resend - End: {} ms", (System.currentTimeMillis() - startTime));
         }
     }
-    //主要检查状态在17，但是已经被disabled了的单
-    @Scheduled(cron = "0 57 9,12,15,18,20 * * ?")
+    
+    // Order status is 17, but teleCallResult is disabled
+    @Scheduled(cron = "0 57 9,12,15,18 * * ?")
     public void reSendWithException() {
-        log.info("start auto call resend...");
+        log.info("AutoCallReSendScheduler reSendWithException - Start");
         Long startTime = System.currentTimeMillis();
         try {
             autoCallErrorService.reSendWithException();
         } catch (Exception e) {
-            log.info("reSendWithException error", e);
+            log.info("AutoCallReSendScheduler reSendWithException - Error", e);
         } finally {
-            log.info("the cost of resend: {} ms", (System.currentTimeMillis() - startTime));
+            log.info("AutoCallReSendScheduler reSendWithException - End: {} ms", (System.currentTimeMillis() - startTime));
         }
     }
 }

@@ -19,7 +19,7 @@ public class CheakThirdDataTask {
     /**
      * @throws Exception
      */
-    @Scheduled(cron = "0 0/1 * * * ?")
+    //@Scheduled(cron = "0 0/1 * * * ?")
     public void getThirdDataFromSpider() throws Exception{
         log.info("==============getThirdDataFromSpider begin==================");
         this.cheakThirdDataScheduling.getThirdData();

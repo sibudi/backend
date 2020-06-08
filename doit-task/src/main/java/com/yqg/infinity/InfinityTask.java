@@ -25,7 +25,7 @@ public class InfinityTask {
     /****
      * 分机状态
      */
-    @Scheduled(cron = "0 0/40 9-18 * * ?")
+    //@Scheduled(cron = "0 0/40 9-18 * * ?")
     public void queryNumberInfo() throws Exception {
         String startTime = DateUtils.DateToString2(new Date());
         log.info("queryNumberInfo----------startTime:" + startTime);

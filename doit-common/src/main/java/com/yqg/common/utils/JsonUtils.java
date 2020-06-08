@@ -66,9 +66,9 @@ public class JsonUtils {
             return t;
         } catch (IOException e) {
             logger.error(
-                    "Error deserializing string: " + string, e);
+                    String.format("Error deserializing string (last 300 characters): %.300s", e));
             throw new IllegalArgumentException(
-                    "Error deserializing string: " + string, e);
+                    "Error deserializing string (last 300 characters): %.300s", e);
         }
     }
     public static <T> T deserializeIgnoreError(String string, Class<T> clazz) {

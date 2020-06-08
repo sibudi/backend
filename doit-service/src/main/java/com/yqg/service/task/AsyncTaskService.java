@@ -24,18 +24,29 @@ public class AsyncTaskService {
         AsyncTaskInfoEntity entity = new AsyncTaskInfoEntity();
         entity.setOrderNo(order.getUuid());
         entity.setUserUuid(order.getUserUuid());
-        entity.setCreateTime(new Date());
-        entity.setUpdateTime(new Date());
         entity.setTaskStatus(TaskStatusEnum.WAITING.getCode());
         entity.setTaskType(taskType.getCode());
-        Integer affectRow = asyncTaskInfoDao.insert(entity);
-        return affectRow != null && affectRow == 1;
+        if (asyncTaskInfoDao.scan(entity).isEmpty()) {
+            entity.setCreateTime(new Date());
+            entity.setUpdateTime(new Date());
+            Integer affectRow = asyncTaskInfoDao.insert(entity);
+            return affectRow != null && affectRow == 1;
+
+        }
+        return false;
     }
 
     public boolean updateTaskStatus(AsyncTaskInfoEntity oldTask, TaskStatusEnum toStatus) {
         log.info("the old status is: {}, and toStatus is: {}", oldTask.getTaskStatus(), toStatus);
         oldTask.setTaskStatus(toStatus.getCode());
         Integer affectRow = asyncTaskInfoDao.update(oldTask);
+        return affectRow != null && affectRow == 1;
+    }
+
+    public boolean disableAsyncTaskInfo(AsyncTaskInfoEntity task, OrdOrder order) {
+        task.setDisabled(1);
+        Integer affectRow = asyncTaskInfoDao.update(task);
+        log.info("disable asynTaskInfo order: {}", order.getUuid());
         return affectRow != null && affectRow == 1;
     }
 

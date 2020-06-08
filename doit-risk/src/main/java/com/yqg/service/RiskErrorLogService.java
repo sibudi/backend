@@ -71,7 +71,7 @@ public class RiskErrorLogService {
             riskErrorLog.setUpdateTime(new Date());
             riskErrorLog.setUuid(UUIDGenerateUtil.uuid());
             riskErrorLog.setErrorType(errorType == null ? 0 : errorType.getCode());
-            riskErrorLog.setRemark(remark);
+            riskErrorLog.setRemark(String.format("%.200s", remark));
             riskErrorLogDao.insert(riskErrorLog);
         }else{
             RiskErrorLog riskErrorLog = new RiskErrorLog();
@@ -82,7 +82,7 @@ public class RiskErrorLogService {
             riskErrorLog.setErrorType(errorType == null ? 0 : errorType.getCode());
             Integer times = searchResult.size()+1;
             riskErrorLog.setTimes(times);
-            riskErrorLog.setRemark(remark);
+            riskErrorLog.setRemark(String.format("%.200s", remark));
             riskErrorLogDao.insert(riskErrorLog);
         }
     }

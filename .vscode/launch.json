@@ -4,9 +4,20 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
-    
-    
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - DigiSignService",
+            "request": "launch",
+            "mainClass": "com.yqg.service.third.digSign.DigiSignService",
+            "projectName": "doit-service"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - RiskService",
+            "request": "launch",
+            "mainClass": "com.yqg.service.RiskService",
+            "projectName": "doit-risk"
+        },
         {
             "type": "java",
             "name": "Debug (Launch) - Current File",

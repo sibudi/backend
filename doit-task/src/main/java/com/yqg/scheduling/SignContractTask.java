@@ -13,7 +13,7 @@ public class SignContractTask {
     @Autowired
     private SignContractTaskService signContractTaskService;
 
-    @Scheduled(cron = "0 0/2 * * * ?")
+    //@Scheduled(cron = "0 0/2 * * * ?")
     public void sendToLoanSuccessUserWithinFiveDay() {
         log.info("start check need to sign orders begin");
         try {

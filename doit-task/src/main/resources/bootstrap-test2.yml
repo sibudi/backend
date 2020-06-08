@@ -143,14 +143,12 @@ third:
     partnerKey: invalidKey
   inforbip:
     userName: do-it
-    #password: do-it2018
-    password: invalidPassword
-    #host: https://api.infobip.com
+    password: do-it2018
     host: https://api-id1.infobip.com
     mobileLookUpUrl: /tts/3/single
     mobileLookUpUrlMulti: /tts/3/multi
     reportUrl: /tts/3/reports
-    fromTel: 02166685333
+    fromTel: 622166685333
   xiaomi:
     url: http://staging.id.credit.mi.com/data/upload/kbuser
     appId: 3126382946971650
@@ -166,27 +164,17 @@ third:
   digiSign:
     token: atXytejhMO5pMsaAtLdcrkQ2WFlb7uHSCBXXhmnv6jV5AWIdFGofaM4nD6EGQT
     doitAdminEmail: it@do-it.id
-    #test env
-    #      registerUrl: https://api.tandatanganku.com/REG-MITRA.html
-    #      activationUrl: https://api.tandatanganku.com/ACTMitra-M.html
-    #      sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
-    #      signUrl: https://api.tandatanganku.com/SignWebView.html
-    #      tmpContractDir: C:/Users/zxc20/Desktop/digSign/contract-tmp
-    #      automaticSignKUser: e8r5QbytnJ5g2HOo
-    #      apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
-    #      apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
-    #      apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA.html
-
-    #uat env
-    registerUrl: https://apiuat.tandatanganku.com/REG-MITRA.html
-    activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
-    sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
-    signUrl: https://apiuat.tandatanganku.com/SignWebView.html
+    registerUrl: https://api.tandatanganku.com/REG-MITRA.html
+    activationUrl: https://api.tandatanganku.com/gen/genACTPage.html
+    sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
+    signUrl: https://api.tandatanganku.com/SignWebView.html
     contractDir: /mnt/MyUpload/DOIT_CONTRACT
-    automaticSignKUser: e8r5QbytnJ5g2HOo
-    apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
-    apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
-    apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
+    automaticSignEmail: janhsen@do-it.id
+    automaticSignRealName: janhsen@do-it.id
+    automaticSignKUser: YSnZqiXFXyYwufKL
+    apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
+    apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
+    apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA64.html
 
 manager:
   #        path: http://cn.control.do-it.id/manage/
@@ -246,5 +234,10 @@ spring:
     check-template-location: false
   freemarker:
     checkTemplateLocation: false
+
+notification.service.url: https://notificationapi-uat.doitglotech.co.id
+notification.service.token: lgezRLxR84n$9@
+notification.service.origin: https://doit-task-uat.doitglotech.co.id
+slack.webhook.url: https://hooks.slack.com/services/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
 
 endpoints.enabled: false

@@ -23,4 +23,7 @@ public class RepayResponse {
     @ApiModelProperty(value = "String error message if any")
     @JsonProperty
     private String errorMessage;
+    @ApiModelProperty(value = "String error message if any")
+    @JsonProperty
+    private String depositStatus;
 }

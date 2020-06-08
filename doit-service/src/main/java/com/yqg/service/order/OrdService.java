@@ -14,6 +14,7 @@ import com.yqg.mongo.dao.UserWifiListDal;
 import com.yqg.mongo.entity.UserWifiListMongo;
 import com.yqg.order.dao.*;
 import com.yqg.order.entity.*;
+import com.yqg.order.entity.OrdOrder.P2PLoanStatusEnum;
 import com.yqg.service.order.request.GetOrdRepayAmoutRequest;
 import com.yqg.service.order.request.LoanConfirmRequest;
 import com.yqg.service.order.request.OrdRequest;
@@ -632,9 +633,11 @@ public class OrdService {
         String orders = redisClient.get("risk:order:manual");
         List<OrdOrder> orderList = null;
         if("true".equals(orders)){
-            orderList = orderDao.getRiskOrderListManual();
+            log.info("======================= risk:order:manual on =======================");
+            orderList = orderDao.getRiskOrderListManual(num);
         }
         else{
+            log.info("======================= risk:order:manual off =======================");
             orderList = orderDao.getRiskOrderListById(num);
         }
         
@@ -1097,7 +1100,7 @@ public class OrdService {
 
 
     @Transactional(rollbackFor = Exception.class)
-    public void changeOrderStatus(OrdOrder order ,OrdStateEnum toStatus){
+    public void changeOrderStatus(OrdOrder order ,OrdStateEnum toStatus, P2PLoanStatusEnum markStatus){
         log.info("start to change order status, order: {} ,toStatus: {}", order.getUuid(), toStatus.name());
 
         //Janhsen: skip first check then put status machine not allow
@@ -1122,6 +1125,9 @@ public class OrdService {
             if(toStatus.equals(OrdStateEnum.FIRST_CHECK)) {
                 updateEntity.setRemark(order.getRemark() + " | " + "Change first check to machine not allow");
             }
+            if (markStatus != null) {
+                updateEntity.setMarkStatus(markStatus.getStatusCode());
+            }
             //更新approvedAmount
             this.updateOrder(updateEntity);
         }
@@ -1133,7 +1139,14 @@ public class OrdService {
         this.addOrderHistory(order);
     }
 
-    /**
+    public void changeOrderStatus(OrdOrder order ,OrdStateEnum toStatus) {
+        changeOrderStatus(order, toStatus, null);
+    }
+    
+    public void bulkUpdateP2PMarkStatus(P2PLoanStatusEnum fromStatus, P2PLoanStatusEnum toStatus, List<String> orderIds){
+        orderDao.bulkUpdateP2PMarkStatus(fromStatus.getStatusCode(), toStatus.getStatusCode(), orderIds);
+    }
+/**
      *  //如果cashcash 调用 降额接口调用成功，订单会变成待打款状态，审批状态为通过，
      *  但是！！！给到cashcash那边的状态还是待确认，所以这里不需要回调
      **/

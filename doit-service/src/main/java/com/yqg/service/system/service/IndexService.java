@@ -1213,20 +1213,22 @@ public class IndexService {
     // 检查用户是否填写过调查问卷
     public String checkUserHasQuestionnaire(String userUuid){
 
-        UsrQuestionnaire usrQuestionnaire = new UsrQuestionnaire();
-        usrQuestionnaire.setDisabled(0);
-        usrQuestionnaire.setUserUuid(userUuid);
-        usrQuestionnaire.setType(2);
-        if (!CollectionUtils.isEmpty(usrQuestionnaireDao.scan(usrQuestionnaire))) {
-            return "1";
-        }
-        UsrQuestionnaireAttach attach = new UsrQuestionnaireAttach();
-        attach.setDisabled(0);
-        attach.setUserUuid(userUuid);
-        attach.setSourceType(0);
-        List<UsrQuestionnaireAttach> scanList =  this.usrQuestionnaireAttactDao.scan(attach);
-        if (CollectionUtils.isEmpty(scanList)){
-            return "0";
+        if("true".equals(redisClient.get(RedisContants.QUESTIONAIRE_ENABLED))){
+            UsrQuestionnaire usrQuestionnaire = new UsrQuestionnaire();
+            usrQuestionnaire.setDisabled(0);
+            usrQuestionnaire.setUserUuid(userUuid);
+            usrQuestionnaire.setType(2);
+            if (!CollectionUtils.isEmpty(usrQuestionnaireDao.scan(usrQuestionnaire))) {
+                return "1";
+            }
+            UsrQuestionnaireAttach attach = new UsrQuestionnaireAttach();
+            attach.setDisabled(0);
+            attach.setUserUuid(userUuid);
+            attach.setSourceType(0);
+            List<UsrQuestionnaireAttach> scanList =  this.usrQuestionnaireAttactDao.scan(attach);
+            if (CollectionUtils.isEmpty(scanList)){
+                return "0";
+            }            
         }
         return "1";
     }

@@ -589,7 +589,7 @@ public class UsrBlackListService {
 
 
     public void addFraudUserBlackList(String userUuid) {
-        usrBlackListDao.addFraudUser(userUuid);
+        usrBlackListDao.addFraudUser(userUuid, "");
     }
 
     /***

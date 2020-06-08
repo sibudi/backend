@@ -25,7 +25,6 @@ import com.yqg.user.entity.UsrPIN;
 import com.yqg.common.utils.EmailUtils;
 import com.yqg.service.notification.request.NotificationRequest;
 import com.yqg.service.notification.service.EmailNotificationService;
-import com.yqg.service.notification.service.NotificationService;
 
 @Service
 @Slf4j

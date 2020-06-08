@@ -315,7 +315,12 @@ public class SysParamContants {
     public static final String ACTIVITY_ACCOUNT = "lock:activity:ACCOUNT:";
 
 
-    public static final String RISK_AUTO_CALL_SWITCH = "risk:auto_call:switch";//机审外呼开关
+    //ON if true
+    public static final String RISK_AUTO_CALL_SWITCH = "risk:auto_call:switch";
+    //use whitelisting  if true
+    public static final String RISK_AUTO_CALL_WHITELIST_SWITCH = "risk:auto_call:whitelist:switch";
+    //comma separated whitelisted number
+    public static final String RISK_AUTO_CALL_WHITELIST_NUMBER = "risk:auto_call:whitelist:number";
 
     // 提额产品开关
     public static final String PRODUCT_LEVEL_OFF_NO = "product:level:off:no";

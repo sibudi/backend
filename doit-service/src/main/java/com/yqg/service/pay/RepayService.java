@@ -34,9 +34,8 @@ import com.yqg.order.entity.OrdBill;
 import com.yqg.order.entity.OrdDelayRecord;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdPaymentCode;
-import com.yqg.order.entity.OrdRepayAmoutRecord;
 import com.yqg.order.entity.OrderRepayAmountRecordExtended;
-
+import com.yqg.order.entity.OrdOrder.P2PLoanStatusEnum;
 import com.yqg.service.notification.request.NotificationRequest;
 import com.yqg.service.notification.service.EmailNotificationService;
 import com.yqg.service.notification.service.SlackNotificationService;
@@ -383,44 +382,6 @@ public class RepayService {
                 codeType = "6";
             }
 
-            //p2p repayment
-            if(p2PService.isP2PIssuedLoan(orderNo)){
-                UserRepayRequest request = new UserRepayRequest();
-                request.setAmountApply(new BigDecimal(paymentCount));
-                request.setCreditorNo(repayRequest.getOrderNo());
-                request.setInterest(interest);
-                
-                request.setOverdueFee(new BigDecimal(calculatePenaltyFee(object))); //Penalty fee, without limit
-                //Overdue service fee regardless overdue date
-                request.setOverdueRate(new BigDecimal(calculateOverDueFee(object)));
-                request.setUserName(userName);
-                request.setUserUuid(repayRequest.getUserUuid());
-
-                //Repayment Type  1 Normal repayment 2 Installment repayment 3 Rollover repayment
-                request.setRepaymentType("1");
-                if (object instanceof OrdOrder){
-                    if (type.equals("2")){
-                        request.setRepaymentType("3");
-                    }
-                }else if (object instanceof OrdBill){
-                    OrdBill bill = (OrdBill) object;
-                    request.setRepaymentType("2");
-                    request.setPeriodNo(Integer.valueOf(bill.getBillTerm()));
-                }
-
-                P2PUserPayResponse p2pResp = p2PService.userRepay(request);
-                RepayResponse resp = new RepayResponse();
-                resp.setCode("0");
-                if (p2pResp.getData() == null || StringUtils.isEmpty(p2pResp.getData().getPaymentCode())) {
-                    return "";
-                }
-                resp.setPaymentCode(p2pResp.getData().getPaymentCode());
-                String respStr =  JsonUtils.serialize(resp);
-                //p2p repayment also records repayment code
-                recordOrderPaymentCode(repayRequest,codeType,resp.getPaymentCode(),object,paymentCount,couponRecord);
-                return respStr;
-            }
-
             String commitRepayURL = (paymentType.equals("OVO")) ? OVO_COMMIT_REPAY_URL : COMMIT_REPAY_URL;
             Request request = new Request.Builder()
                     .url(commitRepayURL)
@@ -451,6 +412,45 @@ public class RepayService {
                 recordOrderPaymentCode(repayRequest,codeType,repayResponse.getPaymentCode(),object,paymentCount,couponRecord);
                 // Add sysThirdLogs (type = 8)
                 sysThirdLogsService.addSysThirdLogs(repayRequest.getOrderNo(),repayRequest.getUserUuid(), SysThirdLogsEnum.COMMIT_REPAY.getCode(),0,null,responseStr);
+
+                //p2p repayment
+                //
+                if(p2PService.isP2PIssuedLoan(orderNo)){
+                    UserRepayRequest p2prequest = new UserRepayRequest();
+                    p2prequest.setAmountApply(new BigDecimal(paymentCount));
+                    p2prequest.setCreditorNo(orderNo);
+                    p2prequest.setInterest(interest);
+
+                    p2prequest.setOverdueFee(new BigDecimal(calculatePenaltyFee(object))); //Penalty fee, without limit
+                    //Overdue service fee regardless overdue date
+                    p2prequest.setOverdueRate(new BigDecimal(calculateOverDueFee(object)));
+                    p2prequest.setUserName(userName);
+                    p2prequest.setUserUuid(repayRequest.getUserUuid());
+                    p2prequest.setBankCode(paymentType);
+                    p2prequest.setDepositStatus(repayResponse.getDepositStatus());
+                    p2prequest.setExternalId(repayRequest.getOrderNo());
+                    p2prequest.setDepositChannel(paymentType);
+                    p2prequest.setDepositMethod(depositMethod);
+                    p2prequest.setPaymentcode(repayResponse.getPaymentCode());
+
+                    //Repayment Type  1 Normal repayment 2 Extend repayment 3 Installment repayment
+                    p2prequest.setRepaymentType("1");
+                    if (object instanceof OrdOrder){
+                        if (type.equals("2")){ // Order repaymentType(2) = Extend
+                            p2prequest.setRepaymentType("3");// p2p repaymentType(3) = Extend
+                        }
+                    }else if (object instanceof OrdBill){
+                        OrdBill bill = (OrdBill) object;
+                        p2prequest.setRepaymentType("2"); // P2P repayment(2) = Installment/staging
+                        p2prequest.setPeriodNo(Integer.valueOf(bill.getBillTerm()));
+                    }
+
+                    P2PUserPayResponse p2pResp = p2PService.userRepay(p2prequest);
+                    if (p2pResp.getCode()!=0) {
+                        return "";
+                    }
+                }
+
                 return responseStr;
             }else {
                 if (object instanceof OrdOrder){
@@ -1151,6 +1151,13 @@ public class RepayService {
                                 OrdRepayAmountRecordStatusEnum.WAITING_REPAYMENT_TO_RDN.toString().toString(),
                                 OrdRepayAmountRecordStatusEnum.WAITING_SENDING_REPORT.toString(),
                                 ids);
+                            //ahalim update ordOrder markstatus
+                            List<String> orderIds = lOrderRepayAmountRecordExtended.stream()
+                                .map(elem -> elem.getOrderNo())
+                                .collect(Collectors.toList());
+                            ordService.bulkUpdateP2PMarkStatus(P2PLoanStatusEnum.REPAYMENT_PENDING
+                                , P2PLoanStatusEnum.REPAYMENT_SUCCESS
+                                , orderIds);
                         }
                     }
                     else {

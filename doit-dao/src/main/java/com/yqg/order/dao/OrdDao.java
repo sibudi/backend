@@ -3,6 +3,8 @@ package com.yqg.order.dao;
 import com.yqg.base.data.mapper.BaseMapper;
 import com.yqg.order.entity.*;
 import com.yqg.system.entity.SysProduct;
+
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -84,7 +86,7 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     )
     public List<OrdOrder> getLoanList();
 
-    @Select("select * from ordOrder where status = 5 and orderStep in(7,8) and orderType != 3 and markStatus is not null and markStatus not in ('0','6','7','8') " +
+    @Select("select * from ordOrder where status = 5 and orderStep in(7,8) and orderType != 3 and markStatus is not null and markStatus not in ('0','6','7','8','30') " +
             " and disabled = 0 ")
     List<OrdOrder> getP2PSendPendingOrders();
 
@@ -130,8 +132,10 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     @Select("select * from ordOrder where status = 3 and disabled = 0  limit 100")
     public List<OrdOrder> getRiskOrderTestList();
 
-    @Select("select * from ordOrder u where u.disabled=0 and u.status in (17,18) and updateTime< date_add(now(),INTERVAL -5 MINUTE) " +
-            "  and mod(id,3)=#{modId}" +
+    //ahalim: speedup for demo 5min -> 1 min
+    @Select("select * from ordOrder u where u.disabled=0 and u.status in (17,18) and updateTime< date_add(now(),INTERVAL -1 MINUTE) " +
+            // "  and mod(id,3)=#{modId}" +
+            "  and #{modId}=#{modId}" +
             " and not exists(select 1 from asyncTaskInfo aa where aa.orderNo = u.uuid and aa.disabled=0 and aa.taskType=1)" +
             " order by  updateTime asc")
     List<OrdOrder> getWaitingAutoCallOrders(@Param("modId") Integer modId);
@@ -166,7 +170,7 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
                 "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.disabled=0)  " +
                 "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%')  " +
                 "and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1)  " +
-                "and o.updateTime< date_add(now(),INTERVAL -3 MINUTE) " + 
+                "and o.updateTime< date_add(now(),INTERVAL -1 MINUTE) " + 
                 "limit 30")
     List<OrdOrder> getRiskOrderListById(@Param("num") Integer num);
 
@@ -175,19 +179,23 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
         "from ordOrder o " +
         "inner join usrUser u on u.uuid = o.userUuid and u.createTime >= '2020-01-12' " +
         "inner join temp_OrderRisk t on t.orderNo = o.uuid " + 
-        "where o.status = 2 and (u.userSource in (81,82,83,84) or productUuid = '1006')  " +
+        "where o.status = 2 " +
+        //"and (u.userSource in (81,82,83,84) or productUuid = '1006')  " +
         "and o.disabled = 0 and u.disabled = 0 and o.createTime >= '2020-01-12' " +
         "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.disabled=0)  " +
         "and not exists (select 1 from riskErrorLog ss where ss.orderNo= o.uuid and ss.remark like 'exceed max retry times:%')  " +
+        " and mod(o.id,11)=#{num}  " +
         "and not exists (select 1 from asyncTaskInfo ss where ss.orderNo = o.uuid and ss.disabled=0 and ss.taskType=1)  " +
-        "and o.updateTime< date_add(now(),INTERVAL -3 MINUTE) " +
+        "and o.updateTime< date_add(now(),INTERVAL -1 MINUTE) " +
         "LIMIT 30")
-        List<OrdOrder> getRiskOrderListManual();
+        List<OrdOrder> getRiskOrderListManual(@Param("num") Integer num);
 
+        //budi: delete temp_OrderRisk
+        @Delete("delete from temp_OrderRisk where orderNo = #{Uuid}")
+        Integer deleteOrderFromTemp_OrderRisk(@Param("Uuid") String Uuid);
 
     @Select("select * from ordOrder where status = 7 and orderStep in(7,8) and disabled = 0  ")
     public List<OrdOrder> getNeedRepayList();
-
 
     @Select("SELECT * FROM ordOrder where status = 12 and updateTime < '2018-1-4 13:30:49';")
     public List<OrdOrder> getUserOrderDataList();
@@ -3833,4 +3841,14 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
     @Select("select 1 from usrUser where uuid=#{userId} and isInvited=1")
     List<Integer> isInvited(@Param("userId") String userId);
 
+    //Bulk update p2p mark status
+    @Update("<script>"
+        + "UPDATE ordOrder set markStatus=#{newStatus}, updateTime=now() WHERE markStatus=#{oldStatus} AND uuid in "
+        + "<foreach collection='uuids' item='uuid' separator=',' open='(' close=')'>"
+        + " #{uuid}"
+        + "</foreach>"
+        + " </script>")
+    int bulkUpdateP2PMarkStatus(@Param("oldStatus") String oldStatus
+        , @Param("newStatus") String newStatus
+        , @Param("uuids") List<String> uuids);
 }

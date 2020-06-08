@@ -720,30 +720,34 @@ public class ManOrderCheckRemarkService {
             }
         }
 
-        boolean isDigiSign = false;
+        // budi:
+        //boolean isDigiSign = false;
         if(hitAdvanceCheck){
             //拒绝
             logger.info("hit advance reject, orderNo: {}",orderNo);
         }else{
             //进入放款的订单先走签约
-            boolean toDigiSignSwitchOpen = contractSignService.isDigitalSignSwitchOpen(orderResult);
-            if (toDigiSignSwitchOpen && orderState == OrdStateEnum.LOANING.getCode()) {
-                isDigiSign = true;
-                asyncTaskService.addTask(orderResult, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-            }
+            // budi
+            //boolean toDigiSignSwitchOpen = contractSignService.isDigitalSignSwitchOpen(orderResult);
+            //if (toDigiSignSwitchOpen && orderState == OrdStateEnum.LOANING.getCode()) {
+            //    isDigiSign = true;
+            //    asyncTaskService.addTask(orderResult, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+            //}
         }
         editInfo.setStatus(orderState);
         //如果进入签约就不改状态
-        if (isDigiSign) {
+        // budi:
+        /*if (isDigiSign) {
             logger.info("this sc order not change status.");
             editInfo.setStatus(null);
         } else {
             this.manOrderHistoryService.addOrderHistory(orderHistory);
-        }
+        }*/
         //如果是签约的 主要就更新secondChecker字段
         this.manOrderOrderService.editOrder(editInfo);
         if (orderState == OrdStateEnum.LOANING.getCode()) {
-            sendReviewPassMsg(orderResult.getUserUuid());
+            // budi: remark sms
+            //sendReviewPassMsg(orderResult.getUserUuid());
         }
         //成功则推送第三方数据
         if (orderState == OrdStateEnum.LOANING.getCode() || orderState == OrdStateEnum.MACHINE_CHECK_NOT_ALLOW.getCode()
@@ -802,7 +806,8 @@ public class ManOrderCheckRemarkService {
             userRequest.setUserUuid(userUuid);
             UsrUser userUser = this.userUserService.userMobileByUuid(userRequest);
             if (!StringUtils.isEmpty(userUser.getMobileNumberDES())) {
-                this.smsServiceUtil.sendTypeSmsCode("NOTICE", "62" + userUser.getMobileNumberDES(), content);
+                // budi: remark sms
+                //this.smsServiceUtil.sendTypeSmsCode("NOTICE", "62" + userUser.getMobileNumberDES(), content);
             }
         } catch (Exception e) {
             logger.error("发送提醒短信异常, userUuid= " + userUuid, e);

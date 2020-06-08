@@ -15,9 +15,9 @@ public class OrderReviewStepEntity   extends BaseEntity {
 
     @Getter
     public enum StepEnum{
-        UNKNOWN(0),  //标识没有今夕过外呼审核
-        LINKMAN_AND_COMPANY_CALL(1), //标识进行过联系人+公司电话的外呼审核
-        OWNER_CALL(2),  //标识进行过本人外呼审核
+        UNKNOWN(0),  //The logo has not been checked out tonight
+        LINKMAN_AND_COMPANY_CALL(1), //Identified the outbound audit of contact + company phone
+        OWNER_CALL(2),  //The logo has been audited by myself
         ;
 
         StepEnum(int inCode){

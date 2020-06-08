@@ -1183,8 +1183,9 @@ public class UsrService {
             }
 
         } else {
-            log.info("???????");
-            throw new ServiceException(ExceptionEnum.USER_NOT_CHOOSE_IDENTITY);
+            log.info("ExceptionEnum.USER_NOT_CHOOSE_IDENTITY");
+            //throw new ServiceException(ExceptionEnum.USER_NOT_CHOOSE_IDENTITY);
+            return null;
         }
 
     }

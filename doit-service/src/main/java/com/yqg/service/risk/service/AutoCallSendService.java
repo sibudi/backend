@@ -70,7 +70,7 @@ public class AutoCallSendService {
 
 
     /***
-     * 查询某一个类型外呼情况
+     * Query a certain type of outbound situation
      * @param orderNo
      * @param callNode
      * @return
@@ -126,8 +126,8 @@ public class AutoCallSendService {
             //error的数据都通过twillio重新外呼，
             List<TeleCallResult> filterOwnerResultList = new ArrayList<>();
             for(TeleCallResult item: inforbipResultList){
-                if(item.getCallState()!=null&&item.getCallState() == TeleCallResult.CallStatusEnum.CALL_ERROR.getCode()){
-                    //本人外呼忽略掉系统错误的记录
+                if(item.getCallState()!=null && item.getCallState() == TeleCallResult.CallStatusEnum.CALL_ERROR.getCode()){
+                    //I call out and ignore the system error record
                     continue;
                 }
                 filterOwnerResultList.add(item);
@@ -174,7 +174,7 @@ public class AutoCallSendService {
             if (elem.getCallType() == TeleCallResult.CallTypeEnum.EMERGENCY_LINKMAN.getCode()) {
                 String callMobile = CheakTeleUtils.telephoneNumberValid2(elem.getTellNumber());
                 if (mobiles.contains(callMobile)) {
-                    //id是否是最新一次的外呼id
+                    //id is the latest outbound id
                     Optional<CallResult> opt = emergencyLinkmanResult.get(elem.getTellNumber());
                     if(opt.isPresent() && opt.get().getId().equals(elem.getId()) && opt.get().getCallChannel().equals(elem.getCallChannel())){
                         return  true;

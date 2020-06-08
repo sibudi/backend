@@ -2162,6 +2162,9 @@ public class UsrBaseInfoService {
     public void savaOrderInfoToMango(String userUuid,String orderNo) throws Exception{
         //?????mango??????????????
         UsrUser usrUser = this.usrDao.getUserInfoByIdIgnoreDisable(userUuid);
+        if (usrUser == null) {
+            log.warn("User id  {} for order {} not found in database", userUuid, orderNo);
+        }
         //??????
         if (getMangoOrderData(orderNo, OrdStepTypeEnum.IDENTITY)){
             Object identityData = this.getIdentityInfo(userUuid, false);

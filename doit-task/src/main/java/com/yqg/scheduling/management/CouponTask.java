@@ -35,7 +35,7 @@ public class CouponTask {
     private RedisClient redisClient;
 
     // 每天定时发送不同类型的优惠券
-    @Scheduled(cron = "0 0 3 * * ?")
+    //@Scheduled(cron = "0 0 3 * * ?")
     public void sendCouponsAuto() {
         String managerUrl = url;
         managerUrl += "sendCouponsAuto/managerTask?request=";
@@ -51,7 +51,7 @@ public class CouponTask {
     }
 
     // 印尼时间上午10点，下午2点（未还款）。
-    @Scheduled(cron = "0 0 10,14 * * ?")
+    //@Scheduled(cron = "0 0 10,14 * * ?")
     public void sendTwilioCallCouponAuto() {
         String managerUrl = url;
         managerUrl += "sendTwilioCallCouponAuto/managerTask?request=";

@@ -77,19 +77,13 @@ public class InforbipCollectionService {
             log.info("no order need be called，callType is：" + request.getCallPhase());
             return ;
         }
-        //每次固定发送两个电话号码
-//        TeleVoiceMessageResult result1 = new TeleVoiceMessageResult();
-//        result1.setUserUuid("testUserUuid1");
-//        result1.setOrderNo("testOrderNo1");
-//        result1.setTellNumber("+6287787117873");
-//        result1.setTellNumber("+6287787117873");
-//        lists.add(result1);
 
         //set phone number.
-        List<TwilioUserInfoResponse> requests = lists.stream().map(elem -> new TwilioUserInfoResponse(elem.getOrderNo()
-                ,elem.getUserUuid(),
-                elem.getTellNumber(), request.getCallUrl(), request.getCallPhase(),
-                request.getCallPhaseType(), request.getBatchNo())).filter(e -> StringUtils.isNotEmpty(e.getPhoneNumber()))
+        List<TwilioUserInfoResponse> requests = lists.stream().map(elem -> new TwilioUserInfoResponse(
+                elem.getOrderNo(),elem.getUserUuid(),elem.getTellNumber(), 
+                request.getCallUrl(), request.getCallPhase(),
+                request.getCallPhaseType(), request.getBatchNo()))
+                .filter(e -> StringUtils.isNotEmpty(e.getPhoneNumber()))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(requests)) {
             log.error("no orders voice messages send., callType is {}", request.getCallPhase());
@@ -190,22 +184,23 @@ public class InforbipCollectionService {
     }
 
 
-
-
+    //region Get Infobip report
+    // Called by TwilioCallScheduling.java API: /getInfobipCollectionReport/managerTask
     public void getReport(int mode) throws Exception{
 
-        List<TeleVoiceMessageResult> callResults = teleVoiceMessageResultDao.getTeleCallResult(mode);
+        List<TeleVoiceMessageResult> callResults = teleVoiceMessageResultDao.getTeleVoiceMessageResult(mode);
 
         getReportForList(callResults,mode);
     }
 
+    // Called by this.getReport
     private void getReportForList(List<TeleVoiceMessageResult> callResults, int mode){
         if(CollectionUtils.isEmpty(callResults)){
             return;
         }
-        log.info("get report count is : {}, mode= {}", callResults.size(), mode);
+        log.info("Get Infobip report - start size={} mode= {}", callResults.size(), mode);
 
-        //msgId and bulkId group by.
+        //Need to group more msgId and bulkId
         Map<String,List<TeleVoiceMessageResult>> callResultMap = callResults.stream().collect(Collectors
                 .groupingBy(elem->elem.getCallMsgId()+"#"+ elem.getCallBulkId()));
 
@@ -214,153 +209,145 @@ public class InforbipCollectionService {
             String bulkId = keyId.split("#")[1];
             String msgId = keyId.split("#")[0];
             String mobile = callResultMap.get(keyId).get(0).getTellNumber();
-            log.info("phone mobile is {}, bulkId is {},  msgId is {} ", mobile, bulkId, msgId);
+            log.info("The phone number to get the report is {}, bulkId is {}, and msgId is {} ", mobile, bulkId, msgId);
             try {
-                // 根据bulkId和msgId获取报告
+                // Get report based on bulkId and msgId
                 GetReportResponse getReportResponse = inforbipService.getReportWithId(msgId, bulkId);
                 List<GetReportResponse.Results> resultsList = getReportResponse.getResults();
                 if (!CollectionUtils.isEmpty(resultsList)) {
                     for (GetReportResponse.Results result : resultsList) {
-                        // 如果获取到报告 根据errorGroupId 和 errorId判断外呼的结果
                         relatedCallResult.stream().forEach(elem->dealWithResultWithReportData(result, elem));
                     }
                 } else {
-                    log.error("get report is null.");
+                    log.error("Infobip report response is empty, continue to next query");
                 }
             } catch (Exception e) {
-                log.error("get report is error", e);
+                log.error("Infobip report is error", e);
                 relatedCallResult.stream().forEach(elem->{
                     elem.setErrorGroupId(0);
                     elem.setErrorId(0);
-                    // 呼叫完成（已经获取到报告）
                     elem.setCallState(TeleCallResult.CallStatusEnum.CALL_ERROR.getCode());
-                    // 存储外呼结果
-                    elem.setCallResponse("get Report infobip is error " + e.getMessage());
+                    elem.setCallResponse(String.format("Infobip report is error %.100s", e.getMessage()));
                     teleVoiceMessageResultDao.update(elem);
-
                 });
-
             }
         }
-        log.info("finished the get infobip collection report...");
+        log.info("Get Infobip report - end mode= {}", mode);
     }
 
-
     /**
-     * dealWith result.
+     * dealWith result. Called by this.getReportForList
      * @param result
      * @param call
      */
-    public void dealWithResultWithReportData(GetReportResponse.Results result, TeleVoiceMessageResult call) {
+    private void dealWithResultWithReportData(GetReportResponse.Results result, TeleVoiceMessageResult call) {
 
         Integer errorGroupId = result.getError().getGroupId();
         Integer errorId = result.getError().getId();
 
         call.setErrorGroupId(errorGroupId);
         call.setErrorId(errorId);
-        // 呼叫完成（已经获取到报告）
         call.setCallState(TeleCallResult.CallStatusEnum.CALL_FINISHED.getCode());
 
         switch (errorId){
-            case 225: // 未知错误
+            case 225:
+            case 1158:// Network Congestion
                 call.setCallResult(CallReusltEnum.UNKNOWN_ERROR.getCode());
                 break;
-            case 5000://  接通（人工应答电话）
-            case 5001://  接通（呼叫已被语音机接收和应答）
+            case 5000:// Answer the phone manually
+            case 5001:// Answered by the voice machine
                 call.setCallResult(CallReusltEnum.CONNECT.getCode());
                 break;
-            case 5002:// 通话中/忙（用户在尝试呼叫时很忙）
+            case 5002:
                 call.setCallResult(CallReusltEnum.BUSY.getCode());
                 break;
-            case 5003:// 无人接听（用户被通知，但没有应答呼叫）
+            case 5003:
                 call.setCallResult(CallReusltEnum.NO_ANSWER.getCode());
                 break;
-            case 5004:// 文档不可用（HTTP请求中指定的文件不可访问，无法下载。）
+            case 5004:// The file specified in the HTTP request is not accessible and cannot be downloaded
                 call.setCallResult(CallReusltEnum.ATTACHMENT_USELESS.getCode());
                 break;
-            case 5005:// 格式不支持（不支持指定文件的格式）
+            case 5005:// The file specified in the HTTP request is having unssuported format
                 call.setCallResult(CallReusltEnum.ATTACHMENT_FORMATT_NOT_SUPPORT.getCode());
                 break;
-            case 5400:// 格式不正确（收到的请求被拒绝，因为格式不正确）
+            case 5400:// Rejected due to incorrect format
                 call.setCallResult(CallReusltEnum.REQUEST_FORMATT_NOT_SUPPORT.getCode());
                 break;
-            case 5403:// 已欠费（服务器理解请求，但拒绝执行）
+            case 5403:// Fees owed (server understands request, but refuses to execute)
                 call.setCallResult(CallReusltEnum.ARREARS.getCode());
                 break;
-            case 5404:// 号码不存在
+            case 5404:
                 call.setCallResult(CallReusltEnum.NUMBER_NOT_EXIST.getCode());
                 break;
-            case 5407:// 验证用户信息（该请求需要在运营商端进行用户身份验证）
+            case 5407:// This request require user identity verification on the operator side
                 call.setCallResult(CallReusltEnum.NEED_VERIFY_USER_INFO.getCode());
                 break;
-            case 5408:// 无信号（未能及时找到用户）
+            case 5408:// No signal (Failed to find user in time)
                 call.setCallResult(CallReusltEnum.NO_SIGNAL.getCode());
                 break;
-            case 5410:// 未到达（用户存在一次，但操作员不再支持目标地址）
+            case 5410:// Not reached (user exists once, but the operator no longer supports the target address)
                 call.setCallResult(CallReusltEnum.NO_ARRIVE.getCode());
                 break;
-            case 5413:// 请求过大（请求实体主体大于服务器愿意或能够处理的主体）
+            case 5413:
                 call.setCallResult(CallReusltEnum.REQUEST_TOO_LARGE.getCode());
                 break;
-            case 5414:// 拒绝处理（服务器拒绝处理请求，因为Request-URI比服务器长）
+            case 4104:// Too many equal messages to the same destination
+            case 5414:// The server refuses to process the request because the Request-URI too long
                 call.setCallResult(CallReusltEnum.REFUSE_TO_DEAL.getCode());
                 break;
-            case 5415:// 格式不支持（不支持文件格式）
+            case 5415:// The file format is not supported
                 call.setCallResult(CallReusltEnum.FORMATT_NOT_SUPPORT.getCode());
                 break;
-            case 5480:// 关机（被叫者（Callee）目前不可用）
+            case 5480:// Shutdown (Callee is currently unavailable)
                 call.setCallResult(CallReusltEnum.DOWN_TINE.getCode());
                 break;
-            case 5484:// 号码无效
+            case 5484:
                 call.setCallResult(CallReusltEnum.INVALID_NUMBER.getCode());
                 break;
-            case 5487:// 拒接（请求已被取消按钮终止，最终用户拒绝接听语音呼叫）
+            case 5487:// Request has been terminated with a cancel button and end user refused to receive a voice call.
                 call.setCallResult(CallReusltEnum.USER_REFUSE.getCode());
                 break;
-            case 5488:// 格式不支持（请求的格式在运营商端是不可接受的）
+            case 5488:// The format is not supported (the requested format is not acceptable at the operator's end)
                 call.setCallResult(CallReusltEnum.REQUEST_FORMATT_NOT_SUPPORT_IN_SERVER.getCode());
                 break;
-            case 5491:// 待处理请求（服务器具有来自同一对话框的一些待处理请求）
+            case 5491:// Pending requests (the server has some pending requests from the same dialog box)
                 call.setCallResult(CallReusltEnum.REQUEST_NEED_DEAL_WITH.getCode());
                 break;
-            case 5492:// 接通-拒绝（同样的文本已经发送到目的地）
+            case 5492:// Connect-Reject (same text has been sent to the destination)
                 call.setCallResult(CallReusltEnum.REJECT_BY_OPERATOR.getCode());
                 break;
-            case 5500:// 错误（服务器内部错误）
+            case 5500:// Internal server error
                 call.setCallResult(CallReusltEnum.SERVER_ERROR_IN.getCode());
                 break;
-            case 5501:// 未实现（没有实现）
+            case 5501:// Unrealized (not implemented)
                 call.setCallResult(CallReusltEnum.NOT_REALIZE.getCode());
                 break;
-            case 5503:// 不在服务区（服务不可用）
+            case 5503:// Not in service area (service unavailable)
                 call.setCallResult(CallReusltEnum.NOT_ON_SERVER.getCode());
                 break;
-            case 5504:// 服务器超时
+            case 5504:
                 call.setCallResult(CallReusltEnum.SERVER_TIME_OUT.getCode());
                 break;
-            case 5603:// 拒绝
+            case 5603:// Phone switched off
                 call.setCallResult(CallReusltEnum.REFUSE.getCode());
                 break;
 
-            default:
-                break;
-
         }
-        // 完全有效
+        // Completely effective (Answer manually, Busy, No answer, Phone switched off)
         List<Integer> usefulList = Arrays.asList(5000,5002,5003,5603);
-        // 无效
+        // Invalid (Number not exist, Invalid number, Rejected by operator)
         List<Integer> uselessList = Arrays.asList(5404,5484,5492);
 
         if (usefulList.contains(errorId)){
-            call.setCallResultType(1);
+            call.setCallResultType(TeleCallResult.CallResultTypeEnum.VALID.getCode());
         }else if (uselessList.contains(errorId)){
-            call.setCallResultType(3);
+            call.setCallResultType(TeleCallResult.CallResultTypeEnum.INVALID.getCode());
         }else {
-            // 可能有效 5500/5603/5504/5501/255/5004/5005/5400/5407/5410/5413/5414/5415/5488/5491
-            call.setCallResultType(2);
+            // 5500/5603/5504/5501/255/5004/5005/5400/5407/5410/5413/5414/5415/5488/5491
+            call.setCallResultType(TeleCallResult.CallResultTypeEnum.NOT_SURE.getCode());
         }
 
-        // 存储外呼结果
+        // Store outgoing call results
         call.setCallBeginTime(result.getStartTime());
         call.setCallEndTime(result.getEndTime());
         call.setCallDuration(result.getDuration());
@@ -368,4 +355,6 @@ public class InforbipCollectionService {
         teleVoiceMessageResultDao.update(call);
 
     }
+    //endregion Get Infobip report
+
 }

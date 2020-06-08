@@ -5,8 +5,6 @@ server:
 upload:
   rootPath: /mnt/MyUpload
   rootPathBak: /mnt/MyUpload_bak
-#  rootPath: E:/Do-It/SECRET
-#  rootPathBak: E:/Do-It/SECRET
   maxFileSize: 10MB
   maxRequestSize: 20MB
 

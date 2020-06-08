@@ -21,7 +21,7 @@ public class  TeleCallResult extends BaseEntity implements Serializable {
     private Integer callNode;   // 外呼节点 1 机审到初审  2初审到复审
     private Integer callType;    // 外呼手机号类型（// 1本人电话 2公司电话 3 紧急联系人 4 备选联系人)
 
-    private Integer callState;   // 外呼状态  0 未呼叫  1 已呼叫  2 呼叫完成（能够获取报告结果） 3 外呼失败
+    private Integer callState;   // call status 0 Not called 1 Called 2 Call completed (capable of obtaining report results) 3 Outgoing call failed
     private String callBulkId;  // bulkId (用来获取报告)
     private String callMsgId;  // messageId （用来获取报告）
     private Integer callResult;  // 外呼结果 （1.接通  占线  接通 未接通  其他）
@@ -33,6 +33,7 @@ public class  TeleCallResult extends BaseEntity implements Serializable {
     private String callEndTime;  // 外呼结束时间
     private Integer callDuration;  // 外呼时长
     private String  callResponse;  // 整个响应结果
+    private String remark;
 
 
 
@@ -69,7 +70,7 @@ public class  TeleCallResult extends BaseEntity implements Serializable {
 
     @Getter
     public enum CallStatusEnum{
-        // 外呼状态  0 未呼叫  1 已呼叫  2 呼叫完成（能够获取报告结果）
+        // Outgoing call status (0) Not called (1) Called (2) Completed (capable of obtaining report results) (3) Failed
         INIT(0),
         CALL_SEND(1),
         CALL_FINISHED(2),
@@ -82,7 +83,7 @@ public class  TeleCallResult extends BaseEntity implements Serializable {
 
     @Getter
     public enum CallResultTypeEnum{
-        // 外呼结果大类 1 完全有效 2 可能有效 3无效
+        // Outgoing call result category
         VALID(1),
         NOT_SURE(2),
         INVALID(3);

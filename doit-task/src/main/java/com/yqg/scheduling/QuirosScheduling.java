@@ -24,7 +24,7 @@ public class QuirosScheduling {
      *
      */
 
-    @Scheduled(cron = "0 */1 * * * ?")
+    //@Scheduled(cron = "0 */1 * * * ?")
     public void updateQualityVoiceRecord() throws Exception {
         log.info("update Quiros0 voice Record start ========");
         quirosService.quirosUpdateRecordingUrl();

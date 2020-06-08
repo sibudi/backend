@@ -14,6 +14,7 @@ import com.yqg.service.signcontract.UsrSignContractStepService;
 import com.yqg.service.third.asli.request.AsliPlusVerificationRequest;
 import com.yqg.service.third.asli.response.AsliPlusVerificationResponse;
 import com.yqg.service.third.digSign.reqeust.RegisterRequest;
+import com.yqg.service.third.digSign.reqeust.RegisterRequestKYC;
 import com.yqg.service.third.izi.IziService.IziRealNameVerifyResult;
 import com.yqg.service.third.izi.IziService.IziRealNameVerifyResult.MessageDetail;
 import com.yqg.service.third.jxl.response.JXLBaseResponse;
@@ -200,6 +201,40 @@ public class DigSignParamService {
 
         return Optional.of(result);
 
+    }
+
+    public Optional<RegisterRequestKYC> getRegisterDataWithKYC(String userUuid) {
+
+        UsrUser user = usrService.getUserByUuid(userUuid);
+        UserDetailInfo userDetailInfo = userDetailService.getUserDetailInfo(user);
+        RegisterRequestKYC result = new RegisterRequestKYC();
+        result.setUserId(digiSignConfig.getDoitAdminEmail());
+
+        UsrAddressDetail birthAddress = userAddressDetailService.getUserAddressDetailByType(user.getUuid(), UsrAddressEnum.BIRTH);
+
+        result.setIdCardAddressDetail(birthAddress != null ? birthAddress.getDetailed() : null);
+        result.setGender(user.getSex() == 1 ? "LAKI-LAKI" : "PEREMPUAN");
+        result.setSmallDirect(birthAddress.getSmallDirect());
+        result.setBigDirect(birthAddress.getBigDirect());
+        result.setCity(birthAddress.getCity());
+        //TODO 设置一个默认值
+        result.setPostalCode("40115");
+        result.setName(user.getRealName());
+        result.setMobileNumber("62" + DESUtils.decrypt(user.getMobileNumberDES()));
+        result.setDateOfBirth(birthdayFormat(userDetailInfo.getBirthday()));
+        result.setProvince(birthAddress.getProvince());
+        result.setNikKtp(user.getIdCardNo());
+        result.setPlaceOfBirth(birthAddress.getCity());
+        result.setEmail(userDetailInfo.getEmail());
+        result.setRedirect(true);
+
+        // result.setUserIdInDoit(user.getId().toString());
+        // result.setIdCardValid("1");
+        // result.setNameValid("1");
+        // result.setDateOfBirthValid("1");
+        // result.setPlaceOfBirthValid("1");
+
+        return Optional.of(result);
     }
 
     private Boolean getBooleanValueWithDefault(Boolean realValue, Boolean defaultValue){

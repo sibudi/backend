@@ -5,19 +5,14 @@ import com.yqg.common.constants.RedisContants;
 import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.OrdRepayAmountRecordStatusEnum;
 import com.yqg.common.enums.order.OrdStateEnum;
-import com.yqg.common.enums.order.OrderTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.enums.system.LoanDisburseTypeEnum;
 import com.yqg.common.enums.system.SysThirdLogsEnum;
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.DESUtils;
-import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.OrderNoCreator;
-import com.yqg.mongo.dao.OrderUserDataDal;
-import com.yqg.mongo.dao.UserCallRecordsDal;
-import com.yqg.mongo.dao.UserContactsDal;
 import com.yqg.order.dao.*;
 import com.yqg.order.entity.*;
 import com.yqg.request.ManualRepayOrderRequest;
@@ -33,7 +28,6 @@ import com.yqg.service.p2p.response.P2PResponse;
 import com.yqg.service.p2p.response.P2PResponseDetail;
 import com.yqg.service.p2p.service.P2PService;
 import com.yqg.service.pay.RepayService;
-import com.yqg.service.system.service.SmsRemindService;
 import com.yqg.service.system.service.SysParamService;
 import com.yqg.service.system.service.SysThirdLogsService;
 import com.yqg.service.third.kaBinCheck.KaBinCheckService;
@@ -56,7 +50,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by wanghuaizhou on 2017/12/3.
@@ -325,17 +318,17 @@ public class PayService {
             return;
         }
         for (OrdOrder order : orderOrders) {
-            if(p2PService.isP2PIssuedLoan(order.getUuid())){
-                //ahalim: TODO P2P - For now disable P2P
-                //p2pPaymentCheck(order);
-                continue;
-            }else{
+//            if(p2PService.isP2PIssuedLoan(order.getUuid())){
+////              ahalim: P2P - For now disable P2P
+////              rizky 2020/05/05 re enable P2p
+//                p2pPaymentCheck(order);
+//            }else{
                 try {
                     normalPaymentCheck(order);
                 }catch (Exception e){
                     log.error("查询代还款订单异常，订单号："+order.getUuid(),e);
                 }
-            }
+//            }
 
         }
     }

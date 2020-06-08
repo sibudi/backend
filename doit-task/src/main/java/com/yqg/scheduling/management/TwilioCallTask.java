@@ -188,7 +188,7 @@ public class TwilioCallTask {
     /**
      * 降额未确认
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    //@Scheduled(cron = "0 0 12 * * ?")
     public void infobipReduce() {
         if (judgeSwitchOpen(RedisContants.INFOBIP_CALL_TOTAL_SWITCH + ":reduceVoiceCall")) {
             String managerUrl = url;

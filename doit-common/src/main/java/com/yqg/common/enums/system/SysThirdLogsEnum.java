@@ -20,7 +20,8 @@ public enum SysThirdLogsEnum {
     TAX_NUMBER_VERIFY(13,"税号实名验证"),
     ASLI_VERIFY(14,"asli实名验证"),
     SELFIE_VERIFY(15,"自拍照验证"),
-    SERVERFEE_TRANSFER(16,"服务费转账");
+    SERVERFEE_TRANSFER(16,"服务费转账"),
+    FDC_INQUIRY(23,"FDC INQUIRY");
 
     private int code;
     private String message;

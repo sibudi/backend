@@ -62,7 +62,7 @@ mysql:
       minIdle: 1
       timeBetweenEvictionRunsMillis: 60000
       minEvictableIdleTimeMillis: 300000
-      # validationQuery: select 'x'
+      validationQuery: select 'x'
       testWhileIdle: true
       testOnBorrow: false
       testOnReturn: false
@@ -153,8 +153,7 @@ third:
     partnerKey: invalidKey
   inforbip:
     userName: do-it
-    #password: do-it2018
-    password: invalidPassword
+    password: do-it2018
     host: https://api-id1.infobip.com
     mobileLookUpUrl: /tts/3/single
     mobileLookUpUrlMulti: /tts/3/multi
@@ -187,29 +186,17 @@ third:
   digiSign:
     token: atXytejhMO5pMsaAtLdcrkQ2WFlb7uHSCBXXhmnv6jV5AWIdFGofaM4nD6EGQT
     doitAdminEmail: it@do-it.id
-    #test env
-    #      registerUrl: https://api.tandatanganku.com/REG-MITRA.html
-    #      activationUrl: https://api.tandatanganku.com/ACTMitra-M.html
-    #      sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
-    #      signUrl: https://api.tandatanganku.com/SignWebView.html
-    #      tmpContractDir: C:/Users/zxc20/Desktop/digSign/contract-tmp
-    #      automaticSignKUser: e8r5QbytnJ5g2HOo
-    #      apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
-    #      apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
-    #      apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA.html
-
-    #uat env
-    registerUrl: https://apiuat.tandatanganku.com/REG-MITRA.html
-    activationUrl: https://apiuat.tandatanganku.com/ACTMitra-M.html
-    sendDocumentUrl: https://apiuat.tandatanganku.com/SendDocMitraAT.html
-    signUrl: https://apiuat.tandatanganku.com/SignWebView.html
+    registerUrl: https://api.tandatanganku.com/REG-MITRA.html
+    activationUrl: https://api.tandatanganku.com/gen/genACTPage.html
+    sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
+    signUrl: https://api.tandatanganku.com/SignWebView.html
     contractDir: /mnt/MyUpload/DOIT_CONTRACT
-    automaticSignKUser: e8r5QbytnJ5g2HOo
-    automaticSignEmail: it@do-it.id
-    automaticSignRealName: it@do-it.id
-    apiUserStatusUrl: https://apiuat.tandatanganku.com/CheckUserMitra.html
-    apiDocumentStautsUrl:  https://apiuat.tandatanganku.com/STATUSDOC.html
-    apiDocumentDownloadUrl: https://apiuat.tandatanganku.com/DWMITRA64.html
+    automaticSignEmail: janhsen@do-it.id
+    automaticSignRealName: janhsen@do-it.id
+    automaticSignKUser: YSnZqiXFXyYwufKL
+    apiUserStatusUrl: https://api.tandatanganku.com/CheckUserMitra.html
+    apiDocumentStautsUrl:  https://api.tandatanganku.com/STATUSDOC.html
+    apiDocumentDownloadUrl: https://api.tandatanganku.com/DWMITRA64.html
 des:
   file:
     path: /SECRET/des-test.cer
@@ -251,5 +238,14 @@ tongdun:
 spring:
   freemarker:
     checkTemplateLocation: false
+
+fdc:
+  inquiry_url: http://fdc-api.uat.doitglotech.cloud/v1/inquiry
+  credential: 8e1dd29b33e344719adcd04176cbd7c9
+
+notification.service.url: https://notificationapi-uat.doitglotech.co.id
+notification.service.token: lgezRLxR84n$9@
+notification.service.origin: https://doit-risk-uat.doitglotech.co.id
+slack.webhook.url: https://hooks.slack.com/services/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
 
 endpoints.enabled: false

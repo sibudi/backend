@@ -27,7 +27,9 @@ import com.yqg.service.p2p.response.*;
 import com.yqg.service.p2p.response.P2PResponseDetail.RepaySuccessStatusDetail;
 import com.yqg.service.p2p.utils.P2PMD5Util;
 import com.yqg.service.risk.service.OrderModelScoreService;
+import com.yqg.service.signcontract.ContractSignService;
 import com.yqg.service.system.service.SysParamService;
+import com.yqg.service.task.AsyncTaskService;
 import com.yqg.service.user.model.AttachmentModel;
 import com.yqg.service.user.service.UserAttachmentInfoService;
 import com.yqg.service.user.service.UserDetailService;
@@ -36,6 +38,7 @@ import com.yqg.system.dao.SysBankDao;
 import com.yqg.system.dao.SysProductDao;
 import com.yqg.system.entity.SysBankBasicInfo;
 import com.yqg.system.entity.SysProduct;
+import com.yqg.task.entity.AsyncTaskInfoEntity;
 import com.yqg.user.dao.*;
 import com.yqg.user.entity.*;
 import lombok.extern.slf4j.Slf4j;
@@ -97,6 +100,10 @@ public class P2PService {
     private OrdBillDao ordBillDao;
     @Autowired
     private OrdDelayRecordDao ordDelayRecordDao;
+    @Autowired
+    private AsyncTaskService asyncTaskService;
+    @Autowired
+    private ContractSignService contractSignService;
 
     // p2p url
     @Value("${p2p.host}")
@@ -114,7 +121,8 @@ public class P2PService {
     private OkHttpClient httpClient;
 
     //流标
-    private final static List<String> NEED_RE_ISSUING_LOAN_STATUS = Arrays.asList(P2PLoanStatusEnum.MISS_FUNDING.getStatusCode());
+    private final static List<String> NEED_RE_ISSUING_LOAN_STATUS = Arrays.asList(P2PLoanStatusEnum.MISS_FUNDING.getStatusCode()
+        ,P2PLoanStatusEnum.WAITING_DISBURSE.getStatusCode());
 
     //p2p进行放款的状态
     private final static List<String> P2P_ISSUING_LOAN_STATUS = Arrays.asList(P2PLoanStatusEnum.ISSUING.getStatusCode(),
@@ -122,7 +130,8 @@ public class P2PService {
             P2PLoanStatusEnum.ISSUE_FAILED.getStatusCode(),
             P2PLoanStatusEnum.REPAYMENT_PENDING.getStatusCode(),
             P2PLoanStatusEnum.REPAYMENT_SUCCESS.getStatusCode(),
-            P2PLoanStatusEnum.REPAYMENT_FAILED.getStatusCode());
+            P2PLoanStatusEnum.REPAYMENT_FAILED.getStatusCode(),
+            P2PLoanStatusEnum.WAITING_DISBURSE.getStatusCode());
 
     /**
      * 推标
@@ -132,18 +141,43 @@ public class P2PService {
         try {
 
             SendOrderInfoRequest loanRequest = new SendOrderInfoRequest();
+            //rizky add product type check for term
+            SysProduct product = this.sysProductDao.getProductInfo(order.getProductUuid());
+            int productType = product.getProductType();
+            String labelledterm;
+            if(productType >= 200){
+                //weekly
+                labelledterm = ((productType - 200) * product.getBorrowingTerm()) + "w";
+            }
+            else if(productType >= 100){
+                //monthly
+                labelledterm = ((productType - 100) * product.getBorrowingTerm()) + "m";
+            }
+            else if(productType == 1){
+                //monthly
+                labelledterm = order.getBorrowingTerm() + "m";
+            }
+            else{
+                labelledterm = order.getBorrowingTerm() + "d";
+            }
 
             loanRequest.setBorrowingPurposes(getUserBorrowUse(user)); // 借款用途
             loanRequest.setRiskLevel(0);  // 风险等级
             loanRequest.setCreditorNo(order.getUuid()); // 债权编号
             loanRequest.setLenderId(user.getUuid()); // 借款人用户uuid
             loanRequest.setAmountApply(order.getAmountApply()); // 申请金额
-            String unit = "3".equals(order.getOrderType()) ? "m" : "d";
-            loanRequest.setTerm(order.getBorrowingTerm() + unit); // 申请期限
-
+            loanRequest.setTerm(labelledterm); // 申请期限
+            if(order.getOrderType().equals("3")){// doit order enum 1-normal 2-extend 3-staging
+                loanRequest.setCreditorType(2); // p2p order enum 1-normal 2-staging 3-extend
+                loanRequest.setDetail(product.getBorrowingTerm().toString());
+            }
+            else if(order.getOrderType().equals("2")){
+                loanRequest.setCreditorType(3);
+                // get old order number if extend
+//                loanRequest.setDetail("old orderNo");
+            }
             // 从产品表中查出来
             if (!StringUtils.isEmpty(order.getProductUuid())){
-                SysProduct product = this.sysProductDao.getProductInfoIgnorDisabled(order.getProductUuid());
                 loanRequest.setBorrowerYearRate(product.getInterestRate()); // 借款年化利率
             }
 
@@ -397,14 +431,29 @@ public class P2PService {
         scan.setUuid(orderNo);
         List<OrdOrder> orderList = this.ordDao.scan(scan);
         if (CollectionUtils.isEmpty(orderList)) {
-            log.error("查询的订单不存在");
+            log.error("handleP2PLoanStatus - Order doesn't exist");
             throw new ServiceException(ExceptionEnum.ORDER_NOT_FOUND);
         }
         OrdOrder order = orderList.get(0);
         OrdOrder.P2PLoanStatusEnum loanStatus = P2PLoanStatusEnum.getEnumFromValue(status);
         switch (loanStatus) {
             case ISSUING: //放款中
-                updateOrderStatusAndAddOrderHistory(order, OrdStateEnum.LOANING_DEALING, status);
+                // budi: ganti flow 5 -> (asyncTaskInfo -> 20) -> 6, dulu dari 5 langsung ke 6
+                if(contractSignService.isDigitalSignSwitchOpen(order)) {
+                    if (!order.getMarkStatus().equals(status)) {
+                        asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+                        log.info("insert order {} to asyncTaskInfo", order.getUuid());
+                    }
+                    else{
+                        log.info("status order markStatus != status, order {}, status: {}, markstatus {}", 
+                            order.getUuid(), status, order.getMarkStatus());
+                    }
+                } else {
+                    // Skip digisign
+                    updateOrderStatusAndAddOrderHistory(order, OrdStateEnum.LOANING, status);
+                    flowMarker(order, P2PLoanStatusEnum.WAITING_DISBURSE.getStatusCode());
+                    log.info("Digisign off for order {}, direct to status 6", order.getUuid());
+                }
                 break;
             case ISSUED: // 放款成功 -- 代还款
                 LoanResponse loanResponse = new LoanResponse();
@@ -658,47 +707,51 @@ public class P2PService {
      */
     public boolean isLoanNeedSendToP2P(OrdOrder order, UsrBank usrBank) {
 
-        //目前只有绑定bca银行并且订单非流标状态的才进行p2p通道打款  而且订单不是分期账单
-        if (!order.getOrderType().equals("3")) {
-            //已经推送了但是流标需要重新走系统通道打款
-            if (!StringUtils.isEmpty(order.getMarkStatus()) && NEED_RE_ISSUING_LOAN_STATUS.contains(order.getMarkStatus())) {
+        // rizky enable staging order to p2p
+//        if (!order.getOrderType().equals("3")) {
+
+        //It has been pushed but the scheduler needs to go through the system channel to make a payment
+        if (!StringUtils.isEmpty(order.getMarkStatus()) && NEED_RE_ISSUING_LOAN_STATUS.contains(order.getMarkStatus())) {
+            return false;
+        }
+        String switchValue = sysParamService.getSysParamValue(SysParamContants.PAY_ISSUING_TO_P2P_SWITCH);
+
+        // 不同的银行 不同的推单条数限制
+        if (usrBank.getBankCode().equals("BCA")) {
+            int countP2pBca = Integer.valueOf(this.sysParamService.getSysParamValue(SysParamContants.LOAN_P2P_COUNT_BCA));
+            if (!"true".equals(switchValue) || countP2pBca <= 0) {
+                // switch == false
+                if (!order.getMarkStatus().equals("0")) {
+                    // switch == false && markStatus != 0
+                    return true;
+                }
+                // switch == false && markStatus == 0
                 return false;
             }
-            String switchValue = sysParamService.getSysParamValue(SysParamContants.PAY_ISSUING_TO_P2P_SWITCH);
-
-            // 不同的银行 不同的推单条数限制
-            if (usrBank.getBankCode().equals("BCA")){
-                int countP2pBca = Integer.valueOf(this.sysParamService.getSysParamValue(SysParamContants.LOAN_P2P_COUNT_BCA));
-                if (!"true".equals(switchValue) || countP2pBca <= 0) {
-                    if (!order.getMarkStatus().equals("0")) {
-                        return true;
-                    }
-                    //未上线前设置未false
-                    return false;
+            // switch == true
+            return true;
+        } else if (usrBank.getBankCode().equals("BNI")) {
+            int countP2pBni = Integer.valueOf(this.sysParamService.getSysParamValue(SysParamContants.LOAN_P2P_COUNT_BNI));
+            if (!"true".equals(switchValue) || countP2pBni <= 0) {
+                if (!order.getMarkStatus().equals("0")) {
+                    return true;
                 }
-                return true;
-            }else if (usrBank.getBankCode().equals("BNI")){
-                int countP2pBni = Integer.valueOf(this.sysParamService.getSysParamValue(SysParamContants.LOAN_P2P_COUNT_BNI));
-                if (!"true".equals(switchValue) || countP2pBni <= 0) {
-                    if (!order.getMarkStatus().equals("0")) {
-                        return true;
-                    }
-                    //未上线前设置未false
-                    return false;
-                }
-                return true;
-            }else if (!usrBank.getBankCode().equals("BCA") && !usrBank.getBankCode().equals("BNI")){
-
-                int countP2pCimb = Integer.valueOf(this.sysParamService.getSysParamValue(SysParamContants.LOAN_P2P_COUNT_CIMB));
-                if (!"true".equals(switchValue) || countP2pCimb <= 0) {
-                    if (!order.getMarkStatus().equals("0")) {
-                        return true;
-                    }
-                    //未上线前设置未false
-                    return false;
-                }
-                return true;
+                //未上线前设置未false
+                return false;
             }
+            return true;
+        } else if (!usrBank.getBankCode().equals("BCA") && !usrBank.getBankCode().equals("BNI")) {
+
+            int countP2pCimb = Integer.valueOf(this.sysParamService.getSysParamValue(SysParamContants.LOAN_P2P_COUNT_CIMB));
+            if (!"true".equals(switchValue) || countP2pCimb <= 0) {
+                if (!order.getMarkStatus().equals("0")) {
+                    return true;
+                }
+                //未上线前设置未false
+                return false;
+            }
+            return true;
+        }
 
 //        int countP2p = Integer.valueOf(this.sysParamService.getSysParamValue(SysParamContants.LOAN_P2P_COUNT));
 //        if (!"true".equals(switchValue) || countP2p <= 0) {
@@ -708,9 +761,9 @@ public class P2PService {
 //            //未上线前设置未false
 //            return false;
 //        }
-            return true;
-        }
-        return false;
+        return true;
+//    }
+//        return false;
     }
 
     /***
@@ -723,6 +776,15 @@ public class P2PService {
         }
         OrdOrder order = ordService.getOrderByOrderNo(orderNo);
         return order.getMarkStatus() != null && P2P_ISSUING_LOAN_STATUS.contains(order.getMarkStatus());
+    }
+    /**
+     * This overiding will not query ordOrder
+     * If you need to query ordOrder, use the one with String as passing parameter
+     * @param markStatus
+     * @return
+     */
+    public boolean isP2PIssuedLoan(P2PLoanStatusEnum markStatus) {
+        return markStatus != null && P2P_ISSUING_LOAN_STATUS.contains(markStatus.getStatusCode());
     }
 
 
@@ -739,10 +801,30 @@ public class P2PService {
         if (CollectionUtils.isEmpty(orderList)) {
             return new ArrayList<>();
         } else {
+
             String purpose = getUserBorrowUse(user);
-            return orderList.stream().map(elem -> new P2PLoanResponse(purpose, elem.getBorrowingTerm() + ("3".equals(elem.getOrderType()) ? "m" :
-                    "d"),
-                    elem.getAmountApply(), elem.getStatus())).collect(Collectors.toList());
+            return orderList.stream().map(elem -> {
+                SysProduct product = this.sysProductDao.getProductInfo(elem.getProductUuid());
+                int productType = product.getProductType();
+                String labelledterm;
+                if(productType >= 200){
+                    //weekly
+                    labelledterm = ((productType - 200) * product.getBorrowingTerm()) + "w";
+                }
+                else if(productType >= 100){
+                    //monthly
+                    labelledterm = ((productType - 100) * product.getBorrowingTerm()) + "m";
+                }
+                else if(productType == 1){
+                    //monthly
+                    labelledterm = elem.getBorrowingTerm() + "m";
+                }
+                else{
+                    labelledterm = elem.getBorrowingTerm() + "d";
+                }
+                return new P2PLoanResponse(purpose, labelledterm,
+                    elem.getAmountApply(), elem.getStatus());
+            }).collect(Collectors.toList());
         }
 
     }

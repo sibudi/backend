@@ -21,6 +21,7 @@ import com.yqg.service.third.asli.response.AsliPlusVerificationResponse;
 import com.yqg.service.third.digSign.reqeust.ActivationRequest;
 import com.yqg.service.third.digSign.reqeust.DigiRequest;
 import com.yqg.service.third.digSign.reqeust.RegisterRequest;
+import com.yqg.service.third.digSign.reqeust.RegisterRequestKYC;
 import com.yqg.service.third.digSign.reqeust.SendDocumentRequest;
 import com.yqg.service.third.digSign.response.Base64FileResponse;
 import com.yqg.service.third.digSign.response.DigiResponse;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -80,6 +82,14 @@ public class DigiSignService {
     private DocumentService documentService;
     @Autowired
     private RedisClient redisClient;
+
+    // p2p url (curently not used)
+    @Value("${p2p.host}")
+    private String HOST_URL;
+    @Value("${p2p.url.findOneByCreditorNo}")
+    private String FIND_BY_CREDITOR_NO;
+    @Value("${p2p.url.userBasicInfoView}")
+    private String USER_BASIC_INFO;
 
     /**
      * 调用asli 进行身份验证，自拍照验证
@@ -157,6 +167,9 @@ public class DigiSignService {
      */
     public boolean register(String userUuid, String orderNo) {
         //检查是否注册成功
+
+        log.info("register digisign with userId: {}", userUuid);
+
         UsrSignContractStep stepInfo = usrSignContractStepService.getSignContractStepResult(userUuid, SignStepEnum.DIGI_SIGN_REGISTER);
         if (UsrSignContractStep.isStepSuccess(stepInfo)) {
             //成功
@@ -192,6 +205,76 @@ public class DigiSignService {
         }
         Map<String, String> dataMap = new HashMap<>();
         DigiRequest digiRequest = new DigiRequest<RegisterRequest>().withJsonFile(requestData.get());
+        dataMap.put("jsonfield", JsonUtils.serialize(digiRequest));
+        Map<String, byte[]> fileMap = new HashMap<>();
+        fileMap.put("fotoktp", idCardFileStream);
+        fileMap.put("fotodiri", selfieFile);
+        CustomHttpResponse response = HttpUtil.sendMultiPartRequest(digiSignConfig.getRegisterUrl(), dataMap, fileMap, buildDigiSignHeaderMap());
+
+        //查询最新一笔申请中的订单
+        Optional<OrdOrder> currentOrder = ordService.getCurrentOrder(userUuid);
+        boolean isRegisterSuccess = false;
+        //如果返回是成功的
+        if (response.isResponseOk()) {
+            DigiResponse digResponse = JsonUtils.deserialize(response.getContent(), DigiResponse.class);
+            isRegisterSuccess = "00".equals(digResponse.getJSONFile().getResult());
+        }
+        //保存结果到mongo
+        saveRequest(currentOrder.get().getUuid(), userUuid, JsonUtils.serialize(dataMap), JsonUtils.serialize(response),
+                RequestTypeEnum.Registration, String.valueOf(isRegisterSuccess));
+        usrSignContractStepService.saveSignContractStep(userUuid, currentOrder.get().getUuid(), SignStepEnum.DIGI_SIGN_REGISTER, isRegisterSuccess ? StepResultEnum.SUCCESS
+                : StepResultEnum.FAILED, JsonUtils.serialize(response));
+
+
+        return isRegisterSuccess;
+    }
+
+    /***
+     * 调用digiSign 注册
+     * @param userUuid
+     * @param orderNo
+     * @return
+     */
+    public boolean registerWithKYC(String userUuid, String orderNo) {
+
+        log.info("register digisign WithKYC with userId: {}", userUuid);
+
+        //检查是否注册成功
+        UsrSignContractStep stepInfo = usrSignContractStepService.getSignContractStepResult(userUuid, SignStepEnum.DIGI_SIGN_REGISTER);
+        if (UsrSignContractStep.isStepSuccess(stepInfo)) {
+            //成功
+            log.info("user already register. userId: {}", userUuid);
+            return true;
+        }
+        if(digiSignInvokeSwitchNotOpen()){
+            return false;
+        }
+        //查询相关数据
+        Optional<RegisterRequestKYC> requestData = digSignParamService.getRegisterDataWithKYC(userUuid);
+        if (!requestData.isPresent()) {
+            log.error("the register data for digisign is empty userId: {}", userUuid);
+            return false;
+        }
+        List<UsrAttachmentInfo> attachmentInfoList = userAttachmentInfoService.getAttachmentListByUserId(userUuid);
+        Optional<UsrAttachmentInfo> idCardInfo =
+                attachmentInfoList.stream().filter(elem -> UsrAttachmentEnum.ID_CARD.getType() == elem.getAttachmentType()).findFirst();
+        Optional<UsrAttachmentInfo> selfieInfo =
+                attachmentInfoList.stream().filter(elem -> UsrAttachmentEnum.SELFIE.getType() == elem.getAttachmentType()).findFirst();
+
+        if (!idCardInfo.isPresent() || !selfieInfo.isPresent()) {
+            log.error("the attachment file is empty, userId: {}", userUuid);
+            return false;
+        }
+        //下载文件流
+
+        byte[] idCardFileStream = userAttachmentInfoService.getAttachmentStream(idCardInfo.get());
+        byte[] selfieFile = userAttachmentInfoService.getAttachmentStream(selfieInfo.get());
+        if (idCardFileStream == null || selfieFile == null) {
+            log.info("file stream is empty, userUuid: {}", userUuid);
+            return false;
+        }
+        Map<String, String> dataMap = new HashMap<>();
+        DigiRequest digiRequest = new DigiRequest<RegisterRequestKYC>().withJsonFile(requestData.get());
         dataMap.put("jsonfield", JsonUtils.serialize(digiRequest));
         Map<String, byte[]> fileMap = new HashMap<>();
         fileMap.put("fotoktp", idCardFileStream);
@@ -278,35 +361,39 @@ public class DigiSignService {
             UsrUser user = usrService.getUserByUuid(userUuid);
             UserDetailService.UserDetailInfo detailInfo = userDetailService.getUserDetailInfo(user);
 
+            String automaticSignKUser = redisClient.get(RedisContants.DIGITAL_SIGN_AUTOMATICSIGNKUSER);
+            String automaticSignEmail = redisClient.get(RedisContants.DIGITAL_SIGN_AUTOMATICSIGNEMAIL);
+            String automaticSignRealName = redisClient.get(RedisContants.DIGITAL_SIGN_AUTOMATICSIGNREALNAME);
+
             SendDocumentRequest sendDocumentRequest = new SendDocumentRequest();
             sendDocumentRequest.setDocumentId(orderNo); //协议文档id自定义，以orderNo为文档id
             sendDocumentRequest.setUserid(digiSignConfig.getDoitAdminEmail());
             List<SendDocumentRequest.SendToDetail> sendDetailList = new ArrayList<>();
             sendDetailList.add(new SendDocumentRequest.SendToDetail(user.getRealName(), detailInfo.getEmail()));
-            sendDetailList.add(new SendDocumentRequest.SendToDetail(digiSignConfig.getAutomaticSignRealName(), digiSignConfig.getAutomaticSignEmail()));
+            sendDetailList.add(new SendDocumentRequest.SendToDetail(automaticSignRealName, automaticSignEmail));
             sendDocumentRequest.setSendToList(sendDetailList); //发送用户列表
 
             List<SendDocumentRequest.RequestSign> reqSignList = new ArrayList<>();
             SendDocumentRequest.RequestSign userSign = new SendDocumentRequest.RequestSign();
             userSign.setEmail(detailInfo.getEmail());
             userSign.setName(user.getRealName());
-            userSign.setPage("12");
+            userSign.setPage("15");
             userSign.setLlx("440");
-            userSign.setLly("100");
+            userSign.setLly("300");
             userSign.setUrx("520");
-            userSign.setUry("170");
+            userSign.setUry("370");
             userSign.setAutoOrManual("mt");
             reqSignList.add(userSign);
             SendDocumentRequest.RequestSign adminSign = new SendDocumentRequest.RequestSign();
-            adminSign.setEmail(digiSignConfig.getAutomaticSignEmail());
-            adminSign.setName(digiSignConfig.getAutomaticSignRealName());
-            adminSign.setPage("12");
+            adminSign.setEmail(automaticSignEmail);
+            adminSign.setName(automaticSignRealName);
+            adminSign.setPage("15");
             adminSign.setLlx("50");
-            adminSign.setLly("100");
+            adminSign.setLly("300");
             adminSign.setUrx("150");
-            adminSign.setUry("170");
+            adminSign.setUry("370");
             adminSign.setAutoOrManual("at");
-            adminSign.setKuser(digiSignConfig.getAutomaticSignKUser());
+            adminSign.setKuser(automaticSignKUser);
             reqSignList.add(adminSign);
             sendDocumentRequest.setRequestSignList(reqSignList);
 
@@ -400,7 +487,7 @@ public class DigiSignService {
         DigiRequest digiRequest = new DigiRequest<Map<String, String>>().withJsonFile(jsonFileMap);
         Map<String, String> dataMap = new HashMap<>();
         dataMap.put("jsonfield", JsonUtils.serialize(digiRequest));
-        CustomHttpResponse response = HttpUtil.sendMultiPartRequest(digiSignConfig.getApiDocumentDownloadUrl(), dataMap, null, buildDigiSignHeaderMap());
+        CustomHttpResponse response = HttpUtil.sendMultiPartRequest(digiSignConfig.getApiDocumentDownloadUrl(), dataMap, null, buildDigiSignHeaderMap(), true);
 
         try {
             String currentDateDirectory = createCurrentDateDir(digiSignConfig.getContractDir());
@@ -532,11 +619,6 @@ public class DigiSignService {
 
     public byte[] createContractPdf(String userUuid, String orderNo) {
         try {
-            String destFile = digiSignConfig.getContractDir() + File.separator + orderNo + "_send.pdf";
-            File f1 = new File(destFile);
-            if (f1.exists()) {
-                f1.delete();
-            }
             OrdOrder order = ordService.getOrderByOrderNo(orderNo);
             //生成协议pdf文件(暂时测试固定一个html后续慢慢处理)TODO
             Map<String, String> fillData = new HashMap<>();
@@ -561,6 +643,17 @@ public class DigiSignService {
             }
             UsrUser user = usrService.getUserByUuid(userUuid);
 
+            fillData.put("orderNo", orderNo);
+            // hardcoded data
+            String kuasaName = redisClient.get(RedisContants.DIGITAL_SIGN_KUASANAME);
+            String lenderName = redisClient.get(RedisContants.DIGITAL_SIGN_LENDERNAME);
+            String kuasaDom = redisClient.get(RedisContants.DIGITAL_SIGN_KUASADOM);
+            String kuasaIDCard = redisClient.get(RedisContants.DIGITAL_SIGN_KUASAIDCARD);
+            fillData.put("kuasaName", kuasaName);
+            fillData.put("lenderName", lenderName);
+            fillData.put("kuasaDom", kuasaDom);
+            fillData.put("kuasaIDCard", kuasaIDCard);
+
             fillData.put("realName",user.getRealName());
             fillData.put("liveCity",liveCity);
             fillData.put("idCardNo",user.getIdCardNo());
@@ -570,59 +663,60 @@ public class DigiSignService {
             fillData.put("signDateEn",DateUtils.formatDateWithLocale(now,"dd MMM,yyyy",Locale.ENGLISH));//英文
             fillData.put("signDateID",DateUtils.formatDateWithLocale(now,"dd MMM,yyyy",IndonesiaLocale)) ; //签约时间印尼文
 
+            String[] daysArray = new String[] {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(now);
+            fillData.put("signDayEn", daysArray[cal.get(Calendar.DAY_OF_WEEK)-1]);
+            fillData.put("signDayId", daysArray[cal.get(Calendar.DAY_OF_WEEK)+6]);
+
             String html = PDFService.fillHtmlTemplate(fillData);
-            File newPdf = PDFService.html2Pdf(html, destFile);
-            BufferedInputStream fis = new BufferedInputStream(new FileInputStream(newPdf));
-            byte[] fileBytes = IOUtils.toByteArray(fis);
-            IOUtils.closeQuietly(fis);
-            newPdf.delete();
-            return fileBytes;
+            return PDFService.html2Pdf(html).toByteArray();
         } catch (Exception e) {
             log.error("create contract pdf error for orderNo: " + orderNo, e);
         }
         return null;
     }
 
-    public static void test() {
+    // public static void test() {
 
-        //生成协议pdf文件(暂时测试固定一个html后续慢慢处理)TODO
-        Map<String, String> fillData = new HashMap<>();
-        String amountStr = "1200000";
-        fillData.put("amount1", amountStr); //金额阿拉伯表示
-        String expressionInId =  moneyMap.get(amountStr);
-        fillData.put("amount2", StringUtils.isEmpty(expressionInId) ? amountStr : expressionInId);//金额印尼文表示
-        String borrowingTerm = "3";
-        if ("3".equals("3")) {
-            //分期
-            fillData.put("borrowingTerm1", borrowingTerm+" bulan"); //期限
-            fillData.put("borrowingTerm2", borrowingTerm+" months"); //期限
-        }else{
-            fillData.put("borrowingTerm1", borrowingTerm+" hari"); //期限
-            fillData.put("borrowingTerm2", borrowingTerm+" days"); //期限
-        }
-
-
-        String liveCity = "ShangHai";
-
-        fillData.put("realName","zengxiangcai");
-        fillData.put("liveCity",liveCity);
-        fillData.put("idCardNo","4202221980000111");
-        fillData.put("dayRate","0.64%");
-
-        Date now = new Date();
-        fillData.put("signDateEn",DateUtils.formatDateWithLocale(now,"dd MMM,yyyy",Locale.ENGLISH));//英文
-        fillData.put("signDateID",DateUtils.formatDateWithLocale(now,"dd MMM,yyyy",IndonesiaLocale)) ; //签约时间印尼文
-
-        String html = null;
-        try {
-            html = PDFService.fillHtmlTemplate(fillData);
-            File newPdf = PDFService.html2Pdf(html, "C:\\Users\\zxc20\\Desktop\\zxc_test.pdf");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    //     //生成协议pdf文件(暂时测试固定一个html后续慢慢处理)TODO
+    //     Map<String, String> fillData = new HashMap<>();
+    //     String amountStr = "1200000";
+    //     fillData.put("amount1", amountStr); //金额阿拉伯表示
+    //     String expressionInId =  moneyMap.get(amountStr);
+    //     fillData.put("amount2", StringUtils.isEmpty(expressionInId) ? amountStr : expressionInId);//金额印尼文表示
+    //     String borrowingTerm = "3";
+    //     if ("3".equals("3")) {
+    //         //分期
+    //         fillData.put("borrowingTerm1", borrowingTerm+" bulan"); //期限
+    //         fillData.put("borrowingTerm2", borrowingTerm+" months"); //期限
+    //     }else{
+    //         fillData.put("borrowingTerm1", borrowingTerm+" hari"); //期限
+    //         fillData.put("borrowingTerm2", borrowingTerm+" days"); //期限
+    //     }
 
 
-    }
+    //     String liveCity = "ShangHai";
+
+    //     fillData.put("realName","zengxiangcai");
+    //     fillData.put("liveCity",liveCity);
+    //     fillData.put("idCardNo","4202221980000111");
+    //     fillData.put("dayRate","0.64%");
+
+    //     Date now = new Date();
+    //     fillData.put("signDateEn",DateUtils.formatDateWithLocale(now,"dd MMM,yyyy",Locale.ENGLISH));//英文
+    //     fillData.put("signDateID",DateUtils.formatDateWithLocale(now,"dd MMM,yyyy",IndonesiaLocale)) ; //签约时间印尼文
+
+    //     String html = null;
+    //     try {
+    //         html = PDFService.fillHtmlTemplate(fillData);
+    //         File newPdf = PDFService.html2Pdf(html, "C:\\Users\\zxc20\\Desktop\\zxc_test.pdf");
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+
+
+    // }
 
     public final static Locale IndonesiaLocale = new Locale("id","ID");
 

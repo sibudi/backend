@@ -31,7 +31,9 @@ public class PayScheduling {
     /**
      *    放款定时任务
      * */
-    @Scheduled(cron = "0 0/5 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/5 * * * ? ")
     public void loanPay() {
         log.info("======================================loanPay begin ==========================================");
         this.loanService.loanPay();
@@ -41,7 +43,9 @@ public class PayScheduling {
     /**
      *    查询待放款订单 任务
      * */
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakLoanOrder() {
         log.info("======================================cheakLoaningOrder begin ==========================================");
         this.loanService.cheakLoanOrder();
@@ -51,70 +55,90 @@ public class PayScheduling {
     /**
      *    查询代还款 订单 任务
      * */
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder1() {
         log.info("======================================cheakRepayOrder1 begin ==========================================");
         this.payService.cheakRepayOrder(0);
         log.info("======================================cheakRepayOrder1 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder2() {
         log.info("======================================cheakRepayOrder2 begin ==========================================");
         this.payService.cheakRepayOrder(1);
         log.info("======================================cheakRepayOrder2 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder3() {
         log.info("======================================cheakRepayOrder3 begin ==========================================");
         this.payService.cheakRepayOrder(2);
         log.info("======================================cheakRepayOrder3 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder4() {
         log.info("======================================cheakRepayOrder4 begin ==========================================");
         this.payService.cheakRepayOrder(3);
         log.info("======================================cheakRepayOrder4 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder5() {
         log.info("======================================cheakRepayOrder5 begin ==========================================");
         this.payService.cheakRepayOrder(4);
         log.info("======================================cheakRepayOrder5 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder6() {
         log.info("======================================cheakRepayOrder6 begin ==========================================");
         this.payService.cheakRepayOrder(5);
         log.info("======================================cheakRepayOrder6 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder7() {
         log.info("======================================cheakRepayOrder7 begin ==========================================");
         this.payService.cheakRepayOrder(6);
         log.info("======================================cheakRepayOrder7 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder8() {
         log.info("======================================cheakRepayOrder8 begin ==========================================");
         this.payService.cheakRepayOrder(7);
         log.info("======================================cheakRepayOrder8 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder9() {
         log.info("======================================cheakRepayOrder9 begin ==========================================");
         this.payService.cheakRepayOrder(8);
         log.info("======================================cheakRepayOrder9 end0 ==========================================");
     }
 
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
     public void cheakRepayOrder() {
         log.info("======================================cheakRepayOrder begin ==========================================");
         this.payService.cheakRepayOrder(9);
@@ -131,8 +155,10 @@ public class PayScheduling {
     /**
      *     p2p的代放款款订单查询
      * */
-    @Scheduled(cron = "0 0/3 * * * ? ")
-    public void checkP2PLoanStatus(){
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/3 * * * ? ")
+   public void checkP2PLoanStatus(){
         log.info("======================================checkP2PLoanStatus begin ==========================================");
         this.loanService.checkP2PLoanStatus();
         log.info("======================================checkP2PLoanStatus end ==========================================");
@@ -162,7 +188,7 @@ public class PayScheduling {
 //    }
 
 
-    //  每天定时处理打款失败的订单
+    //  Daily processing of failed payment orders
     @Scheduled(cron = "0 0 08,15 * * ?")
     public void checkOrdLoanFaild() {
         log.info("checkOrdLoanFaild begin");
@@ -170,7 +196,7 @@ public class PayScheduling {
         log.info("checkOrdLoanFaild end");
     }
 
-    //  每天定时处理打款失败的订单
+    //  Daily processing of failed payment orders
     @Scheduled(cron = "0 57 15 03 7 ?")
     public void checkOrdLoanFaildNow() {
         log.info("dealWithLoanFaildOrder begin");

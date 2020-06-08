@@ -195,10 +195,12 @@ public class ManUserService {
         addUser.setCollectionWa(sysUserRequest.getCollectionWa());
         addUser.setEmployeeNumber(sysUserRequest.getEmployeeNumber());
         addUser.setVoicePhone(sysUserRequest.getVoicePhone());
-        this.manUserDao.insert(addUser);
-        List<ManUser> addResult = this.manUserDao.scan(addUser);
-
-        this.manUserRoleService.addUserRoleLink(sysUserRequest.getRoleIds(),addResult.get(0).getId());
+        Integer success = this.manUserDao.insert(addUser);
+        //rizky addUser updated immediately after insert is successful,get id afterward
+        if(success.equals(1))
+            this.manUserRoleService.addUserRoleLink(sysUserRequest.getRoleIds(), addUser.getId());
+        else
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_ADD_USER_ERROR);
         return addUser;
     }
 

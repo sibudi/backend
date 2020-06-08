@@ -208,6 +208,9 @@ public class RedisContants {
     //budi: add redis configurable reject duration
     public static final String RISK_REJECT_DURATION = "risk:reject:duration";
 
+    //janhsen: add redis for disabled Questionaire
+    public static final String QUESTIONAIRE_ENABLED = "questionare:enabled:switch";  
+
     //获取h5 url 列表缓存
     public static final String CACHE_H5_CASE2_URL_LIST_KEY = "cache:h5:url:list:cash2key";
 
@@ -271,9 +274,18 @@ public class RedisContants {
     public  static final String INVOKE_ASLI_SWITCH ="invoke:ali:swtich";//invoke asli switch
     public  static final String INVOKE_DIGI_SIGN_SWITCH ="invoke:digiSign:switch";//invoke digiSign switch
     public  static final String RE_BORROWING_DIGI_SIGN_START_TIME ="reBorrowing:digi:sign:startTime";//reBorrowing:digi:sign:startTime
-    //budi: add constant for digisign percentage
+    // budi: add constant for digisign percentage
     public static final String DIGITAL_SIGN_BUCKET = "digital:sign:bucket";
     public static final String DIGITAL_SIGN_PERCENTAGE = "digital:sign:percentage";
+
+    // budi: add constant for digisign agreement document
+    public static final String DIGITAL_SIGN_KUASANAME = "digital:sign:kuasaName";
+    public static final String DIGITAL_SIGN_LENDERNAME = "digital:sign:lenderName";
+    public static final String DIGITAL_SIGN_KUASADOM = "digital:sign:kuasaDom";
+    public static final String DIGITAL_SIGN_KUASAIDCARD = "digital:sign:kuasaIDCard";
+    public static final String DIGITAL_SIGN_AUTOMATICSIGNKUSER = "digital:sign:automaticSignKUser";
+    public static final String DIGITAL_SIGN_AUTOMATICSIGNEMAIL = "digital:sign:automaticSignEmail";
+    public static final String DIGITAL_SIGN_AUTOMATICSIGNREALNAME = "digital:sign:automaticSignRealName";
     
     public static final String DIGITAL_SIGN_STATUS_CHECK_INTERVAL ="digital:sign:status:checkInterval";//等待状态前端查询频率
 
@@ -282,7 +294,7 @@ public class RedisContants {
 
 
     public static final String TWILIO_TEST_USE = "twilio:test:use"; //测试一天twilio本人外呼开关
-    public static final String TWILIO_TEST_MOBILES = "twilio:test:mobile";//逗号分隔所有测试使用twilio的电话
+    public static final String TWILIO_TEST_MOBILES = "twilio:test:mobile";//Comma separated all tests using twilio phone
 
     public static final String COUPON_D_15_SWITCH = "coupon_d_15_switch";//true 开 ， 自动发放优惠券开关（同时控制与对应的外呼通知）
     public static final String COUPON_D_10_SWITCH = "coupon_d_10_switch";//true 开 ， 自动发放优惠券开关（同时控制与对应的外呼通知）

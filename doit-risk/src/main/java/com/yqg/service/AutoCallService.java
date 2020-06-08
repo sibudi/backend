@@ -1,5 +1,6 @@
 package com.yqg.service;
 
+import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.CheakTeleUtils;
@@ -9,6 +10,7 @@ import com.yqg.drools.service.OrderScoreService;
 import com.yqg.drools.service.UserService;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.risk.service.AutoCallSendService;
+import com.yqg.service.system.service.SysParamService;
 import com.yqg.service.third.Inforbip.InforbipService;
 import com.yqg.service.third.Inforbip.Request.InforbipRequest;
 import com.yqg.service.user.service.UserBackupLinkmanService;
@@ -53,6 +55,8 @@ public class AutoCallService {
     private OrderScoreService orderScoreService;
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private SysParamService sysParamService;
 
     public SendAutoCallResult sendFirstBorrowAutoCall(OrdOrder order) {
         boolean callOwner = false;
@@ -110,9 +114,8 @@ public class AutoCallService {
 
     public List<InforbipRequest> getLinkmanAutoCallRequest(OrdOrder order) {
         List<InforbipRequest> sendList = new ArrayList<>();
-        //取联系人电话信息
         List<UsrLinkManInfo> linkmanList = userBackupLinkmanService.getLinkManInfo(order.getUserUuid());
-        //兼容app未更新,用户只有两个联系人的情况
+        //Compatible app is not updated, the user has only two contacts
         if (CollectionUtils.isEmpty(linkmanList) || linkmanList.size() != 4) {
             log.warn("the linkman count is not 4");
             return sendList;
@@ -212,16 +215,17 @@ public class AutoCallService {
 
 
     public SendAutoCallResult sendReBorrowingAutoCall(OrdOrder order) {
-        //是否需要更新备选联系人
         boolean needAutoUpdateBackupLinkman = userBackupLinkmanService.needAutoUpdateBackupLinkman(order.getUuid(), order.getUserUuid());
         if (needAutoUpdateBackupLinkman) {
+            //Insert backupLinkMan from usrLinkMan previous order
             userBackupLinkmanService.copyFromLastOrder(order.getUserUuid(), order.getUuid());
         }
-        //调用外呼
+        //Generate Infobip request
         List<InforbipRequest> linkmanRequestList = getLinkmanAutoCallRequest(order);
         if (CollectionUtils.isEmpty(linkmanRequestList)) {
             return new SendAutoCallResult(false);
         }
+        //Start Auto call
         inforbipService.sendVoiceMessage(linkmanRequestList);
         return new SendAutoCallResult(true);
     }
@@ -245,5 +249,7 @@ public class AutoCallService {
         return autoCallSendService.getTelCallList(orderNo, callNode);
     }
 
-
+    public boolean isAutoCallSwitchOpen() {
+        return "true".equalsIgnoreCase(sysParamService.getSysParamValue(SysParamContants.RISK_AUTO_CALL_SWITCH));
+    }
 }

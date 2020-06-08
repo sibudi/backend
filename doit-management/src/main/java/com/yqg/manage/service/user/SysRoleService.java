@@ -42,12 +42,16 @@ public class SysRoleService {
 
         ManSysRole addInfo = this.getSysRoleCommonInfo(sysRoleRequest);
         addInfo.setUuid(UUIDGenerateUtil.uuid());
-        this.manSysRoleDao.insert(addInfo);            //向sysRole表中添加一条记录
-        List<ManSysRole> insertResult = this.manSysRoleDao.scan(addInfo);
-        Integer roleId = insertResult.get(0).getId();
-
-        String[] permissionString = sysRoleRequest.getPermissionIds().split(",");
-        this.addRolePermissionLink(permissionString,roleId);
+        Integer success = this.manSysRoleDao.insert(addInfo);
+        //rizky addInfo is updated immediately after insert is successful,get id afterward
+        if(success.equals(1)){
+            Integer roleId = addInfo.getId();
+            String[] permissionString = sysRoleRequest.getPermissionIds().split(",");
+            this.addRolePermissionLink(permissionString,roleId);
+        }
+        else {
+            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_ADD_ITEM_ERROR);
+        }
     }
 
     /**

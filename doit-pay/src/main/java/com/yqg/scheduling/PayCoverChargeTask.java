@@ -41,7 +41,7 @@ public class PayCoverChargeTask {
     /**
      * 放款服务费转账（直接转到指定账户)
      */
-    @Scheduled(cron = "0 0/1 * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
     public void transferCoverCharge() {
         log.info("======================================transferCoverCharge begin ==========================================");
         this.loanCoverChargeService.transferCoverCharge();

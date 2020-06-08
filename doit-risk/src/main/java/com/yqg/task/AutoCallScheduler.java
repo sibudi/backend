@@ -94,106 +94,113 @@ public class AutoCallScheduler {
 
 
     /***
-     * 本人外呼定时发送
+     * Send outgoing calls regularly
      */
     // @Scheduled(cron = "0 0 9,12,15,18,20 * * ?")
-    public void autoCall() {
-        //查询所有待外呼状态的订单[30分钟内的忽略，下次再外呼]
-        Date maxUpdateTime = DateUtils.addMinutes(new Date(), -30);
-        log.warn("the maxUpdateTime is: {}", maxUpdateTime);
-        List<OrdOrder> waitCallingList = ordDao.getWaitingAutoCallOrdersWithUpdateTime(maxUpdateTime);
+    // ahalim: Currently auto call is being called by RiskScheduling.java risk()
+    // public void autoCall() {
+    //     //Query all the orders to be called out [Ignore within 30 minutes, call again next time]
+    //     Date maxUpdateTime = DateUtils.addMinutes(new Date(), -30);
+    //     log.warn("the maxUpdateTime is: {}", maxUpdateTime);
+    //     List<OrdOrder> waitCallingList = ordDao.getWaitingAutoCallOrdersWithUpdateTime(maxUpdateTime);
 
-        if (CollectionUtils.isEmpty(waitCallingList)) {
-            log.info("the calling wait list is empty");
-            return;
-        }
-        log.warn("current wait calling orders: {}", waitCallingList.size());
-        List<InforbipRequest> requestList = new ArrayList<>();
-        for (OrdOrder waitingItem : waitCallingList) {
-            LogUtils.addMDCRequestId(waitingItem.getUuid());
-            try {
-                //是否需要本人外呼/公司外呼
-                List<CallResult> callResultList = autoCallService.getTelCallList(waitingItem.getUuid(), null);
-                ownerNeedReCall(callResultList, waitingItem, requestList);
-                companyNeedReCall(callResultList, waitingItem, requestList);
-            } catch (Exception e) {
-                log.error("get auto call params error", e);
-            } finally {
-                LogUtils.removeMDCRequestId();
-            }
-        }
+    //     if (CollectionUtils.isEmpty(waitCallingList)) {
+    //         log.info("the calling wait list is empty");
+    //         return;
+    //     }
+    //     log.warn("current wait calling orders: {}", waitCallingList.size());
+    //     List<InforbipRequest> requestList = new ArrayList<>();
+    //     for (OrdOrder waitingItem : waitCallingList) {
+    //         LogUtils.addMDCRequestId(waitingItem.getUuid());
+    //         try {
+    //             //是否需要本人外呼/公司外呼
+    //             List<CallResult> callResultList = autoCallService.getTelCallList(waitingItem.getUuid(), null);
+    //             ownerNeedReCall(callResultList, waitingItem, requestList);
+    //             companyNeedReCall(callResultList, waitingItem, requestList);
+    //         } catch (Exception e) {
+    //             log.error("get auto call params error", e);
+    //         } finally {
+    //             LogUtils.removeMDCRequestId();
+    //         }
+    //     }
 
-        if (CollectionUtils.isEmpty(requestList)) {
-            log.info("no auto call request need to by sent");
-            return;
-        }
+    //     if (CollectionUtils.isEmpty(requestList)) {
+    //         log.info("no auto call request need to by sent");
+    //         return;
+    //     }
 
-        log.info("auto call count: {}", requestList.size());
+    //     log.info("auto call count: {}", requestList.size());
 
-        //批量发送请求[每次最大10个号码]
-        int batchCount = (int) Math.ceil(requestList.size() / (RuleConstants.MAX_SEND_NUMBERS_PER_TIME * 1.0));
-        for (int i = 0; i < batchCount; i++) {
-            int startIndex = i * RuleConstants.MAX_SEND_NUMBERS_PER_TIME;
-            int endIndex = startIndex + RuleConstants.MAX_SEND_NUMBERS_PER_TIME;
-            if (endIndex > requestList.size()) {
-                endIndex = requestList.size();
-            }
-            long startTime = System.currentTimeMillis();
-            inforbipService.sendVoiceMessage(requestList.subList(startIndex, endIndex));
-            log.info("the cost of send voice message is {} ms", (System.currentTimeMillis() - startTime));
+    //     //批量发送请求[每次最大10个号码]
+    //     int batchCount = (int) Math.ceil(requestList.size() / (RuleConstants.MAX_SEND_NUMBERS_PER_TIME * 1.0));
+    //     for (int i = 0; i < batchCount; i++) {
+    //         int startIndex = i * RuleConstants.MAX_SEND_NUMBERS_PER_TIME;
+    //         int endIndex = startIndex + RuleConstants.MAX_SEND_NUMBERS_PER_TIME;
+    //         if (endIndex > requestList.size()) {
+    //             endIndex = requestList.size();
+    //         }
+    //         long startTime = System.currentTimeMillis();
+    //         inforbipService.sendVoiceMessage(requestList.subList(startIndex, endIndex));
+    //         log.info("the cost of send voice message is {} ms", (System.currentTimeMillis() - startTime));
 
-        }
-    }
+    //     }
+    // }
 
-    private void ownerNeedReCall(List<CallResult> callResultList, OrdOrder waitingItem, List<InforbipRequest> requestList) {
-        //是否需要本人外呼/公司外呼
-        if (!needOwnerCallFinished(waitingItem)) {
-            return;
-        }
-        if (CollectionUtils.isEmpty(callResultList)) {
-            log.info("the call result list is empty");
-            addAutoCallRequestParam(autoCallService.getOwnerAutoCallParam(waitingItem), requestList);
-            return;
-        }
-        if (!isOwnerCallCompleted(callResultList)) {
-            //log.info("owner tel need to be called...");
-            addAutoCallRequestParam(autoCallService.getOwnerAutoCallParam(waitingItem), requestList);
-        }
-    }
+    // private void ownerNeedReCall(List<CallResult> callResultList, OrdOrder waitingItem, List<InforbipRequest> requestList) {
+    //     //是否需要本人外呼/公司外呼
+    //     if (!needOwnerCallFinished(waitingItem)) {
+    //         return;
+    //     }
+    //     if (CollectionUtils.isEmpty(callResultList)) {
+    //         log.info("the call result list is empty");
+    //         addAutoCallRequestParam(autoCallService.getOwnerAutoCallParam(waitingItem), requestList);
+    //         return;
+    //     }
+    //     if (!isOwnerCallCompleted(callResultList)) {
+    //         //log.info("owner tel need to be called...");
+    //         addAutoCallRequestParam(autoCallService.getOwnerAutoCallParam(waitingItem), requestList);
+    //     }
+    // }
 
-    private void companyNeedReCall(List<CallResult> callResultList, OrdOrder waitingItem, List<InforbipRequest> requestList) {
-        //是否需要本人外呼/公司外呼
-        if (!needCompanyCallFinished(waitingItem)) {
-            return;
-        }
-        if (CollectionUtils.isEmpty(callResultList)) {
-            log.info("the call result list is empty ");
-            addAutoCallRequestParam(autoCallService.getCompanyAutoCallParam(waitingItem), requestList);
-            return;
-        }
-        if (!hasCompanyCall(callResultList)) {
-            //log.info("company tel need to be called...");
-            addAutoCallRequestParam(autoCallService.getCompanyAutoCallParam(waitingItem), requestList);
-        }
-    }
+    // private void companyNeedReCall(List<CallResult> callResultList, OrdOrder waitingItem, List<InforbipRequest> requestList) {
+    //     //是否需要本人外呼/公司外呼
+    //     if (!needCompanyCallFinished(waitingItem)) {
+    //         return;
+    //     }
+    //     if (CollectionUtils.isEmpty(callResultList)) {
+    //         log.info("the call result list is empty ");
+    //         addAutoCallRequestParam(autoCallService.getCompanyAutoCallParam(waitingItem), requestList);
+    //         return;
+    //     }
+    //     if (!hasCompanyCall(callResultList)) {
+    //         //log.info("company tel need to be called...");
+    //         addAutoCallRequestParam(autoCallService.getCompanyAutoCallParam(waitingItem), requestList);
+    //     }
+    // }
 
 
     /***
-     * 检查订单外呼结果
+     * Check order outgoing results
      */
-    @Scheduled(cron = "0 0/1 * * * ? ")
+    //ahalim: speedup for demo
+    @Scheduled(cron = "0/30 * * * * ? ")
+    //@Scheduled(cron = "0 0/1 * * * ? ")
     public void checkAutoCallResultTask0() {
-        //所有机审后待外呼状态的单
+        if (!autoCallService.isAutoCallSwitchOpen()) {
+            log.info("checkAutoCallResultTask0 - risk:auto_call:switch off");
+            return;
+        }
         List<OrdOrder> ordOrders = ordDao.getWaitingAutoCallOrders(0);
         if (CollectionUtils.isEmpty(ordOrders)) {
-            log.warn("no orders need to be checked for ..");
+            log.warn("checkAutoCallResultTask0 - count is empty");
         }
-        log.info("total size to check mode 0: {}", ordOrders.size());
-        //检查外呼结果
+        log.info("checkAutoCallResultTask0 - count: {}", ordOrders.size());
         for (OrdOrder waitingItem : ordOrders) {
             if (waitingItem.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
+                log.info("checkAutoCallResultTask0 - After Machine Check for order: {}", waitingItem.getUuid());
                 checkOrderAutoCallStatusAfterMachineCheck(waitingItem);
             } else {
+                log.info("checkAutoCallResultTask0 - After First Check for order: {}", waitingItem.getUuid());
                 checkOrderAutoCallStatusAfterFirstCheck(waitingItem);
             }
         }
@@ -203,68 +210,65 @@ public class AutoCallScheduler {
      * 检查订单外呼结果
      */
     // @Scheduled(cron = "0 0/1 * * * ? ")
-    public void checkAutoCallResultTask1() {
-        //所有机审后待外呼状态的单
-        List<OrdOrder> ordOrders = ordDao.getWaitingAutoCallOrders(1);
-        if (CollectionUtils.isEmpty(ordOrders)) {
-            log.warn("no orders need to be checked for ..");
-        }
-        log.info("total size to check mode 1: {}", ordOrders.size());
-        //检查外呼结果
-        for (OrdOrder waitingItem : ordOrders) {
-            if (waitingItem.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
-                checkOrderAutoCallStatusAfterMachineCheck(waitingItem);
-            } else {
-                checkOrderAutoCallStatusAfterFirstCheck(waitingItem);
-            }
-        }
-    }
+    // public void checkAutoCallResultTask1() {
+    //     //所有机审后待外呼状态的单
+    //     List<OrdOrder> ordOrders = ordDao.getWaitingAutoCallOrders(1);
+    //     if (CollectionUtils.isEmpty(ordOrders)) {
+    //         log.warn("no orders need to be checked for ..");
+    //     }
+    //     log.info("total size to check mode 1: {}", ordOrders.size());
+    //     //检查外呼结果
+    //     for (OrdOrder waitingItem : ordOrders) {
+    //         if (waitingItem.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
+    //             checkOrderAutoCallStatusAfterMachineCheck(waitingItem);
+    //         } else {
+    //             checkOrderAutoCallStatusAfterFirstCheck(waitingItem);
+    //         }
+    //     }
+    // }
 
     /***
      * 检查订单外呼结果
      */
     // @Scheduled(cron = "0 0/1 * * * ? ")
-    public void checkAutoCallResultTask2() {
-        //所有机审后待外呼状态的单
-        List<OrdOrder> ordOrders = ordDao.getWaitingAutoCallOrders(2);
-        if (CollectionUtils.isEmpty(ordOrders)) {
-            log.warn("no orders need to be checked for ..");
-        }
-        log.info("total size to check mode 2: {}", ordOrders.size());
-        //检查外呼结果
-        for (OrdOrder waitingItem : ordOrders) {
-            if (waitingItem.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
-                checkOrderAutoCallStatusAfterMachineCheck(waitingItem);
-            } else {
-                checkOrderAutoCallStatusAfterFirstCheck(waitingItem);
-            }
-        }
-    }
+    // public void checkAutoCallResultTask2() {
+    //     //所有机审后待外呼状态的单
+    //     List<OrdOrder> ordOrders = ordDao.getWaitingAutoCallOrders(2);
+    //     if (CollectionUtils.isEmpty(ordOrders)) {
+    //         log.warn("no orders need to be checked for ..");
+    //     }
+    //     log.info("total size to check mode 2: {}", ordOrders.size());
+    //     //检查外呼结果
+    //     for (OrdOrder waitingItem : ordOrders) {
+    //         if (waitingItem.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
+    //             checkOrderAutoCallStatusAfterMachineCheck(waitingItem);
+    //         } else {
+    //             checkOrderAutoCallStatusAfterFirstCheck(waitingItem);
+    //         }
+    //     }
+    // }
 
 
     /***
-     * 初审后外呼结果检查
      * @param waitingItem
      */
     private void checkOrderAutoCallStatusAfterFirstCheck(OrdOrder waitingItem) {
-        //检查本人外呼情况
         LogUtils.addMDCRequestId(waitingItem.getUuid());
         try {
             List<CallResult> callResultList = autoCallService.getTelCallList(waitingItem.getUuid(), null);
             if (!isOrderAutoCallFinishedForFirstCheck(waitingItem, callResultList)) {
-                //log.info("the call is not finished, orderNo: {}",waitingItem.getUuid());
+                log.info("Auto call is not finished, orderNo: {}", waitingItem.getUuid());
                 return;
             }
 
-            //调用规则判定：
-            //无需外呼 --》pass
-            //外呼3次拒绝--》pass
-            //外呼超过次数--》reject
+            // Call rule determination:
+            // No need to call out-> pass
+            // Reject 3 outbound calls-> pass
+            // The number of outgoing calls exceeded-》 reject
             RuleSetExecutedResult ruleResult = applicationService.autoCallForOwner(waitingItem, ruleService.getAllRules());
             if (ruleResult.isRuleSetResult()) {
                 reviewResultService.autoCallPassAfterFirstCheck(waitingItem);
             } else {
-                //拒绝
                 reviewResultService.autoCallRejectFirstCheck(waitingItem, ruleResult.getFirstRejectRule());
             }
 
@@ -275,15 +279,13 @@ public class AutoCallScheduler {
         }
     }
 
-
     /***
-     * 机审后外呼结果检查
      * @param waitingItem
      */
-    public void checkOrderAutoCallStatusAfterMachineCheck(OrdOrder waitingItem) {
+    private void checkOrderAutoCallStatusAfterMachineCheck(OrdOrder waitingItem) {
         LogUtils.addMDCRequestId(waitingItem.getUuid());
         try {
-            //已经签合约中：
+            //Has signed a contract:
             String signLock = redisClient.get(RedisContants.REVIEW_SIGN_LOCK + ":" + waitingItem.getUuid());
             if (StringUtils.isNotEmpty(signLock)) {
                 log.info("order {} in contract sign auto call", waitingItem.getUuid());
@@ -299,70 +301,82 @@ public class AutoCallScheduler {
             }
             boolean callFinished;
             /***
-             * 关于外呼：因为降额规则的一些关联影响，本人外呼放到联系人+公司外呼之后，因此首借外呼分两步，复借还是一步，只有公司+联系人
+             * Regarding outbound calls: 
+             * Due to some related influences of the derating rules, 
+             * my outbound calls are placed after contacts + company outbound calls
+             * so the first borrowing outbound call is divided into two steps.
              */
             switch (reviewStep) {
                 case LINKMAN_AND_COMPANY_CALL:
-                    //已经审核过联系人，检查公司外呼是否结束
+                    log.info("checkOrderAutoCallStatusAfterMachineCheck - review step: (1)LINKMAN_AND_COMPANY_CALL");
+                    //Contacts have been reviewed to check whether the company's outgoing call is over
                     callFinished = isOwnerAutoCallFinishedForMachineCheck(waitingItem, callResultList);
                     break;
                 case OWNER_CALL:
-                    //已经进行过外呼，无需继续,可能会进行重复审核[联系人回退的情况或者人工需要重新进行审核的情况]，如果上次审核时间超过了20min可以继续
+                    log.info("checkOrderAutoCallStatusAfterMachineCheck - review step: (2)OWNER_CALL");
+                    //You have already made an outgoing call, 
+                    //you don’t need to continue, 
+                    //you may have to repeat the review [in case of contact back-off or manual review of the case], 
+                    //if the last review time exceeds 20min, you can continue
                     if(dbReviewStep!=null && DateUtil.getDiffMinutes(dbReviewStep.getCreateTime(),new Date())>20){
-                        //20分钟后可以再进行审核
+                        //Can be reviewed after 20 minutes
+                        log.info("checkOrderAutoCallStatusAfterMachineCheck - override reviewStep into (0)UNKNOWN");
                         reviewStep = StepEnum.UNKNOWN;
                     }else{
                         log.info("the order: {} already checked for auto call, please check ", waitingItem.getUuid());
                         return;
                     }
-
+                    // !!! Notice that there is no break in here !!!
                 case UNKNOWN:
                 default:
-                    //没有审核过，检查联系人外呼是否结束
+                    log.info("checkOrderAutoCallStatusAfterMachineCheck - review step: (0)UNKNOWN");
+                    //No review, check if the contact's outgoing call is over
                     callFinished = isLinkmanCompanyAutoCallFinishedForMachineCheck(waitingItem, callResultList);
                     break;
             }
             if (!callFinished) {
+                log.info("Call not finished");
                 return;
             }
 
             RuleSetExecutedResult ruleResult = null;
+            log.info("reviewStep is: {}", reviewStep);
             if (reviewStep == StepEnum.UNKNOWN) {
-                //调用紧急联系人，公司电话相关规则
+                //Call emergency contact, company phone related rules
                 ruleResult = applicationService.autoCall(waitingItem, ruleService.getAllRules());
 
-                //审核后额度可能变化Warning
+                //Quota may change after audit
                 //the amountApply maybe modified in afterRejectResult method, need to get the new order info.
                 waitingItem = ordService.getOrderByOrderNo(waitingItem.getUuid());
 
                 if (!ruleResult.isRuleSetResult()) {
-                    //是否紧急联系人外呼拒绝
+                    //Whether the emergency contact refuses to call out
                     Integer rejectTimes = userRiskService.getEmergencyAutoCallRejectedTimes(waitingItem.getUuid());
                     if (rejectTimes < 3 && Arrays.asList(BlackListTypeEnum.MULTI_AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage(),
                             BlackListTypeEnum.AUTO_CALL_REJECT_LINKMAN_VALID_COUNT.getMessage())
                             .contains(ruleResult.getFirstRejectRule().getRuleDetailType())) {
-                        //disabled掉拒绝原因 重新填写联系人，状态改为1,4发送短信
+                        //Disabled the reason for rejection Re-fill in the contact, 
+                        //the status changed to 1, 4 send SMS
                         reviewResultService.autoCallRejectToFillLinkman(waitingItem);
                         return;
                     }
-                    //拒绝
-                    //记录审核流程：
+                    //Refuse
+                    // Record the review process:
                     orderReviewStepService.addReviewStep(waitingItem.getUuid(), waitingItem.getUserUuid(), StepEnum.LINKMAN_AND_COMPANY_CALL);
                     reviewResultService.autoCallReject(waitingItem, ruleResult.getFirstRejectRule());
                     return;
                 }
 
-                //记录审核流程：
+                //Record review process:
                 orderReviewStepService.addReviewStep(waitingItem.getUuid(), waitingItem.getUserUuid(), StepEnum.LINKMAN_AND_COMPANY_CALL);
                 /********通过******/
-                if (isReBorrowing(waitingItem)) {
-                    //复借
+                if (waitingItem.getBorrowingCount() > 1) {
                     reviewResultService.reBorrowingAutoReviewPass(waitingItem);
                     return;
                 }
-                //免核or降额进行本人外呼
+                //No nuclear or derating to make outbound calls
+                //If reborrow = return false = doesn't need call owner
                 if (needOwnerCallFinished(waitingItem)) {
-                    //调用本人外呼
                     autoCallSendService.sendOwnerCall(waitingItem);
                 }
             } else {
@@ -373,18 +387,17 @@ public class AutoCallScheduler {
                 }
                 ruleResult = applicationService.autoCallForOwner(waitingItem, ruleService.getAllRules());
                 orderReviewStepService.addReviewStep(waitingItem.getUuid(), waitingItem.getUserUuid(), StepEnum.OWNER_CALL);
-                //本人外呼结束后进入放款或者初审
+                //After the outgoing call, I enter the loan or preliminary review
                 if (isOwnerAutoCallRejectToManual(waitingItem)) {
-                    //外呼拒绝转人工
+                    //Outgoing call refused to transfer
                     reviewResultService.autoCallRejectToManualReview(waitingItem);
                     return;
                 }
                 //reject
                 if (!ruleResult.isRuleSetResult()) {
-
                     reviewResultService.autoCallReject(waitingItem, ruleResult.getFirstRejectRule());
                 } else {//pass
-                    //降额的不需要人工审核
+                    //Derating does not require manual review
                     if (hitSpecifiedProduct(waitingItem)) {
                         reviewResultService.autoCallPassToConfirmForSpecifiedProduct(waitingItem);
                         return;
@@ -408,10 +421,6 @@ public class AutoCallScheduler {
         return false;
     }
 
-    private boolean isReBorrowing(OrdOrder order) {
-        return order.getBorrowingCount() > 1;
-    }
-
     private boolean isOwnerAutoCallRejectToManual(OrdOrder order) {
         OrdRiskRecord needToManual =
                 orderRiskRecordRepository.getRuleResultByRuleName(BlackListTypeEnum.AUTO_CALL_REJECT_OWNER_CALL_INVALID.getMessage(),
@@ -421,17 +430,18 @@ public class AutoCallScheduler {
 
 
     /***
-     * 是否需要本人外呼结束【首借需要】
+     * Do I need to end my outgoing call [first loan required]
      * @param order
      * @return
      */
     private boolean needOwnerCallFinished(OrdOrder order) {
         if (1 == order.getBorrowingCount()) {
             boolean nonManualOrder = nonManualReviewService.isNonManualReviewOrder(order.getUuid());
-            //100rmb 产品/50rmb 产品---》降额产品
+            // 100rmb products / 50rmb products --- "Derating products
             boolean isDecreasedLimitProduct = userRiskService.histSpecifiedProductWithDecreasedCreditLimit(order.getUuid());
 
-            //600评分模型测试数据特殊处理，如果需要人工无需外呼，不用考虑其他。
+            //The 600-score model test data is specially processed
+            //if you need to manually call out, no need to consider other.
             OrderScore orderScore = orderScoreService.getLatestScoreWithModel(order.getUuid(), ScoreModelEnum.PRODUCT_600_V2);
 
             boolean scorePass = orderScore != null && orderScore.getScorePass() != null && orderScore.getScorePass() == 1;
@@ -441,11 +451,12 @@ public class AutoCallScheduler {
 
 
             if ((scorePassToCall || scoreNotPassToCall) && order.getStatus() == OrdStateEnum.WAIT_CALLING.getCode()) {
-                //机审后外呼--》免核单需要本人外呼，非免核单不需要本人外呼
+                //Outgoing after machine review-"Exemption checklist requires outgoing call, 
+                //non-exemption checklist does not require outgoing call
                 return true;
             }
             if (!scorePassToCall && !scoreNotPassToCall && order.getStatus() == OrdStateEnum.WAITING_CALLING_AFTER_FIRST_CHECK.getCode()) {
-                //初审到复审本人外呼，非免核单需要外呼
+                //From the initial review to the re-examination, my outgoing call is required.
                 return true;
             }
         }
@@ -453,7 +464,7 @@ public class AutoCallScheduler {
     }
 
     /***
-     * 是否需要公司外呼结束【首借需要】
+     * Do you need to end the company's outgoing calls? [First loan required]
      * @param order
      * @return
      */
@@ -504,7 +515,11 @@ public class AutoCallScheduler {
     }
 
     /***
-     * 判断联系人，公司外呼是否结束可以进行审核了
+     * Judging the contact person, whether the company's outgoing call is over can be reviewed
+     * Return false if:
+     * 1. CallResult empty
+     * 2. Has "Company" tel number, First borrower, TeleCallResult COMPANY not finished
+     * 3. Has BackupLinkMan tel number,             TeleCallResult BACKUP_LINKMAN not finished
      * @param order
      * @param callResultList
      * @return
@@ -516,13 +531,14 @@ public class AutoCallScheduler {
         }
         boolean hasCompanyTel = autoCallService.getCompanyAutoCallParam(order).isPresent();
         if (hasCompanyTel && needCompanyCallFinished(order)) {
-            //有公司电话查看公司电话是否处理完[报告获取了或者调用失败任务已经结束]
+            // There is a company phone to check whether the company phone has been processed 
+            // [the report has been obtained or the failed call task has ended]
             if (!isCompanyCallFinished(callResultList)) {
                 //log.info("the company tel call not finished.");
                 return false;
             }
         }
-        //联系人外呼未完成
+        //Contact outbound
         if (!isLinkmanAutoCallCompleted(order, callResultList)) {
             return false;
         }
@@ -530,7 +546,7 @@ public class AutoCallScheduler {
     }
 
     /***
-     * 判断本人外呼是否结束可以进行审核了
+     * Judging whether my outgoing call is over can be reviewed
      * @param order
      * @param callResultList
      * @return
@@ -542,7 +558,7 @@ public class AutoCallScheduler {
         }
         if (needOwnerCallFinished(order)) {
             if (!isOwnerCallCompleted(callResultList)) {
-                //未完成
+                //undone
                 return false;
             }
         }
@@ -569,10 +585,16 @@ public class AutoCallScheduler {
         return true;
     }
 
-
+    /**
+     * Return true if:
+     * 1. LinkMan not found ???
+     * 2. last BACKUP_LINKMAN teleCallResult > 3 days
+     * @param callResultList
+     * @return
+     */
     private boolean isLinkmanAutoCallCompleted(OrdOrder order, List<CallResult> callResultList) {
         if (!CollectionUtils.isEmpty(autoCallService.getLinkmanAutoCallRequest(order))) {
-            //有联系人需要外呼
+            //A contact needs to be called
             if (CollectionUtils.isEmpty(callResultList)) {
                 return false;
             }
@@ -581,8 +603,8 @@ public class AutoCallScheduler {
                             || elem.getCallType() == TeleCallResult.CallTypeEnum.BACKUP_LINKMAN.getCode())
                             .filter(elem -> !elem.isCallFinished()).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(notFinishedList)) {
-                //有未完成的外呼
-                // 未完成的号码外呼重试超过两天当做完成处理
+                // There is an outstanding call
+                // Unfinished outgoing call retry for more than two days is treated as completion
                 for (CallResult callResult : notFinishedList) {
                     Integer earliestDiffDays = teleCallResultDao.getEarliestCallDiffDays(callResult.getOrderNo(), callResult.getCallType(),
                             callResult.getTellNumber());
@@ -590,7 +612,7 @@ public class AutoCallScheduler {
                         log.info("the number auto call exceed days, orderNo: {}, telNumber: {} ", callResult.getOrderNo(), callResult.getTellNumber());
                         return true;
                     } else {
-                        return false;// 只要有一个号码外呼次数《=3的当做未完成
+                        return false;// As long as there is a number of outbound calls "= 3, it is regarded as uncompleted
                     }
                 }
                 return false;
@@ -665,7 +687,13 @@ public class AutoCallScheduler {
         }
         return targetList;
     }
-
+    /**
+     * Return true if:
+     * 1. callResult is finished (CallStatusEnum.CALL_ERROR || CallStatusEnum.CALL_FINISHED)
+     * 2. last COMPANY teleCallResult > 3 days
+     * @param callResultList
+     * @return
+     */
     private boolean isCompanyCallFinished(List<CallResult> callResultList) {
         Optional<CallResult> callFinished = callResultList.stream().filter(elem -> TeleCallResult.CallTypeEnum.COMPANY
                 .getCode().equals(elem.getCallType()) && elem.isCallFinished())
@@ -674,7 +702,7 @@ public class AutoCallScheduler {
             return true;
         }
 
-        //重试号码超过天数也当做完成
+        //Retry number exceeds the number of days is also considered complete
         List<CallResult> allCompanyCalls = teleCallResultDao.getCallResultByOrderNoAndType(callResultList.get(0).getOrderNo(),
                 TeleCallResult.CallTypeEnum.COMPANY.getCode());
         for (CallResult callResult : allCompanyCalls) {

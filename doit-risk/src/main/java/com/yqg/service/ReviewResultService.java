@@ -2,12 +2,10 @@
 package com.yqg.service;
 
 import com.yqg.common.constants.RedisContants;
-import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.enums.order.OrdStepTypeEnum;
 import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.DESUtils;
-import com.yqg.datafix.PrdDataHandler;
 import com.yqg.drools.service.OrderScoreService;
 import com.yqg.drools.service.UserService;
 import com.yqg.enums.ScoreModelEnum;
@@ -23,9 +21,6 @@ import com.yqg.service.externalChannel.utils.CheetahOrdStatusEnum;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.order.request.SaveOrderUserUuidRequest;
 import com.yqg.service.risk.service.RiskReviewService;
-import com.yqg.service.signcontract.ContractSignService;
-import com.yqg.service.system.service.SysParamService;
-import com.yqg.service.task.AsyncTaskService;
 import com.yqg.service.third.sms.SmsServiceUtil;
 import com.yqg.service.user.service.UsrBaseInfoService;
 import com.yqg.service.util.RuleConstants;
@@ -56,9 +51,6 @@ public class ReviewResultService {
     private RedisClient redisClient;
 
     @Autowired
-    private SysParamService sysParamService;
-
-    @Autowired
     private AutoCallService autoCallService;
 
     @Autowired
@@ -76,14 +68,10 @@ public class ReviewResultService {
     @Autowired
     private CheetahOrderService cheetahOrderService;
     @Autowired
-    private ContractSignService contractSignService;
-    @Autowired
     private RiskReviewService riskReviewService;
-    @Autowired
-    private AsyncTaskService asyncTaskService;
 
     /****
-     * 机审通过后订单处理
+     * Process approved first borrowing
      * @param ordOrder
      */
     public void afterFistBorrowPass(OrdOrder ordOrder) {
@@ -94,7 +82,7 @@ public class ReviewResultService {
             this.autoCallPassToConfirmForSpecifiedProduct(ordOrder);
             return;
         }
-        if (isAutoCallSwitchOpen()) {
+        if (autoCallService.isAutoCallSwitchOpen()) {
             //调用外呼
             AutoCallService.SendAutoCallResult sendAutoCallResult = autoCallService.sendFirstBorrowAutoCall(ordOrder);
             if(sendAutoCallResult.isNeedCall()){
@@ -110,14 +98,13 @@ public class ReviewResultService {
 
 
     /**
-     * 复借机审通过后订单处理
+     * Process approved reborrow
      * @param order
      */
     public void afterReBorrowingPass(OrdOrder order){
-        if (isAutoCallSwitchOpen()) {
+        if (autoCallService.isAutoCallSwitchOpen()) {
             AutoCallService.SendAutoCallResult sendAutoCallResult = autoCallService.sendReBorrowingAutoCall(order);
             if(sendAutoCallResult.isNeedCall()){
-                //订单状态改为待外呼
                 ordService.changeOrderStatus(order, OrdStateEnum.WAIT_CALLING);
                 return;
             }
@@ -149,16 +136,17 @@ public class ReviewResultService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void autoCallPassToConfirmForSpecifiedProduct(OrdOrder order) {
-        if (contractSignService.isDigitalSignSwitchOpen(order)) {
-           asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-        } else {
+        // budi: remark agar tidak masuk digisign
+        //if (contractSignService.isDigitalSignSwitchOpen(order)) {
+        //    asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+        //} else {
             ordService.changeOrderStatus(order, OrdStateEnum.WAITING_CONFIRM);
             //cashcash的推送数据
             if (order.getThirdType() != null && order.getThirdType() == 1) {
                 this.cash2OrderService.ordStatusFeedback(order, Cash2OrdStatusEnum.WAIT_CONFIRM);
                 this.cash2OrderService.ordCheckResultFeedback(order, Cash2OrdCheckResultEnum.WAITING_CONFIRM);
             }
-        }
+        //}
     }
 
     /***
@@ -189,11 +177,13 @@ public class ReviewResultService {
                 archiveOrder(ordOrder);
                 sendFeedBackInfo2CashCashAfterReject(ordOrder);
             } else {
-                if (contractSignService.isDigitalSignSwitchOpen(ordOrder)) {
-                    asyncTaskService.addTask(ordOrder, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-                } else {
+                // budi: remark digisign, karena mau langsung ke status 5 (send to P2P) bukan 20
+                // not backward compatible with non-P2P loan
+                //if (contractSignService.isDigitalSignSwitchOpen(ordOrder)) {
+                //    asyncTaskService.addTask(ordOrder, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+                //} else {
                     ordService.changeOrderStatus(ordOrder, status);
-                }
+                //}
                 archiveOrder(ordOrder);
                 //进入待放款状态后处理
                 sendFeedBackInfo2CashCashAfterPass(ordOrder);
@@ -211,14 +201,16 @@ public class ReviewResultService {
      * @param order
      */
     public void reBorrowingAutoReviewPass(OrdOrder order){
-       if(contractSignService.isDigitalSignSwitchOpen(order)){
-           asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-       }else{
-           ordService.changeOrderStatus(order,OrdStateEnum.LOANING);
-       }
-        // 订单归档
-        archiveOrder(order);
-        sendFeedBackInfo2CashCashAfterPass(order);
+        // budi: remark digisign, karena mau langsung ke status 5 (send to P2P) bukan 20
+        // not backward compatible with non-P2P loan
+        //if(contractSignService.isDigitalSignSwitchOpen(order)){
+        //    asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+        //}else{
+            ordService.changeOrderStatus(order,OrdStateEnum.LOANING);
+        //}
+            // 订单归档
+            archiveOrder(order);
+            sendFeedBackInfo2CashCashAfterPass(order);
     }
 
     /**
@@ -251,32 +243,19 @@ public class ReviewResultService {
 
 
     public void autoCallPassAfterFirstCheck(OrdOrder order){
-        //状态转为4
         ordService.changeOrderStatus(order,OrdStateEnum.SECOND_CHECK);
-        // 订单归档
         archiveOrder(order);
     }
 
     public void autoCallRejectFirstCheck(OrdOrder order, SysAutoReviewRule rejectRule){
         ordService.changeOrderStatus(order,OrdStateEnum.FIRST_CHECK_NOT_ALLOW);
-        // 订单归档
         archiveOrder(order);
         sendFeedBackInfo2CashCashAfterReject(order);
-        log.info("订单号：{} 初审外呼被拒 {} 天", order.getUuid(),rejectRule.getRuleRejectDay());
-    }
-
-
-    /***
-     * 外呼开关是否打开
-     * @return
-     */
-    public boolean isAutoCallSwitchOpen() {
-        String switchValue = sysParamService.getSysParamValue(SysParamContants.RISK_AUTO_CALL_SWITCH);
-        return "true".equalsIgnoreCase(switchValue);
+        log.info("Order No: {} Outbound call rejected in first trial {} days", order.getUuid(),rejectRule.getRuleRejectDay());
     }
 
     /***
-     * 订单归档
+     * Save to redis save:mango:orderList -> OrderUserMangoScheduling will save to Mongo OrderUserDataMongo
      * @param ordOrder
      */
     private void archiveOrder(OrdOrder ordOrder) {

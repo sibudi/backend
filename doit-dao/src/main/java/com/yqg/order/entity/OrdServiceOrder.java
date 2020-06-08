@@ -19,6 +19,7 @@ public class OrdServiceOrder extends BaseEntity implements Serializable {
     private String orderNo;//原订单编号
     private BigDecimal serviceFee;//放款所需服务费
     private String disburseChannel;//放款通道
-    private Integer status;// 订单状态 1初始化 2待打款(原订单打款成功后) 3 打款成功 4 打款失败
+    // refer to OrdServiceOrderEnum
+    private Integer status;
     private Date loanTime; // 放款日期
 }

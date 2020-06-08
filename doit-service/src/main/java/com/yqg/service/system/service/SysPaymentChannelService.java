@@ -109,25 +109,27 @@ public class SysPaymentChannelService {
         }
 
         List<SysPaymentChannelResponse> channelResponseList = new ArrayList<>();
-        List<SysPaymentChannel> channelList = new ArrayList<>();
-        if (this.p2PService.isP2PIssuedLoan(order.getUuid())){
+        List<SysPaymentChannel> channelList = this.sysPaymentChannelDao.getRepaymentChanelListForDOKUNew();
 
-            /**
-             *  p2p修改  对应的放款渠道 只能通过对应的还款渠道
-             * */
-            UsrBank usrBank = this.usrBankService.getBankCardInfo(order.getUserBankUuid());
-            if (usrBank.getBankCode().equals("BCA")){
-                channelList =   this.sysPaymentChannelDao.getRepaymentChanelWithBankCode("4","BCA");
-            }else  if (usrBank.getBankCode().equals("BNI")){
-                channelList =   this.sysPaymentChannelDao.getRepaymentChanelWithBankCode("4","BNI");
-            }else {
-                channelList =   this.sysPaymentChannelDao.getRepaymentChanelWithBankCode("4","CIMB");
-            }
+//        rizky : show all payment channel for p2p as all payment go thru escrow
 
-        }else {
+//        if (this.p2PService.isP2PIssuedLoan(order.getUuid())){
+//
+//            /**
+//             *  p2p修改  对应的放款渠道 只能通过对应的还款渠道
+//             * */
+//            UsrBank usrBank = this.usrBankService.getBankCardInfo(order.getUserBankUuid());
+//            if (usrBank.getBankCode().equals("BCA")){
+//                channelList =   this.sysPaymentChannelDao.getRepaymentChanelWithBankCode("4","BCA");
+//            }else  if (usrBank.getBankCode().equals("BNI")){
+//                channelList =   this.sysPaymentChannelDao.getRepaymentChanelWithBankCode("4","BNI");
+//            }else {
+//                channelList =   this.sysPaymentChannelDao.getRepaymentChanelWithBankCode("4","CIMB");
+//            }
+//
+//        }else {
 
-            channelList = this.sysPaymentChannelDao.getRepaymentChanelListForDOKUNew();
-        }
+//        }
 
         if(CollectionUtils.isEmpty(channelList)){
             return  channelResponseList;

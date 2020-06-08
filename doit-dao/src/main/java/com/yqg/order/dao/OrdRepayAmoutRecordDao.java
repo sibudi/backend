@@ -23,9 +23,18 @@ public interface OrdRepayAmoutRecordDao extends BaseMapper<OrdRepayAmoutRecord>{
         + " LEFT OUTER JOIN ordOrder AS ord ON repay.orderNo=ord.uuid  AND ord.lendingTime >= '2018-12-26' AND ord.disabled=0 "
         + " LEFT OUTER JOIN ordBill as bill on repay.orderNo=bill.uuid AND bill.createTime >= '2018-12-26' AND bill.disabled=0 "
         + " WHERE repay.repayMethod=#{repayChannel} AND repay.status='WAITING_REPAYMENT_TO_RDN' AND repay.disabled=0 "
-        + " AND (ord.uuid is not null or bill.uuid is not null) AND COALESCE(ord.orderType, 3) NOT IN (1,2)")   
+        + " AND (ord.uuid is not null or bill.uuid is not null) AND COALESCE(ord.orderType, 3) NOT IN (1,2)")
         //Ignore Lending Time before TCC contracts, Ignore Extension order
     List<OrderRepayAmountRecordExtended> getOrderRepayRecordWaitingRepaymentToRdn(@Param("repayChannel") String repayChannel);
+
+    @Select("<script>" +
+            "SELECT * from ordRepayAmoutRecord where orderNo in " +
+            "<foreach collection='billIds' item='id' separator=',' open='(' close=')'>" +
+            " #{id}" +
+            "</foreach>" +
+            "and disabled = 0 order by updatetime asc " +
+            "</script>")
+    List<OrdRepayAmoutRecord> getOrdRepayRecordfromBills(@Param("billIds") List<String> billIds);
 
     @Update("<script>"
         + "UPDATE ordRepayAmoutRecord set STATUS=#{newStatus}, updateTime=now() WHERE STATUS=#{oldStatus} AND id in "

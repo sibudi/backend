@@ -60,16 +60,18 @@ public class OrdOrder extends BaseEntity implements Serializable {
     @Getter
     public enum P2PLoanStatusEnum {
         INIT("0"), //初始化默认值
+        SEND_2_P2P_SUCCESS("20"), //推送到p2p成功
+        SEND_2_P2P_FAILED("21"),//推送到p2p失败
         FUNDING("1"),//投标中
+        MISS_FUNDING("8"), //流标
+
         ISSUING("2"),//放款中
         ISSUED("3"),//放款成功
         ISSUE_FAILED("4"),//放款失败
+        WAITING_DISBURSE("30"),  //Waiting loanPay() scheduler
         REPAYMENT_PENDING("5"),//还款处理中
         REPAYMENT_SUCCESS("6"),//还款成功
         REPAYMENT_FAILED("7"),//还款失败
-        MISS_FUNDING("8"), //流标
-        SEND_2_P2P_SUCCESS("20"), //推送到p2p成功
-        SEND_2_P2P_FAILED("21"),//推送到p2p失败
         ;
 
 
