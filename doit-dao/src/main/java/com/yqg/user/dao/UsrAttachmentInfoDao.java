@@ -43,6 +43,6 @@ public interface UsrAttachmentInfoDao extends BaseMapper<UsrAttachmentInfo> {
 
     @Select("select * from usrAttachmentInfo where userUuid = #{userUuid} and " +
             "attachmentType = #{attachmentType} and disabled = 1 and remark = '' order by createTime desc ")
-    List<UsrAttachmentInfo> getUsrAttachmentInfo(@Param("userUuid") String userUuid,
+    List<UsrAttachmentInfo> getDisabledUsrAttachmentInfo(@Param("userUuid") String userUuid,
                                  @Param("attachmentType") Integer attachmentType);
 }

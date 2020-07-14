@@ -1,18 +1,16 @@
 package com.yqg.datafix;
 
-import com.yqg.common.enums.user.UsrAddressEnum;
-import com.yqg.common.utils.MD5Util;
+import java.util.List;
+
 import com.yqg.service.risk.service.Overdue15UserService;
-import com.yqg.system.entity.SysAutoReviewRule;
 import com.yqg.user.dao.UsrBlackListDao;
 import com.yqg.user.entity.UsrBlackList;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /***
  * 逾期数据抽取
@@ -40,7 +38,7 @@ public class OverdueDataExtractService {
     }
 
     /***
-     * 查询出所有[15,--）的订单，将其通讯录通话记录相关数据记录到redis
+     * Query all the orders of [15,--), and record the relevant data of the address book call record to redis
      */
     public void stepOne() {
         Long startTime = System.currentTimeMillis();
@@ -51,8 +49,7 @@ public class OverdueDataExtractService {
                 return;
             }
 
-            // fraud user 相关数据
-            overdue15UserService.addCallRecordToRedis(dbList, true, UsrBlackList.BlackUserCategory.FRAUD);
+            // fraud user related data
             overdue15UserService.addContactToRedis(dbList, true, UsrBlackList.BlackUserCategory.FRAUD);
             overdue15UserService.addSmsToRedis(dbList, true, UsrBlackList.BlackUserCategory.FRAUD);
 

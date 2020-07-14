@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+// Used by AdditionalInfoService.java -> which used by Cash2AdditionalInfoController.java 
+// API: /external/cash2/additional-info
 public class AdditionalInfoExtractor {
 
     @Autowired

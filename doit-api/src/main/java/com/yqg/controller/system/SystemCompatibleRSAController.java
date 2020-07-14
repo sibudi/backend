@@ -60,7 +60,7 @@ public class SystemCompatibleRSAController {
             throws Exception {
         log.info("request body {}", JsonUtils.serialize(usrRequst));
         //log.info("用户登录或注册");
-        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        String ipAddr = "";
         log.info("request ip address {}", ipAddr);
         usrRequst.setIPAdress(ipAddr);
         LoginSession result = this.usrService.signup(usrRequst);
@@ -74,7 +74,7 @@ public class SystemCompatibleRSAController {
     public ResponseEntity<LoginSession> signupV2(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst)
             throws Exception {
         log.info("v2/users/signup - request body {}", JsonUtils.serialize(usrRequst));
-        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        String ipAddr = "";
         log.info("request ip address {}", ipAddr);
         usrRequst.setIPAdress(ipAddr);
         LoginSession result = this.usrService.signupV2(usrRequst);
@@ -87,7 +87,7 @@ public class SystemCompatibleRSAController {
     @ResponseBody
     public ResponseEntity<Object> signupV3(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
         log.info("v3/users/signup - request body {}", JsonUtils.serialize(usrRequst));
-        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        String ipAddr = "";
         log.info("request ip address {}", ipAddr);
         usrRequst.setIPAdress(ipAddr);
         this.usrService.signupV3(usrRequst);
@@ -102,7 +102,7 @@ public class SystemCompatibleRSAController {
     @ResponseBody
     public ResponseEntity<LoginSession> signinV3(HttpServletRequest httpRequest, @RequestBody UsrRequst usrRequst) throws Exception {
         log.info("v3/users/signin - request body {}", JsonUtils.serialize(usrRequst));
-        String ipAddr = GetIpAddressUtil.getIpAddr(httpRequest);
+        String ipAddr = "";
         log.info("request ip address {}", ipAddr);
         usrRequst.setIPAdress(ipAddr);
         LoginSession result = this.usrService.signin(usrRequst);

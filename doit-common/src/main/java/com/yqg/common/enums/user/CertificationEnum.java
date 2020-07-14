@@ -5,23 +5,23 @@ package com.yqg.common.enums.user;
  */
 public enum CertificationEnum {
 
-    USER_IDENTITY(1), //实名认证
-    FACE_IDENTITY(2), //人脸识别
-    VIDEO_IDENTITY(3), //视频认证
+    USER_IDENTITY(1), //Verified
+    FACE_IDENTITY(2), //Face recognition
+    VIDEO_IDENTITY(3), //Video certification
     FACEBOOK_IDENTITY(4), // faceBook
-    XL_IDENTITY(5), // XL(运营商)
-    TELK_IDENTITY(6), // TELK(运营商)
-    TELK2_IDENTITY(7), // TELK(运营商)
-    IM3_IDENTITY(8), // IM3(运营商)
-    TOKOPEDIA_IDENTITY(9), // TokoPedia(电商)
-    GOJECK_IDENTITY(10), // Gojeck(电商)
-    GOLIFE_IDENTITY(11), // Golife(电商)
-    STEUERKARTED(12), // 税卡
-    INSURANCE_CARD(13), // 保险卡
-    WHATS_APP(14), // whatapp账号
+    XL_IDENTITY(5), // XL(Operator)
+    TELK_IDENTITY(6), // TELK(Operator)
+    TELK2_IDENTITY(7), // TELK(Operator)
+    IM3_IDENTITY(8), // IM3(Operator)
+    TOKOPEDIA_IDENTITY(9), // TokoPedia(E-commerce)
+    GOJECK_IDENTITY(10), // Gojeck(E-commerce)
+    GOLIFE_IDENTITY(11), // Golife(E-commerce)
+    STEUERKARTED(12), // tax card
+    INSURANCE_CARD(13), // Insurance Card
+    WHATS_APP(14), // whatsapp account
     NPWP(15), // NPWP
     BPJS(16), // BPJS
-    OPERATOR(17), // 运营商
+    OPERATOR(17), // Operator
     LINKEDIN(18) // Linkedin
     ;
 

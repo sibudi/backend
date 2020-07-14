@@ -13,32 +13,33 @@ public class FileUtils {
 
     static Logger logger = LoggerFactory.getLogger(FileUtils.class);
 
-    /**
-     * ?????Resources????????
-     *
-     * @param filePath
-     * @return
-     */
-    public static String readFile(String filePath) {
-        try {
-            StringBuffer sb = new StringBuffer();
-            FileReader freader = new FileReader(new File(filePath));
-            BufferedReader buffer = new BufferedReader(freader);
-            String str_line = buffer.readLine();
-            while (str_line != null) {
-                sb.append(str_line);
-                sb.append("\n");
-                str_line = buffer.readLine();
-            }
-            buffer.close();
-            freader.close();
+    //ahalim: Remark unused method
+    // /**
+    //  * ?????Resources????????
+    //  *
+    //  * @param filePath
+    //  * @return
+    //  */
+    // public static String readFile(String filePath) {
+    //     try {
+    //         StringBuffer sb = new StringBuffer();
+    //         FileReader freader = new FileReader(new File(filePath));
+    //         BufferedReader buffer = new BufferedReader(freader);
+    //         String str_line = buffer.readLine();
+    //         while (str_line != null) {
+    //             sb.append(str_line);
+    //             sb.append("\n");
+    //             str_line = buffer.readLine();
+    //         }
+    //         buffer.close();
+    //         freader.close();
 
-            return sb.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    //         return sb.toString();
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    //     return null;
+    // }
 
 
     /**
@@ -72,7 +73,7 @@ public class FileUtils {
         return result.replace("//", "/");
     }
 
-    public static String getFilePath(String str) {
+    private static String getFilePath(String str) {
 
         int code = str.hashCode();
 
@@ -80,29 +81,29 @@ public class FileUtils {
                 code % 26 : 0 - code % 26) + 1).getPath();
     }
 
+    //ahalim: Remark unused method
+    // /**
+    //  * ????base64
+    //  *
+    //  * @param imgFilePath
+    //  * @return
+    //  */
+    // public static String GetImageStr(String imgFilePath) {
+    //     byte[] data = null;
 
-    /**
-     * ????base64
-     *
-     * @param imgFilePath
-     * @return
-     */
-    public static String GetImageStr(String imgFilePath) {
-        byte[] data = null;
+    //     // ????????
+    //     try {
+    //         InputStream in = new FileInputStream(imgFilePath);
+    //         data = new byte[in.available()];
+    //         in.read(data);
+    //         in.close();
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }
 
-        // ????????
-        try {
-            InputStream in = new FileInputStream(imgFilePath);
-            data = new byte[in.available()];
-            in.read(data);
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // ?????Base64??
-        return Base64.encodeBase64String(data);// ??Base64???????????
-    }
+    //     // ?????Base64??
+    //     return Base64.encodeBase64String(data);// ??Base64???????????
+    // }
 
     /**
      * base64 ????

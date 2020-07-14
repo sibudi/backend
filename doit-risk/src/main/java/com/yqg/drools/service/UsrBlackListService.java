@@ -1,13 +1,16 @@
 package com.yqg.drools.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.yqg.common.constants.RedisContants;
 import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.CheakTeleUtils;
 import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.JsonUtils;
-import com.yqg.drools.beans.ContactData;
-import com.yqg.drools.beans.ShortMessageData;
-import com.yqg.drools.beans.UserCallRecordsData;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.risk.dao.FraudUserOrderInfoDao;
 import com.yqg.risk.entity.FraudUserInfo;
@@ -20,18 +23,14 @@ import com.yqg.user.entity.UsrBlackList;
 import com.yqg.user.entity.UsrBlackList.BlackUserCategory;
 import com.yqg.user.entity.UsrLinkManInfo;
 import com.yqg.user.entity.UsrUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /***
  * 用户黑名单信息
@@ -52,15 +51,6 @@ public class UsrBlackListService {
 
     @Autowired
     private UsrBankDao usrBankDao;
-
-    @Autowired
-    private UserCallRecordService userCallRecordService;
-
-    @Autowired
-    private UserContactService userContactService;
-
-    @Autowired
-    private ShortMessageService shortMessageService;
 
     @Autowired
     private FraudUserOrderInfoDao fraudUserOrderInfoDao;
@@ -251,12 +241,12 @@ public class UsrBlackListService {
     }
 
     /****
-     * 手机号码是某类用户的通话记录中号码
-     * @param mobileDesc  des加密后
+     * The mobile phone number is the number in the call record of a certain type of user
+     * @param mobileDesc  After des encryption
      * @param category
      * @return
      */
-    public Boolean isMobileInCallRecordForBlackUserCategoryN(String mobileDesc, BlackUserCategory category) {
+    public Boolean isMobileInRedisBlacklist(String mobileDesc, BlackUserCategory category) {
         String mobile = DESUtils.decrypt(mobileDesc);
         String key = "";
         switch (category){
@@ -295,94 +285,6 @@ public class UsrBlackListService {
         }
         return redisClient.sisMember(key, mobile);
     }
-
-
-    /***
-     * 通讯录中号码在某类用户中
-     * @param userUuid
-     * @param category
-     * @return
-     */
-    public Boolean contactInBlackListOfCategoryN(String userUuid, BlackUserCategory category) {
-        Integer hitMobileCount = countOfContactPhoneInBlackListCategoryN(userUuid, category);
-        return hitMobileCount != null && hitMobileCount > 0;
-    }
-
-    /***
-     * 通讯录号码命中某类黑名单用户的次数
-     * @param userUuid
-     * @param category
-     * @return
-     */
-    public Integer countOfContactPhoneInBlackListCategoryN(String userUuid, BlackUserCategory category) {
-        List<ContactData> contactList = userContactService.getContactList(userUuid, null);
-        if (CollectionUtils.isEmpty(contactList)) {
-            return 0;
-        }
-        List<String> validPhones = contactList.stream().map(elem -> StringUtils.isEmpty(elem.getPhone()) ? "" :
-                CheakTeleUtils.telephoneNumberValid2(elem.getPhone())).filter(elem -> !StringUtils.isEmpty(elem))
-                .distinct().collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(validPhones)) {
-            return 0;
-        }
-        return countOfMobilesInBlackListCategoryN(validPhones, category);
-    }
-
-    /***
-     * 通话记录中号码在某类用户中
-     * @param userUuid
-     * @param category
-     * @return
-     */
-    public Boolean callRecordInBlackListOfCategoryN(String userUuid, BlackUserCategory category) {
-        Integer hitMobileCount = countOfCallRecordInBlackListCategoryN(userUuid, category);
-        return hitMobileCount != null && hitMobileCount > 0;
-    }
-
-    /***
-     * 通讯录号码命中某类黑名单用户的次数
-     * @param userUuid
-     * @param category
-     * @return
-     */
-    public Integer countOfCallRecordInBlackListCategoryN(String userUuid, BlackUserCategory category) {
-        List<UserCallRecordsData> contactList = userCallRecordService.getUserCallRecordList(userUuid, null);
-        if (CollectionUtils.isEmpty(contactList)) {
-            return 0;
-        }
-        List<String> validPhones = contactList.stream().map(elem -> StringUtils.isEmpty(elem.getNumber()) ? "" :
-                CheakTeleUtils.telephoneNumberValid2(elem.getNumber())).filter(elem -> !StringUtils.isEmpty(elem))
-                .distinct().collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(validPhones)) {
-            return 0;
-        }
-        return countOfMobilesInBlackListCategoryN(validPhones, category);
-    }
-
-
-    /***
-     * 手机号列表中有多少命中某一类型黑名单用户的手机号
-     * @param phones 格式化的以8开头的手机号
-     * @param category
-     * @return
-     */
-    public Integer countOfMobilesInBlackListCategoryN(List<String> phones, BlackUserCategory category) {
-        if (CollectionUtils.isEmpty(phones)) {
-            return 0;
-        }
-        List<Integer> types = UsrBlackList.getBlackTypesByCategory(category);
-
-        List<String> desPhones = phones.stream().filter(elem -> !StringUtils.isEmpty(elem))
-                .map(elem -> DESUtils.encrypt(elem))
-                .filter(elem -> !StringUtils.isEmpty(elem))
-                .distinct()
-                .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(desPhones)) {
-            return 0;
-        }
-        return usrBlackListDao.countOfMobilesInBlackList(desPhones, types);
-    }
-
 
     /***
      * 手机号是逾期15天及以上用户的紧急联系人电话
@@ -467,19 +369,6 @@ public class UsrBlackListService {
     }
 
     /***
-     * 短信通话对象在某类黑名单中的次数
-     * @param userUuid
-     * @param orderNo
-     * @param category
-     * @return
-     */
-    public Integer countOfSmsPhoneInBlackListCategoryN(String userUuid, String orderNo, BlackUserCategory category) {
-        List<Integer> types = UsrBlackList.getBlackTypesByCategory(category);
-        return countOfSmsPhoneInBlackList(userUuid, orderNo, types);
-    }
-
-
-    /***
      * 手机号是欺诈用户的紧急联系人
      * @param mobileDes
      * @return
@@ -495,53 +384,6 @@ public class UsrBlackListService {
         List<Integer> types = Arrays.asList(UsrBlackList.UsrBlackTypeEnum.FRAUDULENT_USER.getCode());
         Integer count = usrBlackListDao.mobileIsEmergencyTelForBlackListUser(userService.getAllTypesMobile(mobileNumber), types);
         return count != null && count > 0;
-    }
-
-    /***
-     * 手机号命中欺诈用户的的通话记录的次数
-     * @param user
-     * @return
-     */
-    public Long countOfMobileInFraudUserCallRecord(UsrUser user) {
-        if (StringUtils.isEmpty(user.getMobileNumberDES())) {
-            return 0L;
-        }
-        String mobileNumber = DESUtils.decrypt(user.getMobileNumberDES());
-        if (StringUtils.isEmpty(mobileNumber)) {
-            return 0L;
-        }
-        List<String> userList = usrBlackListDao.getFraudUsersId();
-        //排除催收和审核人员的userUuid（审核人员or催收人员），这些人没有通话记录
-        userList = userList.stream().filter(elem -> !elem.equals("审核人员or催收人员")).collect(Collectors.toList());
-
-        if (CollectionUtils.isEmpty(userList)) {
-            return 0L;
-        }
-
-        Long sum = 0L;
-        for (String tmpUserId : userList) {
-            List<UserCallRecordsData> userCallRecordsList = userCallRecordService.getUserCallRecordList(tmpUserId, null);
-
-
-            if (CollectionUtils.isEmpty(userCallRecordsList)) {
-                continue;
-            }
-            Long hit = userCallRecordsList.stream().filter(elem -> {
-                String number = elem.getNumber();
-                if (StringUtils.isEmpty(number)) {
-                    return false;
-                }
-                String formatNumber = CheakTeleUtils.telephoneNumberValid2(elem.getNumber());
-                if (StringUtils.isEmpty(formatNumber)) {
-                    return false;
-                }
-                return formatNumber.equals(mobileNumber);
-            }).count() > 0 ? 1L : 0L;
-            sum += hit;
-        }
-
-        return sum;
-
     }
 
     /***
@@ -592,35 +434,8 @@ public class UsrBlackListService {
         usrBlackListDao.addFraudUser(userUuid, "");
     }
 
-    /***
-     * 用户短信中手机号在黑名单的个数
-     * @param userUuid
-     * @param orderNo
-     * @param types
-     * @return
-     */
-    private Integer countOfSmsPhoneInBlackList(String userUuid, String orderNo, List<Integer> types) {
-        List<ShortMessageData> contactList = shortMessageService.getShortMessageList(userUuid, orderNo);
-        if (CollectionUtils.isEmpty(contactList)) {
-            return null;
-        }
-        List<String> phones = contactList.stream().filter(elem -> !StringUtils.isEmpty(elem.getPhoneNumber())).map(elem -> {
-            String formatPhone = CheakTeleUtils.telephoneNumberValid2(elem.getPhoneNumber());
-            if (StringUtils.isEmpty(formatPhone)) {
-                return null;
-            }
-            String phoneDes = DESUtils.encrypt(formatPhone);
-            return phoneDes;
-        }).filter(elem -> !StringUtils.isEmpty(elem)).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(phones)) {
-            return 0;
-        }
-        return usrBlackListDao.countOfMobilesInBlackList(phones, types);
-    }
-
-
     private List<String> getLinkManPhonesDes(String userUuid) {
-        List<UsrLinkManInfo> linkManInfos = usrLinkManDao.getUserContactWithUserUuid(userUuid);
+        List<UsrLinkManInfo> linkManInfos = usrLinkManDao.getUsrLinkManWithUserUuid(userUuid);
         if (CollectionUtils.isEmpty(linkManInfos)) {
             return new ArrayList<>();
         }

@@ -9,6 +9,7 @@ import com.yqg.service.signcontract.ContractSignService;
 import com.yqg.service.signcontract.request.SignConfirmRequest;
 import com.yqg.service.signcontract.response.SignInfoResponse;
 import com.yqg.service.third.digSign.DocumentService;
+import com.yqg.service.user.service.UserAttachmentInfoService;
 import com.yqg.signcontract.entity.OrderContract;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,8 @@ public class ContractSignController {
 
     @Autowired
     private ContractSignService contractSignService;
+    @Autowired
+    private UserAttachmentInfoService userAttachmentInfoService;
 
     @Autowired
     private DocumentService documentService;
@@ -39,7 +42,7 @@ public class ContractSignController {
     @RequestMapping(value = "/user-activation-confirmation", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
     public ResponseEntity<Object> confirmUserActivation(@RequestBody SignConfirmRequest request) throws Exception {
         try {
-            contractSignService.confirmUserActivation(request.getUserUuid(), request.getResponse());
+            contractSignService.confirmUserActivation(request.getUserUuid(), request.getResponse(), request.getOrderNo());
         } catch (Exception e1) {
             log.info("user-activation-confirmation exception,orderNo: " + request.getOrderNo(), e1);
             throw new ServiceException(ExceptionEnum.SYSTEM_TIMEOUT);
@@ -83,11 +86,9 @@ public class ContractSignController {
 
         Optional<OrderContract> document = documentService.getOrderContract(creditorNo);
         if(document.isPresent()){
-            InputStream stream = new FileInputStream(document.get().getDownloadedPath());
-
-            return IOUtils.toByteArray(stream);
+            return userAttachmentInfoService.getAttachmentStream(document.get().getDownloadedPath());
         }
-        else {
+        else {                
             throw new ServiceException(ExceptionEnum.INVALID_ACTION);
         }
     }

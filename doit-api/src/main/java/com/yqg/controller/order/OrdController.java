@@ -10,6 +10,7 @@ import com.yqg.common.utils.GetIpAddressUtil;
 import com.yqg.service.order.DelayOrdService;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.order.request.GetOrdRepayAmoutRequest;
+import com.yqg.service.order.request.GetOrderStatusRequest;
 import com.yqg.service.order.request.LoanConfirmRequest;
 import com.yqg.service.order.request.OrdRequest;
 import com.yqg.service.order.request.SaveOrderUserUuidRequest;
@@ -141,5 +142,20 @@ public class OrdController {
         return ResponseEntityBuilder.success();
     }
 
-
+    @ApiOperation("订单列表")
+    @RequestMapping(value = "/getOrderStatus", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON)
+    @ResponseBody
+    public ResponseEntity<OrderStatusResponse> getOrderStatus(@RequestBody GetOrderStatusRequest request) throws Exception {
+        OrderStatusResponse orderResponse = new OrderStatusResponse();
+        try {
+            orderResponse = ordService.getOrderStatus(request);
+            log.info("Get Order Status api");
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e1) {
+            log.info("getOrderStatus exception, orderNo: " + request.getOrderNo(), e1);
+            throw new ServiceException(ExceptionEnum.SYSTEM_TIMEOUT);
+        }
+        return ResponseEntityBuilder.success(orderResponse);
+    }
 }

@@ -1,5 +1,12 @@
 package com.yqg.manage.service.check;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.yqg.base.multiDataSource.annotation.ReadDataSource;
 import com.yqg.common.constants.RedisContants;
 import com.yqg.common.enums.order.OrdStateEnum;
@@ -11,7 +18,11 @@ import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.CheakTeleUtils;
 import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.UUIDGenerateUtil;
-import com.yqg.manage.dal.order.*;
+import com.yqg.manage.dal.order.ManOrderCheckRemarkDao;
+import com.yqg.manage.dal.order.ManOrderCheckRuleDao;
+import com.yqg.manage.dal.order.ManOrderOrderDao;
+import com.yqg.manage.dal.order.ManOrderRemarkDao;
+import com.yqg.manage.dal.order.ManTeleReviewRecordDao;
 import com.yqg.manage.dal.user.ManSecondCheckRecordDao;
 import com.yqg.manage.dal.user.ManUserDao;
 import com.yqg.manage.dal.user.ReviewerOrderTaskDAO;
@@ -22,15 +33,23 @@ import com.yqg.manage.entity.check.ManSecondCheckRecord;
 import com.yqg.manage.entity.check.ManTeleReviewRecord;
 import com.yqg.manage.entity.system.ManOrderRemark;
 import com.yqg.manage.entity.user.ManUser;
-import com.yqg.manage.enums.*;
+import com.yqg.manage.enums.EnumUtils;
+import com.yqg.manage.enums.ManAutoReviewRuleEnum;
+import com.yqg.manage.enums.ManOrderCheckRemarkEnum;
+import com.yqg.manage.enums.ManOrderRemarkTypeEnum;
+import com.yqg.manage.enums.ReviewerPostEnum;
 import com.yqg.manage.scheduling.check.request.SaveTeleReviewRequest;
 import com.yqg.manage.scheduling.check.request.TeleReviewRequest;
 import com.yqg.manage.scheduling.check.request.TeleReviewResultRequest;
 import com.yqg.manage.service.check.request.CheckRequest;
-import com.yqg.manage.service.check.response.*;
+import com.yqg.manage.service.check.response.FirstCheckRemarkResponse;
+import com.yqg.manage.service.check.response.ManOrderRemarkResponse;
+import com.yqg.manage.service.check.response.ManSecondRecordResponse;
+import com.yqg.manage.service.check.response.TeleReviewCheckResponse;
+import com.yqg.manage.service.check.response.TeleReviewQuestionResponse;
 import com.yqg.manage.service.mongo.OrderUserContactMongoService;
 import com.yqg.manage.service.mongo.request.OrderMongoRequest;
-import com.yqg.manage.service.mongo.response.FrequentOrderUserCallRecordResponse;
+import com.yqg.manage.service.mongo.response.OrderEmergencyContactResponse;
 import com.yqg.manage.service.order.ManOrderBlackService;
 import com.yqg.manage.service.order.ManOrderHistoryService;
 import com.yqg.manage.service.order.ManOrderOrderService;
@@ -39,8 +58,6 @@ import com.yqg.manage.service.user.ManUserService;
 import com.yqg.manage.service.user.UserUserService;
 import com.yqg.manage.service.user.request.ManUserUserRequest;
 import com.yqg.manage.service.user.response.ManSysLoginResponse;
-import com.yqg.service.task.AsyncTaskService;
-import com.yqg.service.util.LoginSysUserInfoHolder;
 import com.yqg.mongo.dao.OrderUserDataDal;
 import com.yqg.mongo.entity.OrderUserDataMongo;
 import com.yqg.order.entity.OrdHistory;
@@ -58,21 +75,23 @@ import com.yqg.service.signcontract.ContractSignService;
 import com.yqg.service.system.request.DictionaryRequest;
 import com.yqg.service.system.response.SysDicItemModel;
 import com.yqg.service.system.service.SysDicService;
+import com.yqg.service.task.AsyncTaskService;
 import com.yqg.service.third.sms.SmsServiceUtil;
 import com.yqg.service.user.service.UserRiskService;
 import com.yqg.service.user.service.UsrBaseInfoService;
+import com.yqg.service.util.LoginSysUserInfoHolder;
 import com.yqg.service.util.RuleConstants;
 import com.yqg.system.dao.SysAutoReviewRuleDao;
 import com.yqg.system.dao.TeleCallResultDao;
 import com.yqg.system.entity.SysAutoReviewRule;
 import com.yqg.system.entity.TeleCallResult;
-import com.yqg.task.entity.AsyncTaskInfoEntity;
 import com.yqg.user.dao.UsrAddressDetailDao;
 import com.yqg.user.dao.UsrAttachmentInfoDao;
 import com.yqg.user.dao.UsrCertificationInfoDao;
 import com.yqg.user.dao.UsrWorkDetailDao;
 import com.yqg.user.entity.UsrUser;
 import com.yqg.user.entity.UsrWorkDetail;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,13 +100,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 /**
@@ -1461,19 +1473,19 @@ public class ManOrderCheckRemarkService {
             return new ArrayList<>();
         }
 
-        //查询两个紧急联系人
+        //Query two emergency contacts
         OrderMongoRequest request = new OrderMongoRequest();
         request.setOrderNo(orderNo);
-        List<FrequentOrderUserCallRecordResponse> rList =
-                orderUserContactMongoService.frequentOrderUserCallRecordMongo(request);
+        List<OrderEmergencyContactResponse> rList =
+                orderUserContactMongoService.getOrderEmergencyContact(request);
 
-        //手机号码格式化
+        //Mobile phone number format
         String firstUserPhone = CheakTeleUtils.telephoneNumberValid2(rList.get(0).getMobile());
         firstUserPhone = "62" + firstUserPhone;
         String secondUserPhone = CheakTeleUtils.telephoneNumberValid2(rList.get(1).getMobile());
         secondUserPhone = "62" + secondUserPhone;
 
-        //封装成电核返回对象
+        //Encapsulated into a new return object
         List<ManOrderRemarkResponse> responses = new ArrayList<>();
         for (TeleCallResult obj : teleCallResults) {
 

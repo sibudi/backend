@@ -36,6 +36,9 @@ public class ManSystemFunctionController {
     private Logger logger = LoggerFactory.getLogger(ManSystemFunctionController.class);
 
     @Autowired
+    private ShowStreamUtils showStreamUtils;
+    
+    @Autowired
     private ManSystemFunctionService manSystemFunctionService;
 
     @Autowired
@@ -147,7 +150,7 @@ public class ManSystemFunctionController {
     public void showStreamOnBrowser(HttpServletResponse response,
                            @RequestParam("path") String path) throws Exception {
 
-        ShowStreamUtils.showStreamOnBrowser(response, path);
+        showStreamUtils.showStreamOnBrowser(response, path);
     }
 
     @ApiOperation("手动添加到黑名单中 ursBlackList表")

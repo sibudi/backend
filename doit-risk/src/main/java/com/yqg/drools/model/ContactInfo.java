@@ -1,13 +1,12 @@
 package com.yqg.drools.model;
 
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * 通讯录信息
  */
-
+//ahalim: TODO remove usercontact in drl
 @Getter
 @Setter
 public class ContactInfo {

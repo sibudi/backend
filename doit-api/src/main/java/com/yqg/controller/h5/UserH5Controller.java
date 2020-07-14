@@ -2,23 +2,40 @@ package com.yqg.controller.h5;
 
 import com.alibaba.fastjson.JSONObject;
 import com.yqg.common.annotations.H5Request;
+import com.yqg.common.constants.MessageConstants;
 import com.yqg.common.models.ResponseEntity;
 import com.yqg.common.models.ResponseEntitySpec;
+import com.yqg.common.models.builders.ResponseEntityBuilder;
 import com.yqg.common.models.builders.ResponseEntitySpecBuilder;
+import com.yqg.common.redis.RedisClient;
 import com.yqg.common.utils.GetIpAddressUtil;
+import com.yqg.common.utils.JsonUtils;
 import com.yqg.service.h5.UsrH5Service;
 import com.yqg.service.h5.request.SmsH5Request;
 import com.yqg.service.h5.request.UserRegisterH5Request;
 import com.yqg.service.h5.response.ImageCodeModelSpec;
 import com.yqg.service.h5.response.SmsH5Response;
+import com.yqg.service.order.OrdService;
+import com.yqg.service.order.request.OrdRequest;
+import com.yqg.service.partner.request.DeviceInfoRequest;
+import com.yqg.service.partner.request.RegistrationRequest;
 import com.yqg.service.system.service.RepayRateService;
 import com.yqg.service.third.mobox.MoboxService;
+import com.yqg.service.user.request.LinkManRequest;
+import com.yqg.service.user.request.SaveUserPhotoRequest;
+import com.yqg.service.user.request.UsrBankRequest;
 import com.yqg.service.user.request.UsrRequst;
+import com.yqg.service.user.request.UsrWorkBaseInfoRequest;
+import com.yqg.service.user.service.UserLinkManService;
+import com.yqg.service.user.service.UsrBankService;
+import com.yqg.service.user.service.UsrBaseInfoService;
 import com.yqg.service.user.service.UsrService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.text.MessageFormat;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
@@ -36,6 +53,17 @@ public class UserH5Controller {
     private UsrH5Service usrH5Service;
     @Autowired
     private UsrService usrService;
+
+    @Autowired
+    private RedisClient redisClient;
+    @Autowired
+    private OrdService ordService;
+    @Autowired
+    private UsrBaseInfoService usrBaseInfoService;
+    @Autowired
+    private UserLinkManService userLinkManService;
+    @Autowired
+    private UsrBankService usrBankService;
 
     @Autowired
     private RepayRateService repayRateService;

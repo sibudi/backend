@@ -10,6 +10,7 @@ import com.yqg.common.utils.StringUtils;
 import com.yqg.mongo.dao.DigiSignRequestMongoDal;
 import com.yqg.mongo.entity.DigiSignRequestMongo;
 import com.yqg.mongo.entity.DigiSignRequestMongo.RequestTypeEnum;
+import com.yqg.order.dao.OrdDao;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.externalChannel.utils.CustomHttpResponse;
 import com.yqg.service.externalChannel.utils.HttpUtil;
@@ -70,6 +71,8 @@ public class DigiSignService {
     private UserAttachmentInfoService userAttachmentInfoService;
     @Autowired
     private UsrSignContractStepService usrSignContractStepService;
+    @Autowired
+    private OrdDao ordDao;
     @Autowired
     private OrdService ordService;
     @Autowired
@@ -346,11 +349,22 @@ public class DigiSignService {
 
     /***
      * 发送协议文档
-     * @param userUuid
      * @param orderNo
      * @return
      */
-    public boolean sendDocument(String userUuid, String orderNo) {
+    public boolean sendDocument(String orderNo) {
+        OrdOrder order = new OrdOrder();
+        order.setUuid(orderNo);
+        order.setDisabled(0);
+
+        List<OrdOrder> ordOrders = ordDao.scan(order);
+        if (CollectionUtils.isEmpty(ordOrders)) {
+            log.error("Failed to send document orderNo {} not found", orderNo);
+            return false;
+        }
+        order = ordOrders.get(0);
+        String userUuid = order.getUserUuid();
+
         try {
             //检查签约文档是否已经发送过，如果已经发送则无需再次发送
             Optional<OrderContract> document = documentService.getOrderContract(orderNo);
@@ -392,8 +406,8 @@ public class DigiSignService {
             adminSign.setLly("300");
             adminSign.setUrx("150");
             adminSign.setUry("370");
-            adminSign.setAutoOrManual("at");
-            adminSign.setKuser(automaticSignKUser);
+            adminSign.setAutoOrManual("mt"); // budi: lender tanda tangan manual
+            adminSign.setKuser(automaticSignKUser); // budi: tanda tangan manual gak butuh field ini
             reqSignList.add(adminSign);
             sendDocumentRequest.setRequestSignList(reqSignList);
 
@@ -407,7 +421,7 @@ public class DigiSignService {
                 return false;
             }
             fileMap.put("file", fileBytes);
-            CustomHttpResponse response = HttpUtil.sendMultiPartRequest(digiSignConfig.getSendDocumentUrl(), dataMap, fileMap, buildDigiSignHeaderMap());
+            CustomHttpResponse response = HttpUtil.sendMultiPartRequest(digiSignConfig.getSendDocumentUrl(), dataMap, fileMap, buildDigiSignHeaderMap(), orderNo);
 
             boolean sendSuccess = false;
             //如果返回是成功的
@@ -436,12 +450,7 @@ public class DigiSignService {
      * @return
      */
     public boolean signContract(String userUuid, String orderNo) {
-        //检查是否已经有相关的签约页面
-        Optional<DigiSignRequestMongo> existData = getDigiSignRequestResult(orderNo, userUuid, RequestTypeEnum.SIGN);
-        if (existData.isPresent() && "true".equals(existData.get().getResponseValid())) {
-            log.info("order : {} already have signContract info", orderNo);
-            return true;
-        }
+        
         UsrUser user = usrService.getUserByUuid(userUuid);
         UserDetailService.UserDetailInfo userDetailInfo = userDetailService.getUserDetailInfo(user);
         Optional<OrderContract> orderContract = documentService.getOrderContract(orderNo);
@@ -472,8 +481,56 @@ public class DigiSignService {
             }
         }
         //保存结果到mongo
+
+        //检查是否已经有相关的签约页面
+        Optional<DigiSignRequestMongo> existData = getDigiSignRequestResult(orderNo, userUuid, RequestTypeEnum.SIGN);
+        if (existData.isPresent() && "true".equals(existData.get().getResponseValid())) {
+            log.info("order : {} already have signContract info", orderNo);
+            // budi: update link
+            updateRequest(orderNo, JsonUtils.serialize(response), RequestTypeEnum.SIGN, String.valueOf(signSuccess));
+            return true;
+        }
+
         saveRequest(orderNo, userUuid, JsonUtils.serialize(dataMap), JsonUtils.serialize(response), RequestTypeEnum.SIGN, String.valueOf(signSuccess));
         return signSuccess;
+    }
+
+    // budi
+    public CustomHttpResponse signContractBulk(List<String> orderNo) {
+        
+        List<String> documentId = new ArrayList<String>(orderNo);
+
+        Map<String, Object> jsonFileMap = new HashMap<String, Object>();
+        //JSONObject jsonFileMap = new JSONObject();
+        jsonFileMap.put("userid", digiSignConfig.getDoitAdminEmail());
+        jsonFileMap.put("email_user", redisClient.get(RedisContants.DIGITAL_SIGN_AUTOMATICSIGNEMAIL));
+        jsonFileMap.put("document_id", documentId);
+
+        DigiRequest digiRequest = new DigiRequest<Map<String, Object>>().withJsonFile(jsonFileMap);
+        //
+        Map<String, String> dataMap = new HashMap<>();
+        dataMap.put("jsonfield", JsonUtils.serialize(digiRequest));
+
+        CustomHttpResponse responseBulk = HttpUtil.sendMultiPartRequest(digiSignConfig.getSignUrlBulk(), dataMap, null, buildDigiSignHeaderMap());
+        boolean signSuccess = false;
+        //如果返回是成功的
+        if (responseBulk.isResponseOk()) {
+            signSuccess = StringUtils.isNotEmpty(responseBulk.getContent());
+            //正常的话返回纯html页面，异常返回：{"JSONFile":{"notif":"Request API tidak lengkap.","result":"28"}}
+            if (responseBulk.getContent() != null && responseBulk.getContent().contains("\"notif\"")) {
+                DigiResponse remoteResp = JsonUtils.deserializeIgnoreError(responseBulk.getContent(), DigiResponse.class);
+                if (remoteResp != null && !remoteResp.getJSONFile().getResult().equals("00")) {
+                    signSuccess = false;
+                    log.info("digisign bulk sign success: {}", responseBulk.getContent());
+                }
+            }
+        }
+        //保存结果到mongo
+        //for(String orderno : orderNo) {
+        //    saveRequest(orderno, userUuid, JsonUtils.serialize(dataMap), JsonUtils.serialize(response), RequestTypeEnum.SIGN, String.valueOf(signSuccess));
+        //}
+        
+        return responseBulk;
     }
 
     /***
@@ -495,14 +552,23 @@ public class DigiSignService {
             File f = new File(filePath);
             if (response.isResponseOk()) {
                 Base64FileResponse base64Resp = JsonUtils.deserialize(response.getContent(), Base64FileResponse.class);
-                FileOutputStream outputStream = new FileOutputStream(f);
-                outputStream.write(Base64.decodeBase64(base64Resp.getJSONFile().getFile()));
-                outputStream.flush();
-                outputStream.close();
-                return filePath;
+                if (base64Resp.getJSONFile().getResult().equals(Base64FileResponse.resultType.DATA_NOT_FOUND.getCode())) {
+                    log.info("File not found in Digisign");
+                    return "";
+                }
+                else if (base64Resp.getJSONFile().getResult().equals(Base64FileResponse.resultType.SUCCESS.getCode())) {
+                    FileOutputStream outputStream = new FileOutputStream(f);
+                    outputStream.write(Base64.decodeBase64(base64Resp.getJSONFile().getFile()));
+                    outputStream.flush();
+                    outputStream.close();
+                    return filePath;
+                }
+                else {
+                    log.info(String.format("result: %s notif: %s", base64Resp.getJSONFile().getResult(), base64Resp.getJSONFile().getNotif()));
+                }
             }
         } catch (Exception e) {
-            log.error("down load file from digiSign error,documentId: " + documentId, e);
+            log.error("download file from digiSign error,documentId: " + documentId, e);
         }
         return null;
     }
@@ -512,8 +578,9 @@ public class DigiSignService {
         String currentDateDirectory = rootDir + File.separator + dateStr;
         try {
             File f = new File(currentDateDirectory);
+            //ahalim no need to use getParentFile() because currentDateDirectory is only the directory
             if (!f.exists()) {
-                f.mkdir();
+                f.mkdirs();
             }
         } catch (Exception e) {
             log.error("create current date dir error", e);
@@ -593,6 +660,23 @@ public class DigiSignService {
         mongoEntity.setResponseValid(responseValid);
         mongoEntity.setDisabled(0);
         digiSignRequestMongoDal.insert(mongoEntity);
+    }
+
+
+    public void updateRequest(String orderNo, String responseData, RequestTypeEnum requestType, String responseValid) {
+        DigiSignRequestMongo mongoEntity = new DigiSignRequestMongo();
+        mongoEntity.setOrderNo(orderNo);
+        mongoEntity.setRequestType(requestType.name());
+        mongoEntity.setResponseValid(responseValid);
+        
+        List<DigiSignRequestMongo> mongoEntityDatas = this.digiSignRequestMongoDal.find(mongoEntity);
+        DigiSignRequestMongo scan = mongoEntityDatas.get(mongoEntityDatas.size() - 1);
+
+        scan.setUpdateTime(new Date());
+        scan.setResponseData(responseData);
+        scan.setResponseValid(responseValid);
+        scan.setDisabled(0);
+        digiSignRequestMongoDal.updateById(scan);
     }
 
 

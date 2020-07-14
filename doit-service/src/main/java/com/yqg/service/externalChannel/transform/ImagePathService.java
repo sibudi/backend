@@ -37,7 +37,14 @@ public class ImagePathService {
     private UsrAttachmentInfoDao usrAttachmentInfoDao;
 
     /****
-     * 远程的图片url下载到公司本地服务器然后返回本地服务器的url
+     * Download the remote image URL to the local server  (call doit-upload)
+     *   and return the local server's URL
+     * 
+     * Called by:
+     * 1. AdditionalInfoExtractor.java (used by Cash2AdditionalInfoController.java)
+     * 2. BaseInfoExtractor.java (used by Cash2BaseInfoController.java)
+     * 3. CheetahBaseInfoExtractor.java (unused code, remarked)
+     * 4. OrderImageCheckTask.java scheduler (currently disabled)
      * @param remoteImgUrl
      * @return
      */
@@ -48,7 +55,7 @@ public class ImagePathService {
         if(remoteImgUrl.startsWith("http:")||remoteImgUrl.startsWith("https:")){
             String base64Img = Base64Utils.getBase64ImgFromRemoteUrl(remoteImgUrl);
             if(StringUtils.isEmpty(base64Img)){
-                //兼容超时无法获取图片的情况
+                //Compatible with the case where the picture cannot be obtained during timeout
                 log.info("can not get image, return the original url, {}",remoteImgUrl);
                 return remoteImgUrl;
             }
@@ -72,33 +79,34 @@ public class ImagePathService {
 
     }
 
-    public byte[] getImageStream(String imgUrl) {
-        BufferedInputStream bis = null;
-        HttpURLConnection httpUrl = null;
-        try {
-            URL url = new URL(imgUrl);
-            httpUrl = (HttpURLConnection) url.openConnection();
-            httpUrl.setConnectTimeout(2000);
-            httpUrl.setReadTimeout(60000);
-            httpUrl.connect();
-            bis = new BufferedInputStream(httpUrl.getInputStream());
-            return IOUtils.toByteArray(bis);
-        } catch (Exception e) {
-            log.error("fetch image exception，imgUrl: " + imgUrl, e);
-            return null;
-        } finally {
-            if (httpUrl != null) {
-                httpUrl.disconnect();
-            }
-            if(bis!=null){
-                try {
-                    bis.close();
-                } catch (IOException e) {
-                    log.error("close bis error",e);
-                }
-            }
-        }
-    }
+    // ahalim: remark unused code
+    // public byte[] getImageStream(String imgUrl) {
+    //     BufferedInputStream bis = null;
+    //     HttpURLConnection httpUrl = null;
+    //     try {
+    //         URL url = new URL(imgUrl);
+    //         httpUrl = (HttpURLConnection) url.openConnection();
+    //         httpUrl.setConnectTimeout(2000);
+    //         httpUrl.setReadTimeout(60000);
+    //         httpUrl.connect();
+    //         bis = new BufferedInputStream(httpUrl.getInputStream());
+    //         return IOUtils.toByteArray(bis);
+    //     } catch (Exception e) {
+    //         log.error("fetch image exception，imgUrl: " + imgUrl, e);
+    //         return null;
+    //     } finally {
+    //         if (httpUrl != null) {
+    //             httpUrl.disconnect();
+    //         }
+    //         if(bis!=null){
+    //             try {
+    //                 bis.close();
+    //             } catch (IOException e) {
+    //                 log.error("close bis error",e);
+    //             }
+    //         }
+    //     }
+    // }
 
     public List<UsrAttachmentInfo> getErrorImagePathListForCashCash(){
         return usrAttachmentInfoDao.getErrorImagePathListForCashCash();

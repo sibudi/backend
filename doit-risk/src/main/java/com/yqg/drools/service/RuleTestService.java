@@ -299,21 +299,20 @@ public class RuleTestService {
                 "\t\t\"mobileIsOverdue15BlackListEmergencyTel\": false,\n" +
                 "\t\t\"emergencyTelInOverdue15BlackList\": false,\n" +
                 "\t\t\"mobileInOverdue15BlackListContacts\": false,\n" +
-                "\t\t\"mobileInOverdue15BlackListCallRecords\": false,\n" +
+                "\t\t\"mobileInOverdue15BlackListRedis\": false,\n" +
                 "\t\t\"mobileInOverdue15BlackListShortMsg\": false,\n" +
                 "\t\t\"contactInOverdue15BlackList\": false,\n" +
-                "\t\t\"callRecordInOverdue15BlackList\": false,\n" +
+                "\t\t\"emergencyContactInOverdue15BlackList\": false,\n" +
                 "\t\t\"contactInOverdue15Count\": 0,\n" +
-                "\t\t\"callRecordInOverdue15Count\": 0,\n" +
+                "\t\t\"emergenctContactInOverdue15Count\": 0,\n" +
                 "\t\t\"mobileIsFraudUserEmergencyTel\": false,\n" +
-                "\t\t\"mobileInFraudUserCallRecordsCount\": 0,\n" +
                 "\t\t\"imeiInFraudUser\": null,\n" +
                 "\t\t\"mobileInFraudUser\": false,\n" +
                 "\t\t\"idCardNoInFraudUser\": false,\n" +
                 "\t\t\"hitFraudUserInfo\": false,\n" +
                 "\t\t\"deviceIdInOverdue30DaysUser\": false,\n" +
                 "\t\t\"smsContactOverdue15DaysCount\": null,\n" +
-                "\t\t\"callRecordInOverdue7BlackList\": false,\n" +
+                "\t\t\"emergencyContactInOverdue7BlackList\": false,\n" +
                 "\t\t\"imeiInOverdue7BlackList\": null,\n" +
                 "\t\t\"idCardNoInOverdue7BlackList\": false,\n" +
                 "\t\t\"mobileInOverdue7BlackList\": false,\n" +
@@ -326,11 +325,11 @@ public class RuleTestService {
                 "\t\t\"hitComplaintUserInfo\": false,\n" +
                 "\t\t\"whatsappInOverdue7BlackList\": false,\n" +
                 "\t\t\"whatsappInOverdue7BlackListEmergencyTel\": false,\n" +
-                "\t\t\"whatsappInOverdue7BlackListCallRecord\": false,\n" +
+                "\t\t\"whatsappInOverdue7BlackListRedis\": false,\n" +
                 "\t\t\"whatsappInOverdue7BlackListContact\": false,\n" +
                 "\t\t\"whatsappInOverdue7BlackListSms\": false,\n" +
                 "\t\t\"emergencyTelInFraudUserEmergencyTel\": false,\n" +
-                "\t\t\"emergencyTelInFraudUserCallRecord\": false,\n" +
+                "\t\t\"emergencyTelInRedisBlacklist\": false,\n" +
                 "\t\t\"emergencyTelInFraudUserContact\": false,\n" +
                 "\t\t\"emergencyTelInFraudUserSms\": false,\n" +
                 "\t\t\"emergencyTelInFraudUserWhatsapp\": false,\n" +
@@ -470,83 +469,6 @@ public class RuleTestService {
         LastLoan lastLoan = JsonUtil.toObject("{\"overdueDays\":-3,\"currentBorrowCount\":2}",LastLoan.class);
         facts.add(lastLoan);
 
-        ContactInfo contactInfo = JsonUtil.toObject("{\"phoneCount\":90,\"sensitiveWordCount\":0,\"interrelatedWordCount\":0,\"relativeWordCount\":0,\"relativeWordRejectedByProbability\":true," +
-                "\"firstLinkManNotIn\":false,\"secondLinkManNotIn\":false,\"firstLinkManNumber\":\"81908780048\",\"secondLinkManNumber\":\"87883316892\"}",ContactInfo.class);
-        facts.add(contactInfo);
-
-        UserCallRecordsModel callRecord = JsonUtil.toObject("\n" +
-                "{\n" +
-                "\t\"diffTime\": 133,\n" +
-                "\t\"recent180Time\": 35173,\n" +
-                "\t\"recent90Time\": 26788,\n" +
-                "\t\"recent30Time\": 1954,\n" +
-                "\t\"recent180Count\": 176,\n" +
-                "\t\"recent90Count\": 98,\n" +
-                "\t\"recent30Count\": 33,\n" +
-                "\t\"recent180InTime\": 18353,\n" +
-                "\t\"recent90InTime\": 11905,\n" +
-                "\t\"recent30InTime\": 1946,\n" +
-                "\t\"recent180InCount\": 124,\n" +
-                "\t\"recent90InCount\": 75,\n" +
-                "\t\"recent30InCount\": 32,\n" +
-                "\t\"recent180OutTime\": 16820,\n" +
-                "\t\"recent90OutTime\": 14883,\n" +
-                "\t\"recent30OutTime\": 8,\n" +
-                "\t\"recent180OutCount\": 52,\n" +
-                "\t\"recent90OutCount\": 23,\n" +
-                "\t\"recent30OutCount\": 1,\n" +
-                "\t\"firstContactDiffDay\": null,\n" +
-                "\t\"secondContactDiffDay\": 109,\n" +
-                "\t\"lastContactDiffDay\": 1,\n" +
-                "\t\"recent90InRate\": 0.25167784,\n" +
-                "\t\"recent90OutRate\": 0.19127516,\n" +
-                "\t\"recent30InRate\": 0.3478261,\n" +
-                "\t\"recent30OutRate\": 0.10869565,\n" +
-                "\t\"recent180InNoCount\": 237,\n" +
-                "\t\"recent90InNoCount\": 166,\n" +
-                "\t\"recent30InNoCount\":50,\n" +
-                "\t\"recent180InNoRate\": 0.6565097,\n" +
-                "\t\"recent90InNoRate\": 0.6887967,\n" +
-                "\t\"recent30InNoRate\": 0.6097561,\n" +
-                "\t\"nightCallRate\": 0.02173913,\n" +
-                "\t\"recent180CallRate\": 0.648,\n" +
-                "\t\"recent90CallRate\": 0.67114097,\n" +
-                "\t\"recent30CallRate\": 0.6413044,\n" +
-                "\t\"recent30NotConnectedCallCount\": 59,\n" +
-                "\t\"hasContact\": true,\n" +
-                "\t\"contacts\": 9,\n" +
-                "\t\"contactsRate\": 0.1,\n" +
-                "\t\"recent90CallRelaCount\": 0,\n" +
-                "\t\"recent30CallRelaCount\": 0,\n" +
-                "\t\"recent90NoCallDay\": 47,\n" +
-                "\t\"recent30NoCallDay\": 14,\n" +
-                "\t\"recent180NoCallDay\": 105,\n" +
-                "\t\"firstCall180Time\": 0,\n" +
-                "\t\"firstCall180Count\": 0,\n" +
-                "\t\"firstCall90Time\": 0,\n" +
-                "\t\"firstCall90Count\": 0,\n" +
-                "\t\"firstCall30Time\": 0,\n" +
-                "\t\"firstCall30Count\": 0,\n" +
-                "\t\"secondCall180Time\": 40,\n" +
-                "\t\"secondCall180Count\": 1,\n" +
-                "\t\"secondCall90Time\": 0,\n" +
-                "\t\"secondCall90Count\": 0,\n" +
-                "\t\"secondCall30Time\": 0,\n" +
-                "\t\"secondCall30Count\": 0,\n" +
-                "\t\"firstLinkManIn\": true,\n" +
-                "\t\"secondLinkManIn\": true,\n" +
-                "\t\"recent15EveningActiveRatio\": 0.041667,\n" +
-                "\t\"recent30CallOutPhones\": 10,\n" +
-                "\t\"recent30CallInPhones\": 60,\n" +
-                "\t\"recent30DistinctCallNumbers\": 44,\n" +
-                "\t\"recent90DistinctCallNumbers\": 120,\n" +
-                "\t\"recent30DistinctCallInNumbers\": 41,\n" +
-                "\t\"recent90DistinctCallInNumbers\": 114,\n" +
-                "\t\"recent90StrangeNumberMissedCallRatio\": 0.000000\n" +
-                "}",UserCallRecordsModel.class);
-
-        facts.add(callRecord);
-
         ShortMessage msg = JsonUtil.toObject("{\n" +
                 "\t\"overdueWordsCount\": 9,\n" +
                 "\t\"negativeWordsCount\": 79,\n" +
@@ -626,21 +548,20 @@ public class RuleTestService {
                 "\t\"mobileIsOverdue15BlackListEmergencyTel\": null,\n" +
                 "\t\"emergencyTelInOverdue15BlackList\": null,\n" +
                 "\t\"mobileInOverdue15BlackListContacts\": null,\n" +
-                "\t\"mobileInOverdue15BlackListCallRecords\": null,\n" +
+                "\t\"mobileInOverdue15BlackListRedis\": null,\n" +
                 "\t\"mobileInOverdue15BlackListShortMsg\": null,\n" +
                 "\t\"contactInOverdue15BlackList\": null,\n" +
-                "\t\"callRecordInOverdue15BlackList\": null,\n" +
+                "\t\"emergencyContactInOverdue15BlackList\": null,\n" +
                 "\t\"contactInOverdue15Count\": 0,\n" +
-                "\t\"callRecordInOverdue15Count\": 0,\n" +
+                "\t\"emergenctContactInOverdue15Count\": 0,\n" +
                 "\t\"mobileIsFraudUserEmergencyTel\": null,\n" +
-                "\t\"mobileInFraudUserCallRecordsCount\": null,\n" +
                 "\t\"imeiInFraudUser\": false,\n" +
                 "\t\"mobileInFraudUser\": null,\n" +
                 "\t\"idCardNoInFraudUser\": null,\n" +
                 "\t\"hitFraudUserInfo\": false,\n" +
                 "\t\"deviceIdInOverdue30DaysUser\": false,\n" +
                 "\t\"smsContactOverdue15DaysCount\": 0,\n" +
-                "\t\"callRecordInOverdue7BlackList\": null,\n" +
+                "\t\"emergencyContactInOverdue7BlackList\": null,\n" +
                 "\t\"imeiInOverdue7BlackList\": null,\n" +
                 "\t\"idCardNoInOverdue7BlackList\": null,\n" +
                 "\t\"mobileInOverdue7BlackList\": null,\n" +
@@ -738,92 +659,6 @@ public class RuleTestService {
                 "\t}",RUserInfo.class);
         facts.add(rUserInfo);
 
-        ContactInfo contactInfo = JsonUtil.toObject("{\n" +
-                "\t\t\"phoneCount\": 136,\n" +
-                "\t\t\"sensitiveWordCount\": 0,\n" +
-                "\t\t\"interrelatedWordCount\": 0,\n" +
-                "\t\t\"relativeWordCount\": 1,\n" +
-                "\t\t\"relativeWordRejectedByProbability\": false,\n" +
-                "\t\t\"firstLinkManNotIn\": false,\n" +
-                "\t\t\"secondLinkManNotIn\": false,\n" +
-                "\t\t\"firstLinkManNumber\": \"81214229343\",\n" +
-                "\t\t\"secondLinkManNumber\": \"83824512566\"\n" +
-                "\t}",ContactInfo.class);
-        facts.add(contactInfo);
-
-        UserCallRecordsModel userCall = JsonUtil.toObject("{\n" +
-                "\t\t\"diffTime\": 253,\n" +
-                "\t\t\"recent180Time\": 13505,\n" +
-                "\t\t\"recent90Time\": 7452,\n" +
-                "\t\t\"recent30Time\": 2663,\n" +
-                "\t\t\"recent180Count\": 208,\n" +
-                "\t\t\"recent90Count\": 130,\n" +
-                "\t\t\"recent30Count\": 46,\n" +
-                "\t\t\"recent180InTime\": 10673,\n" +
-                "\t\t\"recent90InTime\": 6129,\n" +
-                "\t\t\"recent30InTime\": 2155,\n" +
-                "\t\t\"recent180InCount\": 164,\n" +
-                "\t\t\"recent90InCount\": 101,\n" +
-                "\t\t\"recent30InCount\": 34,\n" +
-                "\t\t\"recent180OutTime\": 2832,\n" +
-                "\t\t\"recent90OutTime\": 1323,\n" +
-                "\t\t\"recent30OutTime\": 508,\n" +
-                "\t\t\"recent180OutCount\": 44,\n" +
-                "\t\t\"recent90OutCount\": 29,\n" +
-                "\t\t\"recent30OutCount\": 12,\n" +
-                "\t\t\"firstContactDiffDay\": null,\n" +
-                "\t\t\"secondContactDiffDay\": 18,\n" +
-                "\t\t\"lastContactDiffDay\": 0,\n" +
-                "\t\t\"recent90InRate\": 0.49753696,\n" +
-                "\t\t\"recent90OutRate\": 0.33004925,\n" +
-                "\t\t\"recent30InRate\": 0.4473684,\n" +
-                "\t\t\"recent30OutRate\": 0.27631578,\n" +
-                "\t\t\"recent180InNoCount\": 61,\n" +
-                "\t\t\"recent90InNoCount\": 35,\n" +
-                "\t\t\"recent30InNoCount\": 21,\n" +
-                "\t\t\"recent180InNoRate\": 0.2711111,\n" +
-                "\t\t\"recent90InNoRate\": 0.25735295,\n" +
-                "\t\t\"recent30InNoRate\": 0.38181818,\n" +
-                "\t\t\"nightCallRate\": 0.0,\n" +
-                "\t\t\"recent180CallRate\": 0.38643068,\n" +
-                "\t\t\"recent90CallRate\": 0.3596059,\n" +
-                "\t\t\"recent30CallRate\": 0.39473686,\n" +
-                "\t\t\"recent30NotConnectedCallCount\": 30,\n" +
-                "\t\t\"hasContact\": true,\n" +
-                "\t\t\"contacts\": 13,\n" +
-                "\t\t\"contactsRate\": 0.09558824,\n" +
-                "\t\t\"recent90CallRelaCount\": 1,\n" +
-                "\t\t\"recent30CallRelaCount\": 1,\n" +
-                "\t\t\"recent90NoCallDay\": 28,\n" +
-                "\t\t\"recent30NoCallDay\": 8,\n" +
-                "\t\t\"recent180NoCallDay\": 77,\n" +
-                "\t\t\"firstCall180Time\": 0,\n" +
-                "\t\t\"firstCall180Count\": 0,\n" +
-                "\t\t\"firstCall90Time\": 0,\n" +
-                "\t\t\"firstCall90Count\": 0,\n" +
-                "\t\t\"firstCall30Time\": 0,\n" +
-                "\t\t\"firstCall30Count\": 0,\n" +
-                "\t\t\"secondCall180Time\": 462,\n" +
-                "\t\t\"secondCall180Count\": 4,\n" +
-                "\t\t\"secondCall90Time\": 462,\n" +
-                "\t\t\"secondCall90Count\": 4,\n" +
-                "\t\t\"secondCall30Time\": 234,\n" +
-                "\t\t\"secondCall30Count\": 1,\n" +
-                "\t\t\"firstLinkManIn\": true,\n" +
-                "\t\t\"secondLinkManIn\": true,\n" +
-                "\t\t\"recent15EveningActiveRatio\": 0.000000,\n" +
-                "\t\t\"recent30CallOutPhones\": 21,\n" +
-                "\t\t\"recent30CallInPhones\": 42,\n" +
-                "\t\t\"recent30DistinctCallNumbers\": 42,\n" +
-                "\t\t\"recent90DistinctCallNumbers\": 81,\n" +
-                "\t\t\"recent30DistinctCallInNumbers\": 34,\n" +
-                "\t\t\"recent90DistinctCallInNumbers\": 66,\n" +
-                "\t\t\"recent90StrangeNumberMissedCallRatio\": 0.000000\n" +
-                "\t}",UserCallRecordsModel.class);
-
-
-        facts.add(userCall);
-
         ShortMessage msg = JsonUtil.toObject("{\n" +
                 "\t\t\"overdueWordsCount\": 0,\n" +
                 "\t\t\"negativeWordsCount\": 0,\n" +
@@ -902,21 +737,20 @@ public class RuleTestService {
                 "\t\t\"mobileIsOverdue15BlackListEmergencyTel\": false,\n" +
                 "\t\t\"emergencyTelInOverdue15BlackList\": false,\n" +
                 "\t\t\"mobileInOverdue15BlackListContacts\": false,\n" +
-                "\t\t\"mobileInOverdue15BlackListCallRecords\": false,\n" +
+                "\t\t\"mobileInOverdue15BlackListRedis\": false,\n" +
                 "\t\t\"mobileInOverdue15BlackListShortMsg\": false,\n" +
                 "\t\t\"contactInOverdue15BlackList\": false,\n" +
-                "\t\t\"callRecordInOverdue15BlackList\": false,\n" +
+                "\t\t\"emergencyContactInOverdue15BlackList\": false,\n" +
                 "\t\t\"contactInOverdue15Count\": 0,\n" +
-                "\t\t\"callRecordInOverdue15Count\": 0,\n" +
+                "\t\t\"emergenctContactInOverdue15Count\": 0,\n" +
                 "\t\t\"mobileIsFraudUserEmergencyTel\": false,\n" +
-                "\t\t\"mobileInFraudUserCallRecordsCount\": 0,\n" +
                 "\t\t\"imeiInFraudUser\": null,\n" +
                 "\t\t\"mobileInFraudUser\": false,\n" +
                 "\t\t\"idCardNoInFraudUser\": false,\n" +
                 "\t\t\"hitFraudUserInfo\": false,\n" +
                 "\t\t\"deviceIdInOverdue30DaysUser\": false,\n" +
                 "\t\t\"smsContactOverdue15DaysCount\": 0,\n" +
-                "\t\t\"callRecordInOverdue7BlackList\": false,\n" +
+                "\t\t\"emergencyContactInOverdue7BlackList\": false,\n" +
                 "\t\t\"imeiInOverdue7BlackList\": false,\n" +
                 "\t\t\"idCardNoInOverdue7BlackList\": false,\n" +
                 "\t\t\"mobileInOverdue7BlackList\": false,\n" +
@@ -1092,21 +926,20 @@ public class RuleTestService {
                 "\t\"mobileIsOverdue15BlackListEmergencyTel\": null,\n" +
                 "\t\"emergencyTelInOverdue15BlackList\": null,\n" +
                 "\t\"mobileInOverdue15BlackListContacts\": null,\n" +
-                "\t\"mobileInOverdue15BlackListCallRecords\": null,\n" +
+                "\t\"mobileInOverdue15BlackListRedis\": null,\n" +
                 "\t\"mobileInOverdue15BlackListShortMsg\": null,\n" +
                 "\t\"contactInOverdue15BlackList\": null,\n" +
-                "\t\"callRecordInOverdue15BlackList\": null,\n" +
+                "\t\"emergencyContactInOverdue15BlackList\": null,\n" +
                 "\t\"contactInOverdue15Count\": 0,\n" +
-                "\t\"callRecordInOverdue15Count\": 0,\n" +
+                "\t\"emergenctContactInOverdue15Count\": 0,\n" +
                 "\t\"mobileIsFraudUserEmergencyTel\": null,\n" +
-                "\t\"mobileInFraudUserCallRecordsCount\": null,\n" +
                 "\t\"imeiInFraudUser\": false,\n" +
                 "\t\"mobileInFraudUser\": null,\n" +
                 "\t\"idCardNoInFraudUser\": null,\n" +
                 "\t\"hitFraudUserInfo\": false,\n" +
                 "\t\"deviceIdInOverdue30DaysUser\": false,\n" +
                 "\t\"smsContactOverdue15DaysCount\": null,\n" +
-                "\t\"callRecordInOverdue7BlackList\": null,\n" +
+                "\t\"emergencyContactInOverdue7BlackList\": null,\n" +
                 "\t\"imeiInOverdue7BlackList\": null,\n" +
                 "\t\"idCardNoInOverdue7BlackList\": null,\n" +
                 "\t\"mobileInOverdue7BlackList\": null,\n" +
@@ -1119,11 +952,11 @@ public class RuleTestService {
                 "\t\"hitComplaintUserInfo\": false,\n" +
                 "\t\"whatsappInOverdue7BlackList\": null,\n" +
                 "\t\"whatsappInOverdue7BlackListEmergencyTel\": null,\n" +
-                "\t\"whatsappInOverdue7BlackListCallRecord\": null,\n" +
+                "\t\"whatsappInOverdue7BlackListRedis\": null,\n" +
                 "\t\"whatsappInOverdue7BlackListContact\": null,\n" +
                 "\t\"whatsappInOverdue7BlackListSms\": null,\n" +
                 "\t\"emergencyTelInFraudUserEmergencyTel\": null,\n" +
-                "\t\"emergencyTelInFraudUserCallRecord\": null,\n" +
+                "\t\"emergencyTelInRedisBlacklist\": null,\n" +
                 "\t\"emergencyTelInFraudUserContact\": null,\n" +
                 "\t\"emergencyTelInFraudUserSms\": null,\n" +
                 "\t\"emergencyTelInFraudUserWhatsapp\": null,\n" +

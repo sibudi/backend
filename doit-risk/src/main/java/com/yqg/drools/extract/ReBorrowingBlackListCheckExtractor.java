@@ -1,5 +1,7 @@
 package com.yqg.drools.extract;
 
+import java.util.Optional;
+
 import com.yqg.drools.model.BlackListUserCheckModel;
 import com.yqg.drools.model.KeyConstant;
 import com.yqg.drools.model.base.RuleSetEnum;
@@ -10,10 +12,9 @@ import com.yqg.order.entity.OrdDeviceInfo;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.user.entity.UsrBlackList;
 import com.yqg.user.entity.UsrUser;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class ReBorrowingBlackListCheckExtractor implements BaseExtractor<BlackListUserCheckModel> {
@@ -38,11 +39,8 @@ public class ReBorrowingBlackListCheckExtractor implements BaseExtractor<BlackLi
         UsrUser user = userService.getUserInfo(order.getUserUuid());
         model.setMobileInOverdue15BlackList(usrBlackListService.isMobileInBlackUserCategoryN(user.getMobileNumberDES(),
                 UsrBlackList.BlackUserCategory.OVERDUE15));
-        //手机通讯录中的联系人逾期超过15天的用户数量
-        model.setContactInOverdue15Count(usrBlackListService.countOfContactPhoneInBlackListCategoryN(user.getUuid(),
-                UsrBlackList.BlackUserCategory.OVERDUE15));
-        model.setCallRecordInOverdue15Count(usrBlackListService.countOfCallRecordInBlackListCategoryN(user.getUuid(),
-                UsrBlackList.BlackUserCategory.OVERDUE15));
+        model.setContactInOverdue15Count(0);
+        model.setEmergenctContactInOverdue15Count(0);
 
         OrdDeviceInfo ordDeviceInfo = deviceService.getOrderDeviceInfo(order.getUuid());
 
@@ -50,8 +48,7 @@ public class ReBorrowingBlackListCheckExtractor implements BaseExtractor<BlackLi
 
         model.setHitFraudUserInfo(usrBlackListService.hitFraudUserInfo(user, order));
 
-        model.setSmsContactOverdue15DaysCount(usrBlackListService.countOfSmsPhoneInBlackListCategoryN(order.getUserUuid(),order.getUuid(),
-                UsrBlackList.BlackUserCategory.OVERDUE15));
+        model.setSmsContactOverdue15DaysCount(0);
 
         model.setHitSensitiveUserInfo(usrBlackListService.hitIdCardOrMobileForCategoryN(user,UsrBlackList.BlackUserCategory.SENSITIVE));
 

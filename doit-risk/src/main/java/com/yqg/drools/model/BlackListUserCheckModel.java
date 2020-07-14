@@ -18,20 +18,26 @@ public class BlackListUserCheckModel {
     private Boolean emergencyTelInOverdue15BlackList;//紧急联系人手机号码是逾期15天以上用户
 
     private Boolean mobileInOverdue15BlackListContacts;//申请手机号命中逾期15天以上用户通讯录
+    //ahalim: TODO remove keyword callrecord in drl
     private Boolean mobileInOverdue15BlackListCallRecords;//申请手机号命中逾期15天用户的通话记录
+    private Boolean mobileInOverdue15BlackListRedis;
     private Boolean mobileInOverdue15BlackListShortMsg;//申请手机号命中逾期15天用户的短信对象
 
     private Boolean contactInOverdue15BlackList;//通讯录命中逾期15天黑名单
+    //ahalim: TODO remove keyword callrecord
     private Boolean callRecordInOverdue15BlackList; //通话记录对象命中逾期15天及以上黑名单
+    private Boolean emergencyContactInOverdue15BlackList;
 
 
     private Integer contactInOverdue15Count; //通讯录号码命中逾期15天用户次数
+    //ahalim: TODO remove keyword callrecord
     private Integer callRecordInOverdue15Count;//通话记录号码命中逾期15天用户次数
-
-    private Boolean mobileIsFraudUserEmergencyTel;//申请人手机号命中欺诈用户的紧急联系人
+    private Integer emergenctContactInOverdue15Count;
+    //ahalim: TODO remove keyword callrecord
     private Long mobileInFraudUserCallRecordsCount;//申请人手机号命中欺诈用户的通话记录次数
 
-
+    private Boolean mobileIsFraudUserEmergencyTel;//申请人手机号命中欺诈用户的紧急联系人
+    
     private Boolean imeiInFraudUser;//申请人imei命中欺诈用户黑名单
 
     private Boolean mobileInFraudUser;//申请人手机号命中欺诈用户黑名单
@@ -48,8 +54,8 @@ public class BlackListUserCheckModel {
 
 
 
-    //逾期7天
-    private Boolean callRecordInOverdue7BlackList;//通话记录对象命中逾期7天及以上黑名单
+    //7 days overdue
+    private Boolean emergencyContactInOverdue7BlackList;//通话记录对象命中逾期7天及以上黑名单
     //private boolean mobileInOverdue7BlackListCallRecord;//申请手机号命中逾期7天用户的通话记录==>查所有通话记录，未处理
     private Boolean imeiInOverdue7BlackList;//申请手机IMEI命中逾期7天以上用户IMEI黑名单
     private Boolean idCardNoInOverdue7BlackList;//申请人身份证命中逾期7天以上用户身份证号黑名单
@@ -69,11 +75,11 @@ public class BlackListUserCheckModel {
     //20100114
     private Boolean whatsappInOverdue7BlackList;  //申请人的va号码命中逾期7天用户的号码
     private Boolean whatsappInOverdue7BlackListEmergencyTel; //申请人的va号码命中逾期7天用户紧急联系人
-    private Boolean whatsappInOverdue7BlackListCallRecord;//申请人的va号码命中逾期7天用户通话记录
+    private Boolean whatsappInOverdue7BlackListRedis;//申请人的va号码命中逾期7天用户通话记录
     private Boolean whatsappInOverdue7BlackListContact; //申请人的va号码命中逾期7天用户通讯录
     private Boolean whatsappInOverdue7BlackListSms; //申请人的va号码命中逾期7天用户的短信
     private Boolean emergencyTelInFraudUserEmergencyTel;//申请人的紧急联系人号码命中欺诈用户的紧急联系人
-    private Boolean emergencyTelInFraudUserCallRecord;//申请人的紧急联系人号码命中欺诈用户的通话记录
+    private Boolean emergencyTelInRedisBlacklist;
     private Boolean emergencyTelInFraudUserContact; //申请人的紧急联系人号码命中欺诈用户的通讯录
     private Boolean emergencyTelInFraudUserSms;//申请人的紧急联系人号码命中欺诈用户的短信
     private Boolean emergencyTelInFraudUserWhatsapp;//申请人的紧急联系人号码命中欺诈用户的va

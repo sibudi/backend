@@ -105,7 +105,7 @@ public class DigSignParamService {
             if(idCardInfoBytes==null){
                 return Optional.empty();
             }
-            //因android展示的时候图片有选择，需要处理成正常的角度
+            //Because the pictures are selected when android is displayed, they need to be processed into a normal angle
             request.setSelfiePhoto(Base64.encodeBase64String(getRotatedImg(selfieInfoBytes)));
             request.setIdentityPhoto(Base64.encodeBase64String(getRotatedImg(idCardInfoBytes)));
         } catch (Exception e) {

@@ -1,28 +1,37 @@
 package com.yqg.service.externalChannel.transform;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.yqg.common.enums.user.UserSourceEnum;
 import com.yqg.common.enums.user.UsrAddressEnum;
-import com.yqg.common.enums.user.UsrAttachmentEnum;
 import com.yqg.common.utils.CheakTeleUtils;
 import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
-import com.yqg.service.externalChannel.request.Cash2AdditionalInfoParam;
-import com.yqg.service.externalChannel.request.Cash2BaseInfo;
-import com.yqg.service.externalChannel.request.Cash2BaseInfo.*;
+import com.yqg.service.externalChannel.request.Cash2BaseInfo.EducationEnum;
+import com.yqg.service.externalChannel.request.Cash2BaseInfo.ReligionEnum;
 import com.yqg.service.externalChannel.request.CheetahBaseInfo;
-import com.yqg.service.order.request.*;
-import com.yqg.service.user.request.*;
-import com.yqg.user.entity.UsrAttachmentInfo;
+import com.yqg.service.order.request.OrdRequest;
+import com.yqg.service.order.request.UploadAppsRequest;
+import com.yqg.service.user.request.LinkManRequest;
+import com.yqg.service.user.request.SaveUserPhotoRequest;
+import com.yqg.service.user.request.UsrIdentityInfoRequest;
+import com.yqg.service.user.request.UsrRequst;
+import com.yqg.service.user.request.UsrRolesRequest;
+import com.yqg.service.user.request.UsrWorkBaseInfoRequest;
+import com.yqg.service.user.request.UsrWorkInfoRequest;
 import com.yqg.user.entity.UsrLinkManInfo;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /*****
  * @Author zengxiangcai
@@ -37,25 +46,25 @@ public class CheetahBaseInfoExtractor {
     @Autowired
     private ImagePathService imagePathService;
 
+    //ahalim: remark unused code
+    // /****
+    //  * 基本信息中图片相关的url都替换为自己图片服务器的数据
+    //  * @param baseInfo
+    //  * @return
+    //  */
+    // public boolean processImage(CheetahBaseInfo baseInfo) {
 
-    /****
-     * 基本信息中图片相关的url都替换为自己图片服务器的数据
-     * @param baseInfo
-     * @return
-     */
-    public boolean processImage(CheetahBaseInfo baseInfo) {
+    //     CheetahBaseInfo.UserInfoBean userInfo = baseInfo.getUserInfo();
 
-        CheetahBaseInfo.UserInfoBean userInfo = baseInfo.getUserInfo();
+    //     userInfo.setIdFrontPhoto(
+    //         imagePathService.getLocalFileUrl(userInfo.getIdFrontPhoto(),
+    //             UsrAttachmentEnum.ID_CARD));
+    //     userInfo.setHandHeldPhoto(
+    //         imagePathService
+    //             .getLocalFileUrl(userInfo.getHandHeldPhoto(), UsrAttachmentEnum.HAND_ID_CARD));
 
-        userInfo.setIdFrontPhoto(
-            imagePathService.getLocalFileUrl(userInfo.getIdFrontPhoto(),
-                UsrAttachmentEnum.ID_CARD));
-        userInfo.setHandHeldPhoto(
-            imagePathService
-                .getLocalFileUrl(userInfo.getHandHeldPhoto(), UsrAttachmentEnum.HAND_ID_CARD));
-
-        return true;
-    }
+    //     return true;
+    // }
 
 
     /***
@@ -80,11 +89,10 @@ public class CheetahBaseInfoExtractor {
             if (baseInfo.getDeviceInfo() != null) {
                 CheetahBaseInfo.DeviceInfoBean deviceInfo = baseInfo.getDeviceInfo();
                 userRequest.setDeviceId(deviceInfo.getGeneral_data().getTelephony_info().getDevice_id());
-                userRequest.setMac(deviceInfo.getCurrent_wifi() != null ?
-                        deviceInfo.getCurrent_wifi().getMac_address() : "");
-                userRequest.setIPAdress(deviceInfo.getIp_address().getIp_v4());
-                userRequest.setNet_type(deviceInfo.getNetwork_env());
-                userRequest.setSystem_version(deviceInfo.getHardware().getRelease());
+                userRequest.setMac("");
+                userRequest.setIPAdress("");
+                userRequest.setNet_type("");
+                userRequest.setSystem_version("");
             }
 
             return userRequest;
@@ -267,82 +275,6 @@ public class CheetahBaseInfoExtractor {
             workInfo.setSmallDirect(workInfoBean.getBusinessAddressVillage());
             workInfo.setDetailed(workInfoBean.getBusinessAddress());
             return workInfo;
-        } catch (Exception e) {
-            log.error("data invalid", e);
-            throw new IllegalArgumentException("invalid param");
-        }
-    }
-
-
-    /***
-     * 手机短信
-     * @param baseInfo
-     * @return
-     */
-    public UploadMsgsRequest fetchMsgList(CheetahBaseInfo baseInfo) {
-        try {
-
-            UploadMsgsRequest msgRequest = new UploadMsgsRequest();
-            if (baseInfo.getDeviceInfo() == null) {
-                return msgRequest;
-            }
-            CheetahBaseInfo.DeviceInfoBean deviceInfo = baseInfo.getDeviceInfo();
-
-            if (CollectionUtils.isEmpty(deviceInfo.getSms())) {
-                msgRequest.setMessageListStr(JsonUtils.serialize(new ArrayList<>()));
-                return msgRequest;
-            } else {
-
-                List<Map<String, String>> msgList = deviceInfo.getSms().stream().map(elem -> {
-                    Map<String, String> dataElem = new HashMap<>();
-                    dataElem.put("date", StringUtils.isEmpty(elem.getDate()) ? elem.getDate_sent() : elem.getDate());
-                    dataElem.put("phoneNumber", elem.getAddress());
-                    dataElem.put("smsbody", elem.getBody());
-                    dataElem.put("type", elem.getType());
-                    return dataElem;
-                }).collect(Collectors.toList());
-                msgRequest.setMessageListStr(JsonUtils.serialize(msgList));
-                return msgRequest;
-            }
-        } catch (Exception e) {
-            log.error("data invalid", e);
-            throw new IllegalArgumentException("invalid param");
-        }
-    }
-
-    /***
-     * 获取手机通话记录
-     * @param baseInfo
-     * @return
-     */
-    public UploadCallRecordsRequest fetchCallRecordList(CheetahBaseInfo baseInfo) {
-        try {
-
-            UploadCallRecordsRequest msgRequest = new UploadCallRecordsRequest();
-            if (baseInfo.getDeviceInfo() == null) {
-                return msgRequest;
-            }
-            CheetahBaseInfo.DeviceInfoBean deviceInfo = baseInfo.getDeviceInfo();
-
-            if (CollectionUtils.isEmpty(deviceInfo.getCall())) {
-                msgRequest.setCallRecordsStr(JsonUtils.serialize(new ArrayList<>()));
-                return msgRequest;
-            } else {
-
-                List<Map<String, String>> callRecordList = deviceInfo.getCall().stream()
-                        .map(elem -> {
-                            Map<String, String> dataElem = new HashMap<>();
-                            dataElem.put("date", elem.getDate());
-                            dataElem.put("number", elem.getNumber());
-                            dataElem.put("name", elem.getName());
-                            dataElem.put("duration",
-                                    StringUtils.isEmpty(elem.getDuration()) ? "0" : elem.getDuration());
-                            dataElem.put("type", elem.getType());
-                            return dataElem;
-                        }).collect(Collectors.toList());
-                msgRequest.setCallRecordsStr(JsonUtils.serialize(callRecordList));
-                return msgRequest;
-            }
         } catch (Exception e) {
             log.error("data invalid", e);
             throw new IllegalArgumentException("invalid param");

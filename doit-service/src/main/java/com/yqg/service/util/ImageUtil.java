@@ -5,7 +5,6 @@ import com.yqg.common.utils.DESUtils;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 public class ImageUtil {

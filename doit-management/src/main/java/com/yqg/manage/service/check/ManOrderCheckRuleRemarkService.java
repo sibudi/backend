@@ -371,7 +371,7 @@ public class ManOrderCheckRuleRemarkService {
         return false;
     }
     /**
-     * 判断是否有附件图片
+     * Determine if there are attachment pictures
      */
     private Boolean judgeAttachPict(String userUuid, Integer type) {
         UsrAttachmentInfo usrAttachmentInfo = new UsrAttachmentInfo();

@@ -1,6 +1,13 @@
 package com.yqg.service.user.service;
 
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import com.yqg.collection.dao.CollectionRemarkDao;
 import com.yqg.common.enums.order.BlackListTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
@@ -28,18 +35,13 @@ import com.yqg.user.dao.UsrLinkManDao;
 import com.yqg.user.entity.BackupLinkmanItem;
 import com.yqg.user.entity.UsrLinkManInfo;
 import com.yqg.user.entity.UsrUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -92,20 +94,9 @@ public class UserLinkManService {
             addLinkman(item);
         }
         ordDeviceExtendInfoService.saveExtendInfo(request.getLinkmanList());
-        if(!needBackupLinkman){
+        //if(!needBackupLinkman){
             return new BackupLinkmanResponse();
-        }else{
-            //筛选选备用联系人
-            List<BackupLinkmanItem> insertList = userBackupLinkmanService.addBackupLinkmanList(request.getUserUuid(),request.getOrderNo());
-            BackupLinkmanResponse response = new BackupLinkmanResponse();
-            if(CollectionUtils.isEmpty(insertList)){
-                response.setBackupLinkmanList(new ArrayList<>());
-            }else{
-                response.setBackupLinkmanList(insertList.stream().map(item->new BackupLinkman(item.getId(),item.getLinkmanName(),
-                        item.getLinkmanNumber(),item.getFromCallRecord(),item.getIsRelative(),item.getIsConfirmed())).collect(Collectors.toList()));
-            }
-            return response;
-        }
+        //}
     }
 
 

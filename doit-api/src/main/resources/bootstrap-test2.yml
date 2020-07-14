@@ -189,7 +189,8 @@ third:
     registerUrl: https://api.tandatanganku.com/REG-MITRA.html
     activationUrl: https://api.tandatanganku.com/gen/genACTPage.html
     sendDocumentUrl: https://api.tandatanganku.com/SendDocMitraAT.html
-    signUrl: https://api.tandatanganku.com/SignWebView.html
+    signUrl: https://api.tandatanganku.com/gen/genSignPage.html
+    signUrlBulk: https://api.tandatanganku.com/gen/genBulkSign.html
     contractDir: /mnt/MyUpload/DOIT_CONTRACT
     automaticSignEmail: janhsen@do-it.id
     automaticSignRealName: janhsen@do-it.id
@@ -216,7 +217,7 @@ rsa:
     publicKey: /SECRET/rsa-pub-test.cer
 p2p:
   repaySuccessUrl: http://10.24.30.70:9090/doit/investment/getNormalRefundTask
-  host: https://lender-uat.doitglotech.co.id
+  host: http://lenderapi.uat.doitglotech.cloud
   url:
     #推送标的
     sendCreditorInfo: /api-order/doit/sendCreditorinfo
@@ -274,5 +275,11 @@ tongdun:
 notification.service.url: https://notificationapi-uat.doitglotech.co.id
 notification.service.token: lgezRLxR84n$9@
 notification.service.origin: https://doitapi-uat.doitglotech.co.id
+slack.webhook.url: https://hooks.slack.com/services/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
+
+alicloud.runtime: INSTANCE
+alicloud.localProfile: default
+alicloud.oss.endpoint: https://oss-ap-southeast-5-internal.aliyuncs.com
+alicloud.oss.bucketName: doit-attachment-5263863254564512
 
 endpoints.enabled: false

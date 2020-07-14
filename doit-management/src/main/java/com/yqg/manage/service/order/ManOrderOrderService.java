@@ -570,7 +570,8 @@ public class ManOrderOrderService {
                 }
 
                 //逾期账户管理费
-                response.setOverdueFee(this.repayService.calculateOverDueFee(order));
+                //response.setOverdueFee(this.repayService.calculateOverDueFee(order));
+                response.setOverdueFee("0");
 
                 //Overdue account penalty fees based on overdue duration (without limit)
                 BigDecimal overdueMoney = new BigDecimal(this.repayService.calculatePenaltyFee(order));
@@ -741,7 +742,8 @@ public class ManOrderOrderService {
                 }
 
                 //逾期账户管理费
-                BigDecimal overdueFee = new BigDecimal(this.repayService.calculateOverDueFee(order));
+                //BigDecimal overdueFee = new BigDecimal(this.repayService.calculateOverDueFee(order));
+                BigDecimal overdueFee = BigDecimal.ZERO;
                 response.setOverdueFee(com.yqg.common.utils.StringUtils.formatMoney(overdueFee.doubleValue()).replaceAll(",", ".").toString());
 
                 //Overdue account penalty fees based on overdue duration (without limit)

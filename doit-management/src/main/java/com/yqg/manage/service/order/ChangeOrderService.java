@@ -101,7 +101,8 @@ public class ChangeOrderService {
 //        record.setActualRepayAmout(repayService.calculateRepayAmount(dealOrder,"1"));
         record.setActualRepayAmout(repayService.calculateShouldRepayAmount(dealOrder, overdueDay));
         //record.setInterest(dealOrder.getInterest()+"");
-        record.setOverDueFee(repayService.calculateOverDueFee(dealOrder, overdueDay));
+        //record.setOverDueFee(repayService.calculateOverDueFee(dealOrder, overdueDay));
+        record.setOverDueFee("0");
         record.setPenaltyFee(repayService.calculatePenaltyFeeByRepayDays(dealOrder, overdueDay));
         record.setActualDisbursedAmount(new BigDecimal("".equals(dealOrder.getApprovedAmount()) ? "0.00" : dealOrder.getApprovedAmount()));
         BigDecimal interestRatio = new BigDecimal("0.001");     //0.1%

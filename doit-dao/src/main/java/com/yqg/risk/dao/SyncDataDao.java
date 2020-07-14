@@ -1,15 +1,21 @@
 package com.yqg.risk.dao;
 
+import java.util.Date;
+import java.util.List;
+
 import com.yqg.mongo.entity.UserIziVerifyResultMongo;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdRiskRecord;
 import com.yqg.risk.entity.RiskSyncDataConfig;
 import com.yqg.risk.entity.RiskSyncDataIds;
 import com.yqg.user.entity.UsrIziVerifyResult;
-import org.apache.ibatis.annotations.*;
-import java.util.Date;
 
-import java.util.List;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface SyncDataDao {
@@ -95,27 +101,6 @@ public interface SyncDataDao {
 
     @Select("select * from ordOrder where status!=1 and disabled=0 and orderType!=1 and id>=#{startId} and id<#{endId}")
     List<OrdOrder> getOrdersByIdLimit(@Param("startId") Long startId,@Param("endId") Long endId);
-
-    //批量插入
-    @Insert("<script>"
-            + "INSERT INTO ordRiskRecord_app_clean(userUuid,"
-            + "   orderNo,ruleType,"
-            + "   ruleDetailType,ruleDesc,"
-            + "   ruleRealValue,"
-            + "   remark,"
-            + "   uuid,createTime,updateTime) "
-            + " values "
-            + "   <foreach collection='riskRecords' item='record' separator=',' >"
-            + "     (#{record.userUuid},"
-            + "      #{record.orderNo},#{record.ruleType},"
-            + "      #{record.ruleDetailType},#{record.ruleDesc},"
-            + "      #{record.ruleRealValue},"
-            + "      #{record.remark},"
-            + "      #{record.uuid}, now(),now())"
-            + "   </foreach>"
-            + "</script>")
-    int addRiskRecordListForAppClean(@Param("riskRecords") List<OrdRiskRecord> riskRecords);
-
 
     @Insert("" +
             "INSERT INTO `doit`.`ordRiskRecord_01_tmp`\n" +

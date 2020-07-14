@@ -423,7 +423,8 @@ public class RepayService {
 
                     p2prequest.setOverdueFee(new BigDecimal(calculatePenaltyFee(object))); //Penalty fee, without limit
                     //Overdue service fee regardless overdue date
-                    p2prequest.setOverdueRate(new BigDecimal(calculateOverDueFee(object)));
+                    //p2prequest.setOverdueRate(new BigDecimal(calculateOverDueFee(object)));
+                    p2prequest.setOverdueRate(BigDecimal.ZERO);
                     p2prequest.setUserName(userName);
                     p2prequest.setUserUuid(repayRequest.getUserUuid());
                     p2prequest.setBankCode(paymentType);
@@ -487,7 +488,8 @@ public class RepayService {
             entity.setOrderNo(repayRequest.getOrderNo());
             entity.setInterest(order.getInterest()+"");
             //Overdue service fee regardless overdue date
-            entity.setOverDueFee(calculateOverDueFee(order));
+            //entity.setOverDueFee(calculateOverDueFee(order));
+            entity.setOverDueFee("0");
             //Actual overdue fee based on overdue date, without limit
             //It is intended that the PenaltyFee on ordPaymentCode is without limit
             entity.setPenaltyFee(calculatePenaltyFee(order));
@@ -505,7 +507,8 @@ public class RepayService {
             entity.setOrderNo(bill.getUuid());
             entity.setInterest(bill.getInterest()+"");
             //Overdue service fee regardless overdue date
-            entity.setOverDueFee(calculateOverDueFee(bill));
+            //entity.setOverDueFee(calculateOverDueFee(bill));
+            entity.setOverDueFee("0");
             //Actual overdue fee based on overdue date, without limit
             //It is intended that the PenaltyFee on ordPaymentCode is without limit
             entity.setPenaltyFee(calculatePenaltyFee(bill));
@@ -571,7 +574,8 @@ public class RepayService {
         } catch (Exception e) {
             e.getStackTrace();
         }
-        return shouldPayAmount + "";
+        //return shouldPayAmount + "";
+        return "0";
     }
 
     /**
@@ -601,7 +605,8 @@ public class RepayService {
                 shouldPayAmount = delayFee;
             }
         }
-        return shouldPayAmount + "";
+        //return shouldPayAmount + "";
+        return "0";
     }
     /**
      *   Calculate penalty fee based on overdue duration BEFORE limit. 

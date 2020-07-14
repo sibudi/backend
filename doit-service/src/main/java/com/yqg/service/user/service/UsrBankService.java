@@ -348,6 +348,38 @@ public class UsrBankService {
         }
     }
 
+    @Transactional
+    public void cheakBankCardBinForPartner(String bankCode, String bankNumberNo, String bankCardName, String userUuid) throws ServiceException, ServiceExceptionSpec {
+
+        UsrBankRequest userBankRequest = new UsrBankRequest();
+        userBankRequest.setBankCode(bankCode);
+        userBankRequest.setBankNumberNo(bankNumberNo);
+        userBankRequest.setBankCardName(bankCardName);
+        userBankRequest.setUserUuid(userUuid);
+        JSONObject obj = kaBinCheckService.sendCardBinHttpPost(userBankRequest);
+
+        Integer logType = UsrBankCardBinEnum.valueOf(obj.get("bankCardVerifyStatus").toString()).getType();
+
+        if (logType == UsrBankCardBinEnum.FAILED.getType()) {
+            throw new ServiceException(ExceptionEnum.USER_KABIN_RESPONSE_FAILED);
+
+        } else if (logType == UsrBankCardBinEnum.SUCCESS.getType()) {
+            Map<String, String> nameMap = judgeNamesFun(obj.get("bankHolderName").toString(), userBankRequest.getBankCardName());
+
+            log.info("Check " + userBankRequest.getBankCardName() + " - " + obj.get("bankHolderName").toString());
+            if (!nameMap.get("bankHolderName").equals(nameMap.get("bankCardName"))) {
+                throw new ServiceException(ExceptionEnum.USER_KABIN_CHECK_NAME);
+            } 
+            else {
+                setIsRecentToZeroFun(userBankRequest);
+            }
+        } else if (logType == UsrBankCardBinEnum.PENDING.getType()) {
+            setIsRecentToZeroFun(userBankRequest);
+        } else {
+            throw new ServiceException(ExceptionEnum.USER_KABIN_CHECK_FAILED);
+        }
+    }
+
 
     private void udpateOrderInfo(UsrBankRequest userBankRequest, UsrBank userBankObj) throws ServiceException, ServiceExceptionSpec {
         if (userBankRequest.getThirdType().equals(0)) {

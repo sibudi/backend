@@ -35,6 +35,7 @@ public class ExternalAnalyticController {
     public ResponseEntity<Object> AddExternalAnalytic(@RequestBody ExternalAnalytic analyticRequest)
             throws ServiceException {
         log.info("invoke add AddExternalAnalytic");
+        analyticRequest.setEventAttribute("");;
         analyticService.Insert(analyticRequest);
         return ResponseEntityBuilder.success();
     }

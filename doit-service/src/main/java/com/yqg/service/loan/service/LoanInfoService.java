@@ -1,8 +1,19 @@
 package com.yqg.service.loan.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+
 import com.alibaba.fastjson.JSONObject;
 import com.yqg.common.constants.RedisContants;
-import com.yqg.common.enums.order.*;
+import com.yqg.common.enums.order.OrdBillStatusEnum;
+import com.yqg.common.enums.order.OrdLoanChannelEnum;
+import com.yqg.common.enums.order.OrdRepayAmountRecordStatusEnum;
+import com.yqg.common.enums.order.OrdServiceOrderEnum;
+import com.yqg.common.enums.order.OrdStateEnum;
+import com.yqg.common.enums.order.OrderTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.redis.RedisClient;
@@ -11,14 +22,23 @@ import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.OrderNoCreator;
 import com.yqg.mongo.dao.OrderUserDataDal;
-import com.yqg.mongo.dao.UserCallRecordsDal;
-import com.yqg.mongo.dao.UserContactsDal;
 import com.yqg.mongo.entity.OrderUserDataMongo;
-import com.yqg.mongo.entity.UserCallRecordsMongo;
-import com.yqg.mongo.entity.UserContactsMongo;
-import com.yqg.order.dao.*;
-import com.yqg.order.entity.*;
+import com.yqg.order.dao.OrdBillDao;
+import com.yqg.order.dao.OrdDao;
+import com.yqg.order.dao.OrdDelayRecordDao;
+import com.yqg.order.dao.OrdLoanAmoutRecordDao;
+import com.yqg.order.dao.OrdPaymentCodeDao;
+import com.yqg.order.dao.OrdRepayAmoutRecordDao;
+import com.yqg.order.dao.OrdServiceOrderDao;
+import com.yqg.order.entity.CouponRecord;
+import com.yqg.order.entity.OrdBill;
+import com.yqg.order.entity.OrdDelayRecord;
+import com.yqg.order.entity.OrdLoanAmoutRecord;
+import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdOrder.P2PLoanStatusEnum;
+import com.yqg.order.entity.OrdPaymentCode;
+import com.yqg.order.entity.OrdRepayAmoutRecord;
+import com.yqg.order.entity.OrdServiceOrder;
 import com.yqg.service.loan.request.RepayPlan;
 import com.yqg.service.loan.request.RepayPlanRequest;
 import com.yqg.service.loan.response.CheckRepayResponse;
@@ -46,8 +66,7 @@ import com.yqg.user.dao.RegisterDeviceInfoDao;
 import com.yqg.user.dao.UsrProductRecordDao;
 import com.yqg.user.entity.UsrProductRecord;
 import com.yqg.user.entity.UsrUser;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -55,9 +74,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 @Service
 @Slf4j
@@ -91,10 +114,6 @@ public class LoanInfoService {
     private OrderUserDataDal orderUserDataDal;
     @Autowired
     private RegisterDeviceInfoDao registerDeviceInfoDao;
-    @Autowired
-    private UserCallRecordsDal userCallRecordsDal;
-    @Autowired
-    private UserContactsDal userContactsDal;
 
     @Autowired
     private RedisClient redisClient;
@@ -1108,35 +1127,6 @@ public class LoanInfoService {
             }
         }
 
-        // ????
-        UserCallRecordsMongo callRecordsMongo = new UserCallRecordsMongo();
-        callRecordsMongo.setOrderNo(ordOrder.getUuid());
-        callRecordsMongo.setUserUuid(ordOrder.getUserUuid());
-        List<UserCallRecordsMongo> callRecordsMongoList = this.userCallRecordsDal.find(callRecordsMongo);
-        if (!CollectionUtils.isEmpty(callRecordsMongoList)) {
-            for (UserCallRecordsMongo entity : callRecordsMongoList) {
-                UserCallRecordsMongo newMongo = new UserCallRecordsMongo();
-                newMongo.setUserUuid(ordOrder.getUserUuid());
-                newMongo.setOrderNo(delayOrderNo);
-                newMongo.setData(entity.getData());
-                this.userCallRecordsDal.insert(newMongo);
-            }
-        }
-
-        // ???
-        UserContactsMongo userContactsMongo = new UserContactsMongo();
-        userContactsMongo.setOrderNo(ordOrder.getUuid());
-        userContactsMongo.setUserUuid(ordOrder.getUserUuid());
-        List<UserContactsMongo> userContactsMongoList = this.userContactsDal.find(userContactsMongo);
-        if (!CollectionUtils.isEmpty(userContactsMongoList)) {
-            for (UserContactsMongo entity : userContactsMongoList) {
-                UserContactsMongo newMongo = new UserContactsMongo();
-                newMongo.setUserUuid(ordOrder.getUserUuid());
-                newMongo.setOrderNo(delayOrderNo);
-                newMongo.setData(entity.getData());
-                this.userContactsDal.insert(newMongo);
-            }
-        }
     }
 
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 /**
  * Created by luhong on 2018/1/23.
  */
+//ahalim: TODO remove keyword callrecord in drl
 @Data
 public class UserCallRecordsModel {
     private Long diffTime;//最早的一条短信距离申请的天数
@@ -92,8 +93,6 @@ public class UserCallRecordsModel {
     private Boolean firstLinkManIn; // 第一联系人,在通话记录中，为true，反之为false
     private Boolean secondLinkManIn;// 第二联系人,在通话记录中，为true，反之为false
 
-
-//    private Integer callRecordContactOverdueDays30Times = 0;//通话记录号码命中逾期30天以上次数[通话记录对象命中逾期30天及以上黑名单]
 
     //复借相关
     private BigDecimal recent15EveningActiveRatio = BigDecimal.ZERO;//近15天夜间活跃占比

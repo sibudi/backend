@@ -71,3 +71,4 @@ bootstrap-prod.yml
 # Python
 ######################
 *.pyc
+**/.factorypath

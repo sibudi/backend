@@ -1087,56 +1087,57 @@ public class IndexService {
                                 list.add(product);
                                 if (product.getProductType() == 1){
 
-                                int term = product.getBorrowingTerm();
-                                  // 还款计划   期数  应还款时间  还款金额
-                                List<Map<String,String>>  repayPlans = new ArrayList<>();
-                                Date lastDate = new Date();
-                                Date nowDate = new Date();
-                                // BigDecimal serviceFee = BigDecimal.ZERO;
-                                for (int i = 1; i <= term; i++) {
-                                    Map<String,String> plan = new HashMap<>();
-                                    plan.put("billTerm",i+"");
-                                    plan.put("billAmount",product.getTermAmount().toString().replace(".00",""));
-                                    Date refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
-                                    log.info("第"+i+"期还款时间为"+DateUtils.DateToString(refundTime));
-                                    plan.put("refundTime",DateUtils.DateToString(refundTime));
-                                    // serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
-                                    // log.info("Sum of service fee for installment order for term: "+ i + " service fee" + serviceFee);
-                                    if (i == term){
-                                        lastDate = refundTime;
+                                    int term = product.getBorrowingTerm();
+                                    // 还款计划   期数  应还款时间  还款金额
+                                    List<Map<String,String>>  repayPlans = new ArrayList<>();
+                                    Date lastDate = new Date();
+                                    Date nowDate = new Date();
+                                    // BigDecimal serviceFee = BigDecimal.ZERO;
+                                    for (int i = 1; i <= term; i++) {
+                                        Map<String,String> plan = new HashMap<>();
+                                        plan.put("billTerm",i+"");
+                                        plan.put("billAmount",product.getTermAmount().toString().replace(".00",""));
+                                        Date refundTime =  DateUtils.addDate(DateUtils.addDateWithMonth(nowDate,i),-1);
+                                        log.info("第"+i+"期还款时间为"+DateUtils.DateToString(refundTime));
+                                        plan.put("refundTime",DateUtils.DateToString(refundTime));
+                                        // serviceFee = product.getTermAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).add(serviceFee).setScale(2);
+                                        // log.info("Sum of service fee for installment order for term: "+ i + " service fee" + serviceFee);
+                                        if (i == term){
+                                            lastDate = refundTime;
+                                        }
+                                        repayPlans.add(plan);
                                     }
-                                    repayPlans.add(plan);
-                                }
-                                result.put("billsList",repayPlans);
+                                    result.put("billsList",repayPlans);
 
-                                int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
-                                log.info("当前时间:"+DateUtils.DateToString(nowDate)+"   最后还款时间:"+DateUtils.DateToString(lastDate) + "   总借款天数:" + totalNum);
+                                    int totalNum = DateUtils.differentDaysByMillisecond(nowDate,lastDate)+1;
+                                    log.info("当前时间:"+DateUtils.DateToString(nowDate)+"   最后还款时间:"+DateUtils.DateToString(lastDate) + "   总借款天数:" + totalNum);
 
-                                BigDecimal serviceFee =  product.getBorrowingAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
-                                log.info("分期订单实际 服务费为"+serviceFee);
+                                    BigDecimal serviceFee =  product.getBorrowingAmount().multiply(product.getDueFeeRate()).multiply(BigDecimal.valueOf(totalNum)).setScale(2);
+                                    log.info("分期订单实际 服务费为"+serviceFee);
 
-                                result.put("totalTerm",totalNum);
-                                result.put("actualAmount",product.getBorrowingAmount().subtract(serviceFee).setScale(2).toString().replace(".00",""));
-                                // 每月还款金额
-                                result.put("termAmount",product.getTermAmount().toString().replace(".00",""));
+                                    result.put("totalTerm",totalNum);
+                                    result.put("actualAmount",product.getBorrowingAmount().subtract(serviceFee).setScale(2).toString().replace(".00",""));
+                                    // 每月还款金额
+                                    result.put("termAmount",product.getTermAmount().toString().replace(".00",""));
 
-                                //  用于公式计算  kudo的分期产品  公式里面需要用 本金
-                                if (product.getUuid().equals("1004") || product.getUuid().equals("1005")){
-                                    result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
-                                }else {
-                                    result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
+                                    //  用于公式计算  kudo的分期产品  公式里面需要用 本金
+                                    if (product.getUuid().equals("1004") || product.getUuid().equals("1005")){
+                                        result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
+                                    }else {
+                                        result.put("cacuAmount",product.getBorrowingAmount().toString().replace(".00",""));
+                                    }
                                 }
                             }
+                            else {
+                                //  可能配置表中的产品 在产品表中被disable掉了
+                                list = sysProductDao.getProductWithProductLevelAndUserLevel(2,level,duefeeRate);
+                            }
+
                         }
                         else {
-                            //  可能配置表中的产品 在产品表中被disable掉了
+                            // 产品配置表中没数据  走默认配置
                             list = sysProductDao.getProductWithProductLevelAndUserLevel(2,level,duefeeRate);
                         }
-
-                      }else {
-                          // 产品配置表中没数据  走默认配置
-                          list = sysProductDao.getProductWithProductLevelAndUserLevel(2,level,duefeeRate);
-                      }
 
                     }
                     else  if (level < 0){
@@ -1234,7 +1235,7 @@ public class IndexService {
     }
 
     /**
-     *   根据产品列表 获取产品配置
+     *   根据产品列����� 获取产品配置
      * */
     public JSONObject getProductConfig(List<SysProduct> list,JSONObject result) throws ServiceException{
 

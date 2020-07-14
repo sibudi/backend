@@ -99,7 +99,7 @@ HttpUrl:
   #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
 p2p:
   #repaySuccessUrl: http://10.24.30.70:9090/doit/investment/getNormalRefundTask
-  host: https://lender-uat.doitglotech.co.id
+  host: http://lenderapi.uat.doitglotech.cloud
   url:
     #推送标的
     sendCreditorInfo: /api-order/doit/sendCreditorinfo
@@ -151,3 +151,8 @@ notification.service.url: https://notificationapi-uat.doitglotech.co.id
 notification.service.token: lgezRLxR84n$9@
 notification.service.origin: https://doit-pay-uat.doitglotech.co.id
 slack.webhook.url: https://hooks.slack.com/services/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
+
+alicloud.runtime: INSTANCE
+alicloud.localProfile: default
+alicloud.oss.endpoint: https://oss-ap-southeast-5-internal.aliyuncs.com
+alicloud.oss.bucketName: doit-attachment-5263863254564512

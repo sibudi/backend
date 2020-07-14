@@ -341,7 +341,7 @@ public class ManOrderUserDataService {
         }
     }
     /**
-     * 通过订单编号和类型mysql查询订单用户信息*/
+     * Query order user information by order number and type mysql*/
     public Object getOrderUserDataSql(ManOrderUserRequest request) throws Exception {
         String userUuid = request.getUserUuid();
         Integer type = request.getType();
@@ -350,8 +350,9 @@ public class ManOrderUserDataService {
             throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_SEARCH_ERROR);
         }
 
-        //身份认证
+        //Authentication
         if (type == 2) {
+            //This will also return usrAttachmentInfo (see UsrIdentityModel)
             UsrIdentityModel result = this.usrBaseInfoService.getIdentityInfo(userUuid, request.getCheckQualityOrNot());
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnumNoCollect())) {
                 String idCardNo = result.getIdCardNo();
@@ -361,7 +362,7 @@ public class ManOrderUserDataService {
             }
             return result == null ? new UsrIdentityModel() : result;
         }
-        //基本信息
+        //Basic Information
         if (type == 3) {
             UsrUser result = this.userUserService.userInfoByUuid(userUuid);
             if(result.getUserRole() == 1){
@@ -378,7 +379,7 @@ public class ManOrderUserDataService {
                 return response == null ? new UsrWorkBaseInfoModel() : response;
             }
         }
-        //工作或学校信息
+        //Work or school information
         if (type == 4) {
             UsrUser result = this.userUserService.userInfoByUuid(userUuid);
             if(result.getUserRole() == 1){
@@ -399,7 +400,7 @@ public class ManOrderUserDataService {
                 }
                 HouseWifeInfoResponse houseWifeInfoResponse = new HouseWifeInfoResponse();
                 BeanUtils.copyProperties(response.get(0), houseWifeInfoResponse);
-                //封装工作地址
+                //Package work address
                 UsrAddressDetail usrAddressDetail = new UsrAddressDetail();
                 usrAddressDetail.setUserUuid(userUuid);
                 usrAddressDetail.setDisabled(0);
@@ -416,7 +417,7 @@ public class ManOrderUserDataService {
                 return houseWifeInfoResponse;
             }
         }
-        //联系人信息
+        //contact information
         if (type == 5) {
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnum())) {
                 return new UsrLinkManModel();
@@ -429,16 +430,19 @@ public class ManOrderUserDataService {
             }
             return usrLinkManModel == null ? new UsrLinkManModel() : usrLinkManModel;
         }
-        //验证信息
+        //verify message
         if (type == 6) {
+            // Get attachment type 1 (ID_CARD) and 2 (HAND_ID_CARD)
+            // type ==2 also return ID_CARD and HAND_ID_CARD
             Object checkData = this.usrAttachmentInfoDao.getCheckAttachmenInfoByUserUuid(userUuid);
             if (checkData == null) {
                 return new ArrayList<UsrAttachmentInfo>();
             }
             return checkData;
         }
-        //补充信息
+        //Additional information
         if (type == 8) {
+            //This will return getAttachmenInfoByStudent or getAttachmenInfoByWorker
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnum())) {
                 return new ArrayList<UsrAttachmentResponse>();
             }
@@ -455,16 +459,16 @@ public class ManOrderUserDataService {
             }
             return result;
         }
-        //获得银行卡信息
+        //Get bank card information
         if (type == 7) {
 
-            //催收角色直接返回
+            //Validate Role
             if (!manAuthManagerService.hasAuthorityByRoleName(ManCollectorOperatorEnum.listCollectorOperatorEnum())) {
-                log.info("collector bank is empty show.");
+                log.info("Collector doesn't have authorization to see bank information");
                 return new OrderBankResponse();
             }
 
-            //取得订单中的usrBank
+            //Get usrBank in order
             OrdOrder ordOrder = new OrdOrder();
             ordOrder.setUuid(orderNo);
             ordOrder.setDisabled(0);
@@ -486,7 +490,7 @@ public class ManOrderUserDataService {
             response.setBankNumberNo(bank.getBankNumberNo());
             response.setStatus(bank.getStatus());
             /**
-             * 如果是客服
+             * If it is customer service
              */
             if (!manAuthManagerService.hasAuthorityByRoleName(ManOperatorEnum.listManOperatorEnum())) {
                 String number = response.getBankNumberNo();

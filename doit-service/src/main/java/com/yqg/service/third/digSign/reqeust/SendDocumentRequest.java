@@ -18,6 +18,11 @@ public class SendDocumentRequest {
     private List<RequestSign> requestSignList;
     @JsonProperty(value = "send-to")
     private List<SendToDetail> sendToList;
+    @JsonProperty(value = "redirect")
+    private Boolean redirect = true; // must be set true
+    @JsonProperty(value = "sequence_option")
+    private Boolean sequence_option = false; // default false: signing process will be carried out in no order
+    // true: signing process will be carried out sequentially
 
     @Getter
     @Setter

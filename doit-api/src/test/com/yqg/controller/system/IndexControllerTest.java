@@ -37,28 +37,4 @@ public class IndexControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
-    @Test
-    public void initHomeView() throws Exception {
-
-        String str = "{\n" +
-                "  \"deviceId\" : \"63BC7C64-5935-442B-95BE-6187E1239216\",\n" +
-                "  \"system_version\" : \"12.100000\",\n" +
-                "  \"client_version\" : \"1.0.5\",\n" +
-                "  \"channel_name\" : \"APPStore\",\n" +
-                "  \"channel_sn\" : \"APPStore\",\n" +
-                "  \"IPAdress\" : \"192.168.0.45\",\n" +
-                "  \"sessionId\" : \"cb05a703a11e432297435f47ce90bf47\",\n" +
-                "  \"client_type\" : \"iOS\",\n" +
-                "  \"net_type\" : \"wifi\",\n" +
-                "  \"sign\" : \"U2YjFmZmMxNDBlMzI5OWRhYjA1ZWVhNzUxMDMxMj\",\n" +
-                "  \"timestamp\" : \"1553742326\"\n" +
-                "}";
-
-        String enStr = RSAUtils.encryptString(str);
-        ResultActions resultActions = mockMvc.perform(post("/upload/uploadContacts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(enStr));
-
-        resultActions.andExpect(MockMvcResultMatchers.status().isOk());
-    }
 }

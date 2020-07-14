@@ -19,8 +19,8 @@ public class BackupLinkmanItem extends BaseEntity implements Serializable {
     private String userUuid;
     private String linkmanName;
     private String linkmanNumber;
-    private Integer fromCallRecord; //1:是，0:否
-    private Integer isRelative;//1:是0:否
-    private Integer isConfirmed;//用户是否确认 1:是，0：否
-    private Integer orderSequence; //选择排序
+    private Integer fromCallRecord; //1: yes, 0: no
+    private Integer isRelative;//1: yes, 0: no
+    private Integer isConfirmed;//Whether the user confirms 1: yes, 0: no
+    private Integer orderSequence; //Select sort
 }

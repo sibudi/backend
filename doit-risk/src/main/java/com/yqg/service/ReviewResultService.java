@@ -21,6 +21,8 @@ import com.yqg.service.externalChannel.utils.CheetahOrdStatusEnum;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.order.request.SaveOrderUserUuidRequest;
 import com.yqg.service.risk.service.RiskReviewService;
+import com.yqg.service.signcontract.ContractSignService;
+import com.yqg.service.task.AsyncTaskService;
 import com.yqg.service.third.sms.SmsServiceUtil;
 import com.yqg.service.user.service.UsrBaseInfoService;
 import com.yqg.service.util.RuleConstants;
@@ -69,6 +71,10 @@ public class ReviewResultService {
     private CheetahOrderService cheetahOrderService;
     @Autowired
     private RiskReviewService riskReviewService;
+    @Autowired
+    private AsyncTaskService asyncTaskService;
+    @Autowired
+    private ContractSignService contractSignService;
 
     /****
      * Process approved first borrowing
@@ -137,16 +143,17 @@ public class ReviewResultService {
     @Transactional(rollbackFor = Exception.class)
     public void autoCallPassToConfirmForSpecifiedProduct(OrdOrder order) {
         // budi: remark agar tidak masuk digisign
-        //if (contractSignService.isDigitalSignSwitchOpen(order)) {
-        //    asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-        //} else {
+        // budi: unremark lagi supaya register dan activation digisign sebelum ke p2p
+        if (contractSignService.isDigitalSignSwitchOpen(order)) {
+            asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+        } else {
             ordService.changeOrderStatus(order, OrdStateEnum.WAITING_CONFIRM);
             //cashcash的推送数据
-            if (order.getThirdType() != null && order.getThirdType() == 1) {
-                this.cash2OrderService.ordStatusFeedback(order, Cash2OrdStatusEnum.WAIT_CONFIRM);
-                this.cash2OrderService.ordCheckResultFeedback(order, Cash2OrdCheckResultEnum.WAITING_CONFIRM);
-            }
-        //}
+            //if (order.getThirdType() != null && order.getThirdType() == 1) {
+            //    this.cash2OrderService.ordStatusFeedback(order, Cash2OrdStatusEnum.WAIT_CONFIRM);
+            //    this.cash2OrderService.ordCheckResultFeedback(order, Cash2OrdCheckResultEnum.WAITING_CONFIRM);
+            //}
+        }
     }
 
     /***
@@ -178,12 +185,13 @@ public class ReviewResultService {
                 sendFeedBackInfo2CashCashAfterReject(ordOrder);
             } else {
                 // budi: remark digisign, karena mau langsung ke status 5 (send to P2P) bukan 20
+                // budi: unremark lagi karena mau register dan activation digisign sebelum ke p2p
                 // not backward compatible with non-P2P loan
-                //if (contractSignService.isDigitalSignSwitchOpen(ordOrder)) {
-                //    asyncTaskService.addTask(ordOrder, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-                //} else {
+                if (contractSignService.isDigitalSignSwitchOpen(ordOrder)) {
+                    asyncTaskService.addTask(ordOrder, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+                } else {
                     ordService.changeOrderStatus(ordOrder, status);
-                //}
+                }
                 archiveOrder(ordOrder);
                 //进入待放款状态后处理
                 sendFeedBackInfo2CashCashAfterPass(ordOrder);
@@ -202,12 +210,13 @@ public class ReviewResultService {
      */
     public void reBorrowingAutoReviewPass(OrdOrder order){
         // budi: remark digisign, karena mau langsung ke status 5 (send to P2P) bukan 20
+        // budi: unremark lagi karena mau register & activation digisign dulu sebelum ke p2p
         // not backward compatible with non-P2P loan
-        //if(contractSignService.isDigitalSignSwitchOpen(order)){
-        //    asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-        //}else{
+        if(contractSignService.isDigitalSignSwitchOpen(order)){
+            asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+        }else{
             ordService.changeOrderStatus(order,OrdStateEnum.LOANING);
-        //}
+        }
             // 订单归档
             archiveOrder(order);
             sendFeedBackInfo2CashCashAfterPass(order);

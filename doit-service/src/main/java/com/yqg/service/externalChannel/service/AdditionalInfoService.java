@@ -1,5 +1,12 @@
 package com.yqg.service.externalChannel.service;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.yqg.common.enums.order.OrdStepTypeEnum;
 import com.yqg.common.enums.user.CertificationEnum;
 import com.yqg.common.enums.user.CertificationResultEnum;
@@ -11,7 +18,6 @@ import com.yqg.common.utils.UUIDGenerateUtil;
 import com.yqg.externalChannel.dao.ExternalOrderRelationDao;
 import com.yqg.externalChannel.entity.ExternalOrderRelation;
 import com.yqg.mongo.dao.ExternalChannelDataDal;
-import com.yqg.mongo.entity.ExternalChannelDataMongo;
 import com.yqg.order.dao.OrdBlackDao;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.externalChannel.request.Cash2AdditionalInfoParam;
@@ -23,7 +29,13 @@ import com.yqg.service.externalChannel.utils.Cash2ResponseCode;
 import com.yqg.service.order.OrdService;
 import com.yqg.service.user.model.UsrStudentBaseInfoModel;
 import com.yqg.service.user.model.UsrWorkBaseInfoModel;
-import com.yqg.service.user.request.*;
+import com.yqg.service.user.request.LinkManRequest;
+import com.yqg.service.user.request.UsrSchoolInfoRequest;
+import com.yqg.service.user.request.UsrStudentBaseInfoRequest;
+import com.yqg.service.user.request.UsrSubmitCerInfoRequest;
+import com.yqg.service.user.request.UsrSubmitSupplementInfoRequest;
+import com.yqg.service.user.request.UsrWorkBaseInfoRequest;
+import com.yqg.service.user.request.UsrWorkInfoRequest;
 import com.yqg.service.user.service.UserLinkManService;
 import com.yqg.service.user.service.UsrBaseInfoService;
 import com.yqg.service.user.service.UsrService;
@@ -32,14 +44,12 @@ import com.yqg.user.dao.UsrFaceVerifyResultDao;
 import com.yqg.user.entity.UsrCertificationInfo;
 import com.yqg.user.entity.UsrFaceVerifyResult;
 import com.yqg.user.entity.UsrUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /*****
  * @Author zengxiangcai
@@ -50,6 +60,8 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+// Used by Cash2BaseInfoController.java 
+// API: /external/cash2/additional-info
 public class AdditionalInfoService {
 
     @Autowired
@@ -105,9 +117,6 @@ public class AdditionalInfoService {
         linkManRequest.setOrderNo(orderInfo.getUuid());
         linkManRequest.setUserUuid(userInfo.getUuid());
 
-//        UploadContactRequest contactList = additionalInfoExtractor.fetchContactList(additionalInfo);
-//        UploadMsgsRequest shortMsgList = additionalInfoExtractor.fetchMsgList(additionalInfo);
-//        UploadCallRecordsRequest callRecordList = additionalInfoExtractor.fetchCallRecordList(additionalInfo);
 //        UploadAppsRequest installedAppRequest = additionalInfoExtractor.fetchInstalledAppList(additionalInfo);
 
 
@@ -180,21 +189,6 @@ public class AdditionalInfoService {
          userLinkManService.addEmergencyLinkmans(linkManRequest, false);
         //更新订单步骤到联系人信息
         usrBaseInfoService.updateOrderStep(linkManRequest.getOrderNo(), linkManRequest.getUserUuid(), OrdStepTypeEnum.CONTACT_INFO.getType());
-
-//        //记录抓取的数据
-//        contactList.setOrderNo(orderInfo.getUuid());
-//        contactList.setUserUuid(userInfo.getUuid());
-//        installedAppRequest.setOrderNo(orderInfo.getUuid());
-//        installedAppRequest.setUserUuid(userInfo.getUuid());
-//        shortMsgList.setOrderNo(orderInfo.getUuid());
-//        shortMsgList.setUserUuid(userInfo.getUuid());
-//        callRecordList.setOrderNo(orderInfo.getUuid());
-//        callRecordList.setUserUuid(userInfo.getUuid());
-//        uploadInfoService.uploadContacts(contactList);
-//        uploadInfoService.uploadApps(installedAppRequest);
-//        uploadInfoService.uploadMsgs(shortMsgList);
-//        uploadInfoService.uploadCallRecords(callRecordList);
-
 
         String faceImgUrl = additionalInfo.getApplyDetail().getImgList().get(0);
 //        UsrSubmitCerInfoRequest request = new UsrSubmitCerInfoRequest();
@@ -307,50 +301,51 @@ public class AdditionalInfoService {
     @Autowired
     private OrdBlackDao ordBlackDao;
 
-    public void handleErrorLinkmanInfo(){
-      List<ExternalOrderRelation> errorOrders = externalOrderRelationDao.getErrorOrders();
-      for(ExternalOrderRelation order: errorOrders){
-          try{
-              log.info("start process order: "+order.getOrderNo());
-              //查询最新数据
-              ExternalChannelDataMongo search = new ExternalChannelDataMongo();
-              search.setExternalOrderNo(order.getExternalOrderNo());
-              search.setRequestUri("/external/cash2/additional-info");
-              List<ExternalChannelDataMongo> searchResultList = externalChannelDataDal.find(search);
-              if(CollectionUtils.isEmpty(searchResultList)){
-                  log.info("no additional info,orderNo: "+order.getOrderNo());
-                  continue;
-              }
-              ExternalChannelDataMongo latestResult =
-                      searchResultList.stream().max(Comparator.comparing(ExternalChannelDataMongo::getCreateTime)).get();
-              String additionalInfo= latestResult.getDecryptedText();
-              Cash2AdditionalInfoParam param = JsonUtils.deserialize(additionalInfo,Cash2AdditionalInfoParam.class);
-              LinkManRequest linkManRequest = additionalInfoExtractor.fetchContactUserInfo(param);
-              linkManRequest.setUserUuid(order.getUserUuid());
-              linkManRequest.setOrderNo(order.getOrderNo());
-              if (CollectionUtils.isEmpty(linkManRequest.getLinkmanList())) {
-                  log.info("the linkman is empty,orderNo: {} ,externalOrderNo: {}", order.getOrderNo(), order.getExternalOrderNo());
-                  continue;
-              }
-              //更新联系人信息
-              //disabled 原来的
-              ordBlackDao.updateUsrLinkmanInfo(order.getUserUuid());
+    //ahalim: remark unused code
+    // public void handleErrorLinkmanInfo(){
+    //   List<ExternalOrderRelation> errorOrders = externalOrderRelationDao.getErrorOrders();
+    //   for(ExternalOrderRelation order: errorOrders){
+    //       try{
+    //           log.info("start process order: "+order.getOrderNo());
+    //           //查询最新数据
+    //           ExternalChannelDataMongo search = new ExternalChannelDataMongo();
+    //           search.setExternalOrderNo(order.getExternalOrderNo());
+    //           search.setRequestUri("/external/cash2/additional-info");
+    //           List<ExternalChannelDataMongo> searchResultList = externalChannelDataDal.find(search);
+    //           if(CollectionUtils.isEmpty(searchResultList)){
+    //               log.info("no additional info,orderNo: "+order.getOrderNo());
+    //               continue;
+    //           }
+    //           ExternalChannelDataMongo latestResult =
+    //                   searchResultList.stream().max(Comparator.comparing(ExternalChannelDataMongo::getCreateTime)).get();
+    //           String additionalInfo= latestResult.getDecryptedText();
+    //           Cash2AdditionalInfoParam param = JsonUtils.deserialize(additionalInfo,Cash2AdditionalInfoParam.class);
+    //           LinkManRequest linkManRequest = additionalInfoExtractor.fetchContactUserInfo(param);
+    //           linkManRequest.setUserUuid(order.getUserUuid());
+    //           linkManRequest.setOrderNo(order.getOrderNo());
+    //           if (CollectionUtils.isEmpty(linkManRequest.getLinkmanList())) {
+    //               log.info("the linkman is empty,orderNo: {} ,externalOrderNo: {}", order.getOrderNo(), order.getExternalOrderNo());
+    //               continue;
+    //           }
+    //           //更新联系人信息
+    //           //disabled 原来的
+    //           ordBlackDao.updateUsrLinkmanInfo(order.getUserUuid());
 
-              //disabled掉原来联系人信息
-              // log.info("linkman request: "+JsonUtils.serialize(linkManRequest));
-              userLinkManService.addEmergencyLinkmans(linkManRequest, false);
+    //           //disabled掉原来联系人信息
+    //           // log.info("linkman request: "+JsonUtils.serialize(linkManRequest));
+    //           userLinkManService.addEmergencyLinkmans(linkManRequest, false);
 
 
 
 
-              //更新订单拒绝remark为："联系人出错重新处理"
-              ordBlackDao.updateBlackInfo(order.getOrderNo(),"联系人出错需要重跑-2018-12-18");
-          }catch (Exception e){
-              log.error("error in order: "+ order.getOrderNo(),e);
-          }
-      }
-      log.info("finished....");
-    }
+    //           //更新订单拒绝remark为："联系人出错重新处理"
+    //           ordBlackDao.updateBlackInfo(order.getOrderNo(),"联系人出错需要重跑-2018-12-18");
+    //       }catch (Exception e){
+    //           log.error("error in order: "+ order.getOrderNo(),e);
+    //       }
+    //   }
+    //   log.info("finished....");
+    // }
 }
 
 

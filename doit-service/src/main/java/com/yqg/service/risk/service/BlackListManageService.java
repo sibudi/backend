@@ -1,5 +1,9 @@
 package com.yqg.service.risk.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.StringUtils;
 import com.yqg.order.dao.OrdDao;
@@ -11,7 +15,7 @@ import com.yqg.service.user.service.UsrService;
 import com.yqg.user.dao.UsrBlackListDao;
 import com.yqg.user.entity.UsrBlackList;
 import com.yqg.user.entity.UsrUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,9 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -126,14 +128,12 @@ public class BlackListManageService {
             return ;
         }
         List<UsrBlackList> blackLists = usrBlackListDao.getFixUsrBlackList(needCacheList);
-        //欺诈用户数据也放到逾期15天的缓存中
-        overdue15UserService.addCallRecordToRedis(blackLists,true, UsrBlackList.BlackUserCategory.OVERDUE15);
+        //Fraudulent user data is also placed in the cache overdue for 15 days
         overdue15UserService.addContactToRedis(blackLists,true, UsrBlackList.BlackUserCategory.OVERDUE15);
         overdue15UserService.addSmsToRedis(blackLists,true, UsrBlackList.BlackUserCategory.OVERDUE15);
-        overdue15UserService.addCallRecordToRedis(blackLists,true, UsrBlackList.BlackUserCategory.FRAUD);
         overdue15UserService.addContactToRedis(blackLists,true, UsrBlackList.BlackUserCategory.FRAUD);
         overdue15UserService.addSmsToRedis(blackLists,true, UsrBlackList.BlackUserCategory.FRAUD);
-        //欺诈用户的订单放到fraudUserOrderInfo表
+        //The fraudulent user's order is placed in the fraudUserOrderInfo table
         addOrdersToFraudUserOrderInfo(userList);
     }
 

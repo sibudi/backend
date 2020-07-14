@@ -45,7 +45,7 @@ public class RestApiLogAspect {
             .asList("/upload");
 
     //免记录返回参数url
-    private static final List<String> outputLogExcludeUrls = Arrays.asList("/upload/uploadContacts","/upload/uploadApps","/upload/uploadCallRecords","/users/initSupplementInfo");
+    private static final List<String> outputLogExcludeUrls = Arrays.asList("/users/initSupplementInfo");
 
     //免登录url
     private static List<String> loginExcludeUrls = Arrays
@@ -53,7 +53,7 @@ public class RestApiLogAspect {
                     "/system/smsCode", "/system/isUpdate", "/system/appH5UrlValueList",
                     "/system/isUploadUserApps", "/system/getDicItemListByDicCode", "/users/signup","/users/inviteSignup",
                     "/users/smsAutoLogin", "/system/getAiqqonStatus", "/users/pin/forgot", 
-                    "/v3/users/signup", "/v3/users/signin");
+                    "/v3/users/signup", "/v3/users/signin", "/v1/partner/registration, v1/partner/bank/check");
 
     @Autowired
     private RedisClient redisClient;
@@ -119,6 +119,9 @@ public class RestApiLogAspect {
                 return;
             }
             log.info("url: {} | request param: {}", requestUri, getParam);
+        } else if (request.getMethod().equals("HEAD") && requestUri.contains("/healthcheck")) {
+            //Doesn't need to log healtcheck
+            return;
         } else {
             if (isUrlExcluded(inputLogExcludeUrls, requestUri)) {
                 log.info("url: {} | request param: {} | orderNo: {} | userUuid: {}", requestUri,
@@ -236,7 +239,10 @@ public class RestApiLogAspect {
             String requestUri = request.getRequestURI();
 
             //返回参数：
-            if (isUrlExcluded(outputLogExcludeUrls, requestUri)) {
+            if (request.getMethod().equals("HEAD") && requestUri.contains("/healthcheck")) {
+                //Doesn't need to log healtcheck
+                return;
+            } else if (isUrlExcluded(outputLogExcludeUrls, requestUri)) {
                 log.info("url: {} | response: {} | cost = {} ms", requestUri, "not log...",
                         getRequestCost());
                 return;

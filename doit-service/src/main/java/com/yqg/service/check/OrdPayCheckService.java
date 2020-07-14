@@ -84,7 +84,7 @@ public class OrdPayCheckService {
 
         try {
             File excelDir = new File(payExcelDir);
-            excelDir.mkdirs();
+            excelDir.mkdirs();  //ahalim no need to use getParentFile() because payExcelDir is only the directory
             String excelFilePath = excelDir+"/orderPayChecked_"+getNDate(-1)+".xls";
             outputStream = new FileOutputStream(excelFilePath);
             workbook.write(outputStream);

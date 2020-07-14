@@ -1,8 +1,13 @@
 package com.yqg.service.system.service;
 
+import static com.yqg.common.utils.ZXingCode.drawLogoQRCode;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.yqg.base.multiDataSource.annotation.ReadDataSource;
 import com.yqg.common.constants.RedisContants;
-import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.models.BaseRequest;
@@ -11,23 +16,35 @@ import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.service.system.request.DictionaryRequest;
 import com.yqg.service.system.request.SysAppVersionRequest;
-import com.yqg.service.system.response.*;
+import com.yqg.service.system.response.SysAiqqonIsLiveResponse;
+import com.yqg.service.system.response.SysAppH5Response;
+import com.yqg.service.system.response.SysAppVersionModel;
+import com.yqg.service.system.response.SysBankBasicInfoResponse;
+import com.yqg.service.system.response.SysDicItemModel;
+import com.yqg.service.system.response.SysSchoolListResponse;
+import com.yqg.service.system.response.SysShareDataResponse;
 import com.yqg.service.third.upload.UploadService;
 import com.yqg.service.third.upload.response.UploadResultInfo;
-import com.yqg.system.dao.*;
-import com.yqg.system.entity.*;
-import lombok.extern.slf4j.Slf4j;
+import com.yqg.system.dao.SysAppH5Dao;
+import com.yqg.system.dao.SysAppVersionDao;
+import com.yqg.system.dao.SysBankDao;
+import com.yqg.system.dao.SysDicDao;
+import com.yqg.system.dao.SysDicItemDao;
+import com.yqg.system.dao.SysShareDictDao;
+import com.yqg.system.entity.SysAppH5;
+import com.yqg.system.entity.SysAppVersion;
+import com.yqg.system.entity.SysBankBasicInfo;
+import com.yqg.system.entity.SysDic;
+import com.yqg.system.entity.SysDicItem;
+import com.yqg.system.entity.SysShareDict;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.yqg.common.utils.ZXingCode.drawLogoQRCode;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Didit Dwianto on 2017/11/24.
@@ -43,20 +60,13 @@ public class SystemService {
     @Autowired
     private SysBankDao sysBankDao;
     @Autowired
-    private SysParamService sysParamService;
-    @Autowired
     private SysDicDao dicDao;
     @Autowired
     private SysDicItemDao dicItemDao;
     @Autowired
     private SysShareDictDao sysShareDictDao;
-
-    @Autowired
-    private SysCheakAppsDao sysCheakAppsDao;
-
     @Autowired
     private UploadService uploadService;
-
     @Autowired
     private RedisClient redisClient;
 
@@ -172,38 +182,6 @@ public class SystemService {
         redisClient.set(RedisContants.CACHE_BANK_CARD_LIST_KEY, JsonUtils.serialize(response));
         return response;
     }
-
-
-    /**
-     * ????app?????iOS?????
-     */
-    public SysCheakAppsResponse isUploadUserApps(BaseRequest baseRequest) {
-
-        String sysParamValue = this.sysParamService.getSysParamValue(SysParamContants.UPLOAD_APPS_OFF_ON);
-        if (!StringUtils.isEmpty(sysParamValue) && sysParamValue.equals("1")) {
-
-            SysCheakAppsResponse response = new SysCheakAppsResponse();
-            SysCheakApps searchInfo = new SysCheakApps();
-            searchInfo.setDisabled(0);
-            searchInfo.setStatus(1);
-            List<SysCheakApps> cheakAppsList = sysCheakAppsDao.scan(searchInfo);
-            if (!CollectionUtils.isEmpty(cheakAppsList)) {
-
-                SysCheakApps sysCheakApps = cheakAppsList.get(0);
-                response.setIsCheak(String.valueOf(sysCheakApps.getStatus()));
-                response.setMethod1(sysCheakApps.getApplicationWorkspace());
-                response.setMethod2(sysCheakApps.getWorkspace());
-                response.setMethod3(sysCheakApps.getApplications());
-                response.setMethod4(sysCheakApps.getBundleIdentifier());
-                response.setMethod5(sysCheakApps.getBundleVersion());
-                response.setMethod6(sysCheakApps.getLocalizedName());
-            }
-            return response;
-        }
-
-        return null;
-    }
-
 
     /**
      * ??????DicCode?????List

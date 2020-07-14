@@ -150,10 +150,10 @@ public class OrdDeviceExtendInfoService {
 
             insertEntity.setCreateTime(createTime);
             insertEntity.setUpdateTime(updateTime);
-            insertEntity.setDevice1(deviceFieldList.get(0));
-            insertEntity.setDevice2(deviceFieldList.get(1));
-            insertEntity.setDevice3(deviceFieldList.get(2));
-            insertEntity.setDevice4(deviceFieldList.get(3));
+            insertEntity.setDevice1("");
+            insertEntity.setDevice2("");
+            insertEntity.setDevice3("");
+            insertEntity.setDevice4("");
             insertEntity.setUserUuid(deviceInfo.getUserUuid());
             insertEntity.setOrderNo(deviceInfo.getOrderNo());
             ordDeviceExtendInfoDao.insert(insertEntity);

@@ -113,9 +113,9 @@ public class SystemController {
     @ResponseBody
     public ResponseEntity<SysCheakAppsResponse> isUploadUserApps(HttpServletRequest request, @RequestBody BaseRequest baseRequest)
             throws Exception {
-//        UserSessionUtil.filter(request,this.redisClient,baseRequest);
-        log.info("是否开启APP上传，仅供iOS客户端使用");
-        return ResponseEntityBuilder.success(this.systemService.isUploadUserApps(baseRequest));
+        //ahalim remove userapps
+        log.info("Deprecated - isUploadUserApps");
+        return ResponseEntityBuilder.success(null);
     }
 
     @ApiOperation("通过父字典的DicCode查询子字典List")

@@ -234,7 +234,7 @@ public class RiskService {
                         fdcDataDetailResponse = JsonUtils.deserialize(responseStr, DataDetail.class); // data nasabah
 
                         // check if status found or not found in fdc
-                        if (fdcResponse.getStatus().compareTo("Found") == 0) {
+                        if (fdcResponse.getStatus().compareToIgnoreCase("Found") == 0) {
 
                             //log.info("fdcResponse: {}", fdcResponse);
                             //log.info("fdcDataDetailResponse: {}", fdcDataDetailResponse.getPinjaman());
@@ -266,7 +266,7 @@ public class RiskService {
                                 log.info("Pinjaman diteruskan ke risk, semua status fdc lancar");
                             }
         
-                        } else if (fdcResponse.getStatus().compareTo("Not Found") == 0) {
+                        } else if (fdcResponse.getStatus().compareToIgnoreCase("Not Found") == 0) {
         
                             // reject = false, masuk risk
                             log.info("Pinjaman Not Found di platform manapun");
@@ -333,7 +333,8 @@ public class RiskService {
                         if (ruleSetResult.isRuleSetResult()) {
                             this.reviewPass(order);
                         } else {
-                            this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
+                            this.reviewPass(order);
+                            // this.reviewRefuse(order, ruleSetResult.getFirstRejectRule());
                         }
                     }
 

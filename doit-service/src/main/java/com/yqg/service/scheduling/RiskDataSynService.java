@@ -1,5 +1,9 @@
 package com.yqg.service.scheduling;
 
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+
 import com.yqg.common.utils.DateUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
@@ -17,15 +21,12 @@ import com.yqg.risk.repository.OrderRiskRecordRepository;
 import com.yqg.user.dao.UsrVerifyResultDao;
 import com.yqg.user.entity.UsrIziVerifyResult;
 import com.yqg.user.entity.UsrVerifyResult;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Param;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -200,11 +201,6 @@ public class RiskDataSynService {
 
     public List<OrdOrder> getOrdersByIdLimit(Long startId,  Long endId){
         return syncDataDao.getOrdersByIdLimit(startId,endId);
-    }
-
-
-    public int addRiskRecordListForAppClean(@Param("riskRecords") List<OrdRiskRecord> riskRecords){
-        return syncDataDao.addRiskRecordListForAppClean(riskRecords);
     }
 
     public void addIziDataClean(UsrIziVerifyResult iziVerifyResult){

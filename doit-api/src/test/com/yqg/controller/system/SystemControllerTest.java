@@ -137,30 +137,6 @@ public class SystemControllerTest {
     }
 
     @Test
-    public void isUploadUserApps() throws Exception {
-
-        String str = "{\n" +
-                "  \"deviceId\" : \"63BC7C64-5935-442B-95BE-6187E1239216\",\n" +
-                "  \"system_version\" : \"12.100000\",\n" +
-                "  \"client_version\" : \"1.0.5\",\n" +
-                "  \"channel_name\" : \"APPStore\",\n" +
-                "  \"channel_sn\" : \"APPStore\",\n" +
-                "  \"IPAdress\" : \"192.168.0.44\",\n" +
-                "  \"client_type\" : \"iOS\",\n" +
-                "  \"net_type\" : \"wifi\",\n" +
-                "  \"sign\" : \"NkODIwMmYzODc1ZGFlOGJkOGZjOGE2YTM2OGY1Yj\",\n" +
-                "  \"timestamp\" : \"1553667581\"\n" +
-                "}";
-
-        String enStr = RSAUtils.encryptString(str);
-        ResultActions resultActions = mockMvc.perform(post("/system/isUploadUserApps")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(enStr));
-
-        resultActions.andExpect(MockMvcResultMatchers.status().isOk());
-    }
-
-    @Test
     public void dicItemListByDicCode() throws Exception {
 
         String str = "{\n" +

@@ -23,7 +23,7 @@ public class ManAuthManagerService {
     @Autowired
     private ManSysUserDao manSysUserDao;
     /**
-     * 通过一批角色名称 查询用户是否具有该角色权限
+     * Use a batch of role names to query whether the user has the role permissions
      * @return
      */
     public boolean hasAuthorityByRoleName(List<Integer> request) {

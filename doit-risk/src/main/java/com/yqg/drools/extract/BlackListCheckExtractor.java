@@ -1,5 +1,10 @@
 package com.yqg.drools.extract;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.yqg.common.enums.user.UsrAddressEnum;
 import com.yqg.common.utils.CheakTeleUtils;
 import com.yqg.common.utils.DESUtils;
@@ -17,19 +22,15 @@ import com.yqg.service.user.service.UserBackupLinkmanService;
 import com.yqg.service.user.service.UserDetailService;
 import com.yqg.service.user.service.UserLinkManService;
 import com.yqg.user.dao.UsrBankDao;
-import com.yqg.user.entity.UsrBank;
 import com.yqg.user.entity.UsrBlackList;
 import com.yqg.user.entity.UsrLinkManInfo;
 import com.yqg.user.entity.UsrUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -106,25 +107,18 @@ public class BlackListCheckExtractor implements BaseExtractor<BlackListUserCheck
 
             model.setMobileInOverdue15BlackListContacts(usrBlackListService.isMobileInContactForBlackUserCategoryN(user.getMobileNumberDES(),
                     UsrBlackList.BlackUserCategory.OVERDUE15));
-            model.setMobileInOverdue15BlackListCallRecords(usrBlackListService.isMobileInCallRecordForBlackUserCategoryN(user.getMobileNumberDES(),
+            model.setMobileInOverdue15BlackListRedis(usrBlackListService.isMobileInRedisBlacklist(user.getMobileNumberDES(),
                     UsrBlackList.BlackUserCategory.OVERDUE15));
             model.setMobileInOverdue15BlackListShortMsg(usrBlackListService.isMobileInShortMessageForBlackUserCategoryN(user.getMobileNumberDES(),
                     UsrBlackList.BlackUserCategory.OVERDUE15));
-            model.setContactInOverdue15BlackList(usrBlackListService.contactInBlackListOfCategoryN(user.getUuid(),
-                    UsrBlackList.BlackUserCategory.OVERDUE15));
-            model.setCallRecordInOverdue15BlackList(usrBlackListService.callRecordInBlackListOfCategoryN(user.getUuid(),
-                    UsrBlackList.BlackUserCategory.OVERDUE15));
+            model.setContactInOverdue15BlackList(false);
+            model.setEmergencyContactInOverdue15BlackList(false);
             model.setMobileIsOverdue15BlackListEmergencyTel(usrBlackListService.isMobileAsEmergencyTelForBlackUserCategoryN(user.getMobileNumberDES(),
                     UsrBlackList.BlackUserCategory.OVERDUE15));
-
-            model.setContactInOverdue15Count(usrBlackListService.countOfContactPhoneInBlackListCategoryN(user.getUuid(),
-                    UsrBlackList.BlackUserCategory.OVERDUE15));
-            model.setCallRecordInOverdue15Count(usrBlackListService.countOfCallRecordInBlackListCategoryN(user.getUuid(),
-                    UsrBlackList.BlackUserCategory.OVERDUE15));
+            model.setContactInOverdue15Count(0);
+            model.setEmergenctContactInOverdue15Count(0);
             log.info("cost part2: {} ms.", (System.currentTimeMillis()-startTime));
             model.setMobileIsFraudUserEmergencyTel(usrBlackListService.isMobileAsEmergencyTelForFraudUser(user.getMobileNumberDES()));
-
-            model.setMobileInFraudUserCallRecordsCount(usrBlackListService.countOfMobileInFraudUserCallRecord(user));
 
 
             model.setMobileInFraudUser(usrBlackListService.isMobileInFraudUser(user.getMobileNumberDES()));
@@ -132,12 +126,10 @@ public class BlackListCheckExtractor implements BaseExtractor<BlackListUserCheck
 
             model.setHitFraudUserInfo(usrBlackListService.hitFraudUserInfo(user, order));
 
-            model.setSmsContactOverdue15DaysCount(usrBlackListService.countOfSmsPhoneInBlackListCategoryN(order.getUserUuid(),order.getUuid(),
-                    UsrBlackList.BlackUserCategory.OVERDUE15));
+            model.setSmsContactOverdue15DaysCount(0);
             log.info("cost part3: {} ms.", (System.currentTimeMillis()-startTime));
-            //逾期7天
-            model.setCallRecordInOverdue7BlackList(usrBlackListService.callRecordInBlackListOfCategoryN(order.getUserUuid(),
-                    UsrBlackList.BlackUserCategory.OVERDUE7));
+            //7 days overdue
+            model.setEmergencyContactInOverdue7BlackList(false);
             model.setIdCardNoInOverdue7BlackList(usrBlackListService.isIdCardNoInBlackUserCategoryN(user.getIdCardNo(),
                     UsrBlackList.BlackUserCategory.OVERDUE7));
             model.setMobileInOverdue7BlackList(usrBlackListService.isMobileInBlackUserCategoryN(order.getUserUuid(),
@@ -168,7 +160,7 @@ public class BlackListCheckExtractor implements BaseExtractor<BlackListUserCheck
                 model.setWhatsappInOverdue7BlackList(usrBlackListService.isMobileInBlackUserCategoryN(whatsappDes, UsrBlackList.BlackUserCategory.OVERDUE7));
                 model.setWhatsappInOverdue7BlackListEmergencyTel(usrBlackListService.isMobileAsEmergencyTelForBlackUserCategoryN(whatsappDes, UsrBlackList.BlackUserCategory.OVERDUE7));
 
-                model.setWhatsappInOverdue7BlackListCallRecord(usrBlackListService.isMobileInCallRecordForBlackUserCategoryN(whatsappDes,
+                model.setWhatsappInOverdue7BlackListRedis(usrBlackListService.isMobileInRedisBlacklist(whatsappDes,
                         UsrBlackList.BlackUserCategory.OVERDUE7));
                 model.setWhatsappInOverdue7BlackListContact(usrBlackListService.isMobileInContactForBlackUserCategoryN(whatsappDes, UsrBlackList.BlackUserCategory.OVERDUE7));
                 model.setWhatsappInOverdue7BlackListSms(usrBlackListService.isMobileInShortMessageForBlackUserCategoryN(whatsappDes, UsrBlackList.BlackUserCategory.OVERDUE7));
@@ -187,7 +179,7 @@ public class BlackListCheckExtractor implements BaseExtractor<BlackListUserCheck
 
             if(!CollectionUtils.isEmpty(emergencyTels)){
                 model.setEmergencyTelInFraudUserEmergencyTel(emergencyTelsInFraudUserEmergencyTel(emergencyTels));
-                model.setEmergencyTelInFraudUserCallRecord(emergencyTelsInFraudUserCallRecord(emergencyTels));
+                model.setEmergencyTelInRedisBlacklist(emergencyTelsInFraudUserRedis(emergencyTels));
                 model.setEmergencyTelInFraudUserContact(emergencyTelsInFraudUserContact(emergencyTels));
                 model.setEmergencyTelInFraudUserSms(emergencyTelsInFraudUserSms(emergencyTels));
                 model.setEmergencyTelInFraudUserWhatsapp(emergencyTelsInFraudUserWhatsapp(emergencyTels));
@@ -279,13 +271,13 @@ public class BlackListCheckExtractor implements BaseExtractor<BlackListUserCheck
         }
         return false;
     }
-    private Boolean emergencyTelsInFraudUserCallRecord(List<String> emergencyTels) {
+    private Boolean emergencyTelsInFraudUserRedis(List<String> emergencyTels) {
         if (CollectionUtils.isEmpty(emergencyTels)) {
             return false;
         }
         for (String emergencyTel : emergencyTels) {
             String emergencyTelDes = DESUtils.encrypt(emergencyTel);
-            boolean result = usrBlackListService.isMobileInCallRecordForBlackUserCategoryN(emergencyTelDes, UsrBlackList.BlackUserCategory.FRAUD);
+            boolean result = usrBlackListService.isMobileInRedisBlacklist(emergencyTelDes, UsrBlackList.BlackUserCategory.FRAUD);
             if (result) {
                 return true;
             }

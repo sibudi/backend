@@ -14,6 +14,7 @@ public class DigiSignConfig {
     private String activationUrl;//激活地址
     private String sendDocumentUrl;
     private String signUrl;//签约地址
+    private String signUrlBulk;
     private String automaticSignKUser; //公司自动签约kuser
     private String automaticSignEmail; //公司自动签email
     private String automaticSignRealName;//公司自动签姓名

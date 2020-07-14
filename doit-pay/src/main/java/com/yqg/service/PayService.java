@@ -529,7 +529,8 @@ public class PayService {
                 record.setActualRepayAmout(repayService.calculateRepayAmount(dealOrder,"1"));
                 //record.setInterest(dealOrder.getInterest()+"");
                 //Overdue service fee regardless overdue date
-                record.setOverDueFee(repayService.calculateOverDueFee(dealOrder));
+                //record.setOverDueFee(repayService.calculateOverDueFee(dealOrder));
+                record.setOverDueFee("0");
                 //Actual overdue fee based on overdue date, without limit.
                 //Currently the penaltyfee in ordRepayAmoutRecord is actual overdue fee without limit
                 record.setPenaltyFee(repayService.calculatePenaltyFee(dealOrder));

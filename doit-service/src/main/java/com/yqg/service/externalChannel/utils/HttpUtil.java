@@ -22,6 +22,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import com.yqg.common.utils.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -99,10 +100,18 @@ public class HttpUtil {
 
     public static CustomHttpResponse sendMultiPartRequest(String url, Map<String, String> dataParam, Map<String, byte[]> fileParam,
                                                           Map<String,String> headerMap) {
-        return sendMultiPartRequest(url, dataParam, fileParam, headerMap, false);
+        return sendMultiPartRequest(url, dataParam, fileParam, headerMap, false, null);
     }
     public static CustomHttpResponse sendMultiPartRequest(String url, Map<String, String> dataParam, Map<String, byte[]> fileParam,
                                                           Map<String,String> headerMap, Boolean hideLog) {
+        return sendMultiPartRequest(url, dataParam, fileParam, headerMap, hideLog, null);
+    }
+    public static CustomHttpResponse sendMultiPartRequest(String url, Map<String, String> dataParam, Map<String, byte[]> fileParam,
+                                                          Map<String,String> headerMap, String orderNo) {
+        return sendMultiPartRequest(url, dataParam, fileParam, headerMap, false, orderNo);
+    }
+    public static CustomHttpResponse sendMultiPartRequest(String url, Map<String, String> dataParam, Map<String, byte[]> fileParam,
+                                                          Map<String,String> headerMap, Boolean hideLog, String orderNo) {
         Long startTime = System.currentTimeMillis();
         log.info("start request url: {} with param: {}", url, JsonUtils.serialize(dataParam));
         CloseableHttpResponse response = null;
@@ -117,9 +126,11 @@ public class HttpUtil {
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setCharset(Consts.UTF_8);
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            String filename = "";
             if (fileParam != null) {
                 for (Map.Entry<String, byte[]> fileEntry : fileParam.entrySet()) {
-                    builder.addBinaryBody(fileEntry.getKey(),fileEntry.getValue(),ContentType.DEFAULT_BINARY,fileEntry.getKey());
+                    filename = StringUtils.isEmpty(orderNo) ? fileEntry.getKey() : orderNo;
+                    builder.addBinaryBody(fileEntry.getKey(), fileEntry.getValue(), ContentType.DEFAULT_BINARY, filename);
 //                    builder.addBinaryBody(fileEntry.getKey(),fileEntry.getValue());
 //                    FileBody fileBody = new FileBody(fileEntry.getValue(), ContentType.DEFAULT_BINARY);
 //                    builder.addPart(fileEntry.getKey(), fileBody);

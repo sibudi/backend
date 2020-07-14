@@ -1,5 +1,8 @@
 package com.yqg.service.externalChannel.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.yqg.common.constants.RedisContants;
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
@@ -11,7 +14,6 @@ import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
 import com.yqg.externalChannel.entity.ExternalOrderRelation;
-import com.yqg.order.dao.OrdDao;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.service.externalChannel.enums.ExternalChannelEnum;
 import com.yqg.service.externalChannel.request.Cash2BaseInfo;
@@ -19,12 +21,7 @@ import com.yqg.service.externalChannel.request.Cash2BaseInfo.Cash2UserType;
 import com.yqg.service.externalChannel.response.Cash2H5ContractResponse;
 import com.yqg.service.externalChannel.transform.BaseInfoExtractor;
 import com.yqg.service.order.OrdService;
-import com.yqg.service.order.UploadInfoService;
 import com.yqg.service.order.request.OrdRequest;
-import com.yqg.service.order.request.UploadAppsRequest;
-import com.yqg.service.order.request.UploadCallRecordsRequest;
-import com.yqg.service.order.request.UploadContactRequest;
-import com.yqg.service.order.request.UploadMsgsRequest;
 import com.yqg.service.order.response.OrderOrderResponse;
 import com.yqg.service.user.request.SaveUserPhotoRequest;
 import com.yqg.service.user.request.UsrContactInfoRequest;
@@ -44,14 +41,12 @@ import com.yqg.user.dao.UsrCertificationInfoDao;
 import com.yqg.user.entity.UsrCertificationInfo;
 import com.yqg.user.entity.UsrUser;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+
+import lombok.extern.slf4j.Slf4j;
 
 /*****
  * @Author zengxiangcai
@@ -62,6 +57,8 @@ import org.springframework.util.CollectionUtils;
 
 @Service
 @Slf4j
+// Used by Cash2BaseInfoController 
+// API: /external/cash2/baseInfo
 public class BaseInfoService {
 
     @Autowired
@@ -77,17 +74,12 @@ public class BaseInfoService {
     private UsrBaseInfoService usrBaseInfoService;
 
     @Autowired
-    private UploadInfoService uploadInfoService;
-
-    @Autowired
     private ExternalChannelDataService externalChannelDataService;
 
     @Autowired
     private RedisClient redisClient;
     @Autowired
     private SysAppH5Dao sysAppH5Dao;
-    @Autowired
-    private OrdDao ordDao;
 
     @Autowired
     private UsrCertificationInfoDao usrCertificationInfoDao;
@@ -143,12 +135,6 @@ public class BaseInfoService {
                 workerBaseInfo = baseInfoExtractor.fetchWorkBaseInfo(baseInfo);
                 workerInfo = baseInfoExtractor.fetchWorkInfo(baseInfo);
             }
-
-
-            UploadContactRequest contactList = baseInfoExtractor.fetchContactList(baseInfo);
-            UploadMsgsRequest shortMsgList = baseInfoExtractor.fetchMsgList(baseInfo);
-            UploadCallRecordsRequest callRecordList = baseInfoExtractor.fetchCallRecordList(baseInfo);
-            UploadAppsRequest installedAppRequest = baseInfoExtractor.fetchInstalledAppList(baseInfo);
 
             //判定用户是否可借[防止调用可接接口和推送基本新接口之间相隔很长时间]
             UsrUser searchInfo = new UsrUser();
@@ -273,19 +259,6 @@ public class BaseInfoService {
 //        contactUser.setOrderNo(orderResponse.getOrderNo());
 //        contactUser.setUserUuid(userUuid);
 //        usrBaseInfoService.addLinkManInfo(contactUser);
-            //记录抓取的数据
-            contactList.setOrderNo(orderResponse.getOrderNo());
-            contactList.setUserUuid(userUuid);
-            installedAppRequest.setOrderNo(orderResponse.getOrderNo());
-            installedAppRequest.setUserUuid(userUuid);
-            shortMsgList.setOrderNo(orderResponse.getOrderNo());
-            shortMsgList.setUserUuid(userUuid);
-            callRecordList.setOrderNo(orderResponse.getOrderNo());
-            callRecordList.setUserUuid(userUuid);
-            uploadInfoService.uploadContacts(contactList);
-            uploadInfoService.uploadApps(installedAppRequest);
-            uploadInfoService.uploadMsgs(shortMsgList);
-            uploadInfoService.uploadCallRecords(callRecordList);
         } catch (Exception e) {
             throw  e;
         }finally {
@@ -324,14 +297,6 @@ public class BaseInfoService {
 
         //联系人信息
         UsrContactInfoRequest contactUser = baseInfoExtractor.fetchContactUserInfo(baseInfo);
-        //通讯录
-        UploadContactRequest contactList = baseInfoExtractor.fetchContactList(baseInfo);
-        //短信
-        UploadMsgsRequest shortMsgList = baseInfoExtractor.fetchMsgList(baseInfo);
-        //通话记录
-        UploadCallRecordsRequest callRecordList = baseInfoExtractor.fetchCallRecordList(baseInfo);
-        //安装app
-        UploadAppsRequest installedAppRequest = baseInfoExtractor.fetchInstalledAppList(baseInfo);
 
         //判定用户是否可借[防止调用可接接口和推送基本新接口之间相隔很长时间]
         UsrUser searchInfo = new UsrUser();
@@ -371,20 +336,6 @@ public class BaseInfoService {
 //        contactUser.setOrderNo(orderResponse.getOrderNo());
 //        contactUser.setUserUuid(userUuid);
 //        usrBaseInfoService.addLinkManInfo(contactUser);
-        //记录抓取的数据
-        contactList.setOrderNo(orderResponse.getOrderNo());
-        contactList.setUserUuid(userUuid);
-        installedAppRequest.setOrderNo(orderResponse.getOrderNo());
-        installedAppRequest.setUserUuid(userUuid);
-        shortMsgList.setOrderNo(orderResponse.getOrderNo());
-        shortMsgList.setUserUuid(userUuid);
-        callRecordList.setOrderNo(orderResponse.getOrderNo());
-        callRecordList.setUserUuid(userUuid);
-        uploadInfoService.uploadContacts(contactList);
-        uploadInfoService.uploadApps(installedAppRequest);
-        uploadInfoService.uploadMsgs(shortMsgList);
-        uploadInfoService.uploadCallRecords(callRecordList);
-
     }
 
     /**

@@ -23,128 +23,129 @@ import java.util.List;
 @SuppressWarnings("restriction")
 public class UploadUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(UploadUtil.class);
+//    ahalim remark unused code
+//    private static final Logger logger = LoggerFactory.getLogger(UploadUtil.class);
+//
+//    private static final String uploadPath = "/imagedata/";
+//
+//     /**
+//      * ????????
+//      * @param request
+//      * @param
+//      * @return
+//      * @throws IOException
+//      */
+//     public static List<String> uploadFiles(HttpServletRequest request) throws IOException {
+//         List<String> arrs = new ArrayList<>();
+//         // ?????????????
+//         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+//                 request.getSession().getServletContext());
+//         // ?? request ???????,??????
+//         if (multipartResolver.isMultipart(request)) {
+//             // ??????request
+//             MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
 
-    private static final String uploadPath = "/imagedata/";
+//             // ??request???????
+//             Iterator<String> iter = multiRequest.getFileNames();
 
-    /**
-     * ????????
-     * @param request
-     * @param
-     * @return
-     * @throws IOException
-     */
-    public static List<String> uploadFiles(HttpServletRequest request) throws IOException {
-        List<String> arrs = new ArrayList<>();
-        // ?????????????
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
-                request.getSession().getServletContext());
-        // ?? request ???????,??????
-        if (multipartResolver.isMultipart(request)) {
-            // ??????request
-            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+//             while (iter.hasNext()) {
+//                 // ?????????????????????
+//                 int pre = (int) System.currentTimeMillis();
+//                 // ??????
+//                 MultipartFile file = multiRequest.getFile(iter.next());
+//                 if (file != null) {
+//                     //?????????????
+//                     String myFileName = file.getOriginalFilename();
+//                     //????????,??????????????????
+//                     if (myFileName.trim() != "") {
+//                         logger.info(myFileName);
+//                         //?????
+//                         String tempFileName = file.getOriginalFilename().substring(
+//                                 file.getOriginalFilename().lastIndexOf("."),
+//                                 file.getOriginalFilename().length());
+//                         String fileType = getFileType(tempFileName);
+//                         //??????????
+//                         String fileName = UUIDGenerateUtil.uuid() + tempFileName;
+//                         //??????
+//                         String path = uploadPath + fileType + fileName;
+//                         File localFile = new File(path);
+//                         if (!localFile.exists()) {
+//                             localFile.mkdirs();
+//                         }
+//                         file.transferTo(localFile);
+//                         logger.info("????????:" + path);
+//                         arrs.add(path);
+//                     }
+//                 }
+//                 //???????????
+//                 int finalTime = (int) System.currentTimeMillis();
 
-            // ??request???????
-            Iterator<String> iter = multiRequest.getFileNames();
+//                 logger.info("??{0}", file.getName() + "????{1}", String.valueOf(finalTime - pre));
+//                 break;
+//             }
+//         }
+//         return arrs;
+//     }
 
-            while (iter.hasNext()) {
-                // ?????????????????????
-                int pre = (int) System.currentTimeMillis();
-                // ??????
-                MultipartFile file = multiRequest.getFile(iter.next());
-                if (file != null) {
-                    //?????????????
-                    String myFileName = file.getOriginalFilename();
-                    //????????,??????????????????
-                    if (myFileName.trim() != "") {
-                        logger.info(myFileName);
-                        //?????
-                        String tempFileName = file.getOriginalFilename().substring(
-                                file.getOriginalFilename().lastIndexOf("."),
-                                file.getOriginalFilename().length());
-                        String fileType = getFileType(tempFileName);
-                        //??????????
-                        String fileName = UUIDGenerateUtil.uuid() + tempFileName;
-                        //??????
-                        String path = uploadPath + fileType + fileName;
-                        File localFile = new File(path);
-                        if (!localFile.exists()) {
-                            localFile.mkdirs();
-                        }
-                        file.transferTo(localFile);
-                        logger.info("????????:" + path);
-                        arrs.add(path);
-                    }
-                }
-                //???????????
-                int finalTime = (int) System.currentTimeMillis();
+//     /**
+//      * ???????????
+//      * @param suffix
+//      * @return
+//      */
+//     public static String getFileType(String suffix) {
+//         String fileType = "";
+//         suffix = suffix.substring(1, suffix.length());
+//         if (suffix.equals("png") || suffix.equals("jpg") || suffix.equals("jpeg")) {
+//             fileType = "image";
+//         } else if (suffix.equals("video")) {
+//             fileType = "video";
+//         } else if (suffix.equals("mp3")) {
+//             fileType = "mp3";
+//         } else if (suffix.equals("txt")) {
+//             fileType = "txt";
+//         } else {
+//             fileType = "other";
+//         }
+//         return "/" + fileType + "/";
+//     }
 
-                logger.info("??{0}", file.getName() + "????{1}", String.valueOf(finalTime - pre));
-                break;
-            }
-        }
-        return arrs;
-    }
+//     /**
+//      * ??????????Base64???????
+//      * 
+//      * @param imgStr
+//      * @return
+//      * @throws IOException
+//      */
+//     public static String generateImage(String imgStr, String uploadPath) throws IOException {
+//         String imgFilePath = null;
+//         String fileName = null;
+//         OutputStream out = null;
+//         if (imgStr == null) //??????
+//             return null;
+//         BASE64Decoder decoder = new BASE64Decoder();
+//         try {
+//             //Base64??
+//             byte[] b = decoder.decodeBuffer(imgStr);
+//             for (int i = 0; i < b.length; ++i) {
+//                 if (b[i] < 0) {//??????
+//                     b[i] += 256;
+//                 }
+//             }
+// //            DateUtils.dateToDay() + 
+//             fileName = UUIDGenerateUtil.uuid() + ".jpeg";
+//             //??jpeg??
+//             imgFilePath = uploadPath + fileName;//??????
+//             out = new FileOutputStream(imgFilePath);
+//             out.write(b);
+//             out.flush();
+//             return fileName;
+//         } finally {
+//             if (out != null) {
+//                 out.close();
+//             }
 
-    /**
-     * ???????????
-     * @param suffix
-     * @return
-     */
-    public static String getFileType(String suffix) {
-        String fileType = "";
-        suffix = suffix.substring(1, suffix.length());
-        if (suffix.equals("png") || suffix.equals("jpg") || suffix.equals("jpeg")) {
-            fileType = "image";
-        } else if (suffix.equals("video")) {
-            fileType = "video";
-        } else if (suffix.equals("mp3")) {
-            fileType = "mp3";
-        } else if (suffix.equals("txt")) {
-            fileType = "txt";
-        } else {
-            fileType = "other";
-        }
-        return "/" + fileType + "/";
-    }
-
-    /**
-     * ??????????Base64???????
-     * 
-     * @param imgStr
-     * @return
-     * @throws IOException
-     */
-    public static String generateImage(String imgStr, String uploadPath) throws IOException {
-        String imgFilePath = null;
-        String fileName = null;
-        OutputStream out = null;
-        if (imgStr == null) //??????
-            return null;
-        BASE64Decoder decoder = new BASE64Decoder();
-        try {
-            //Base64??
-            byte[] b = decoder.decodeBuffer(imgStr);
-            for (int i = 0; i < b.length; ++i) {
-                if (b[i] < 0) {//??????
-                    b[i] += 256;
-                }
-            }
-//            DateUtils.dateToDay() + 
-            fileName = UUIDGenerateUtil.uuid() + ".jpeg";
-            //??jpeg??
-            imgFilePath = uploadPath + fileName;//??????
-            out = new FileOutputStream(imgFilePath);
-            out.write(b);
-            out.flush();
-            return fileName;
-        } finally {
-            if (out != null) {
-                out.close();
-            }
-
-        }
-    }
+//         }
+//     }
 
 
 

@@ -1,5 +1,7 @@
 package com.yqg.service.externalChannel.service;
 
+import java.util.List;
+
 import com.yqg.common.enums.order.OrdStateEnum;
 import com.yqg.common.enums.order.OrdStepTypeEnum;
 import com.yqg.common.enums.user.CertificationEnum;
@@ -21,31 +23,33 @@ import com.yqg.service.externalChannel.transform.CheetahBaseInfoExtractor;
 import com.yqg.service.externalChannel.utils.CheetahResponseBuilder;
 import com.yqg.service.externalChannel.utils.CheetahResponseCode;
 import com.yqg.service.order.OrdService;
-import com.yqg.service.order.UploadInfoService;
 import com.yqg.service.order.request.OrdRequest;
-import com.yqg.service.order.request.UploadAppsRequest;
-import com.yqg.service.order.request.UploadCallRecordsRequest;
-import com.yqg.service.order.request.UploadMsgsRequest;
 import com.yqg.service.order.response.OrderOrderResponse;
-import com.yqg.service.user.request.*;
+import com.yqg.service.user.request.LinkManRequest;
+import com.yqg.service.user.request.SaveUserPhotoRequest;
+import com.yqg.service.user.request.UsrBankRequest;
+import com.yqg.service.user.request.UsrIdentityInfoRequest;
+import com.yqg.service.user.request.UsrRequst;
+import com.yqg.service.user.request.UsrRolesRequest;
+import com.yqg.service.user.request.UsrWorkBaseInfoRequest;
+import com.yqg.service.user.request.UsrWorkInfoRequest;
 import com.yqg.service.user.service.UserLinkManService;
 import com.yqg.service.user.service.UsrBankService;
 import com.yqg.service.user.service.UsrBaseInfoService;
 import com.yqg.service.user.service.UsrService;
 import com.yqg.system.dao.SysProductDao;
 import com.yqg.system.entity.SysProduct;
-import com.yqg.user.dao.UsrBankDao;
 import com.yqg.user.dao.UsrCertificationInfoDao;
 import com.yqg.user.entity.UsrBank;
 import com.yqg.user.entity.UsrCertificationInfo;
 import com.yqg.user.entity.UsrUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Author: tonggen
@@ -54,6 +58,8 @@ import java.util.List;
  */
 @Service
 @Slf4j
+// Used by CheetahBaseInfoController.java
+// API: /cash-loan/v1
 public class CheetahBaseInfoService {
 
     @Autowired
@@ -72,16 +78,10 @@ public class CheetahBaseInfoService {
     private UsrBaseInfoService usrBaseInfoService;
 
     @Autowired
-    private UploadInfoService uploadInfoService;
-
-    @Autowired
     private UsrCertificationInfoDao usrCertificationInfoDao;
 
     @Autowired
     private SysProductDao sysProductDao;
-
-    @Autowired
-    private UsrBankDao usrBankDao;
 
     @Autowired
     private UserLinkManService userLinkManService;
@@ -124,9 +124,6 @@ public class CheetahBaseInfoService {
                 .fetchUserIdentityInfo(baseInfo);
         UsrWorkBaseInfoRequest workerBaseInfo = baseInfoExtractor.fetchWorkBaseInfo(baseInfo);
         UsrWorkInfoRequest workerInfo = baseInfoExtractor.fetchWorkInfo(baseInfo);
-        UploadMsgsRequest shortMsgList = baseInfoExtractor.fetchMsgList(baseInfo);
-        UploadCallRecordsRequest callRecordList = baseInfoExtractor.fetchCallRecordList(baseInfo);
-        UploadAppsRequest installedAppRequest = baseInfoExtractor.fetchInstalledAppList(baseInfo);
 
         //判定用户是否可借[防止调用可接接口和推送基本新接口之间相隔很长时间]
         UsrUser searchInfo = new UsrUser();
@@ -238,17 +235,6 @@ public class CheetahBaseInfoService {
         //记录抓取的数据
 //        contactList.setOrderNo(orderResponse.getOrderNo());
 //        contactList.setUserUuid(userUuid);
-        installedAppRequest.setOrderNo(orderResponse.getOrderNo());
-        installedAppRequest.setUserUuid(userUuid);
-        shortMsgList.setOrderNo(orderResponse.getOrderNo());
-        shortMsgList.setUserUuid(userUuid);
-        callRecordList.setOrderNo(orderResponse.getOrderNo());
-        callRecordList.setUserUuid(userUuid);
-//        uploadInfoService.uploadContacts(contactList);
-        uploadInfoService.uploadApps(installedAppRequest);
-        uploadInfoService.uploadMsgs(shortMsgList);
-        uploadInfoService.uploadCallRecords(callRecordList);
-
         //保存联系人
         LinkManRequest linkManRequest = baseInfoExtractor.fetchContactUserInfo(baseInfo);
         linkManRequest.setOrderNo(orderResponse.getOrderNo());

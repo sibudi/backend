@@ -125,7 +125,6 @@ public class ManUserService {
         updateUser.setLastLoginTime(new Date());
         updateUser.setUuid(userInfo.getUuid());
         String ipAddr = GetIpAddressUtil.getIpAddr(request);
-        updateUser.setIpAddress(ipAddr);
         this.manUserDao.update(updateUser);
 
         ManSysLoginResponse response = new ManSysLoginResponse();

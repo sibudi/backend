@@ -1,27 +1,63 @@
 package com.yqg.service.order;
 
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.yqg.P2P.dao.P2PCreditRightInfoDao;
 import com.yqg.P2P.entity.P2PCreditRightInfo;
 import com.yqg.common.constants.RedisContants;
-import com.yqg.common.enums.order.*;
+import com.yqg.common.enums.order.BlackListTypeEnum;
+import com.yqg.common.enums.order.OrdBillStatusEnum;
+import com.yqg.common.enums.order.OrdLoanChannelEnum;
+import com.yqg.common.enums.order.OrdShowStateEnum;
+import com.yqg.common.enums.order.OrdStateEnum;
+import com.yqg.common.enums.order.OrdStepTypeEnum;
+import com.yqg.common.enums.order.OrderTypeEnum;
+import com.yqg.common.enums.order.PaymentFrequencyTypeEnum;
+import com.yqg.common.enums.order.paymentTypeEnum;
 import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.enums.user.UsrAddressEnum;
 import com.yqg.common.exceptions.ServiceException;
 import com.yqg.common.models.BaseRequest;
 import com.yqg.common.redis.RedisClient;
-import com.yqg.common.utils.*;
-import com.yqg.mongo.dao.UserWifiListDal;
-import com.yqg.mongo.entity.UserWifiListMongo;
-import com.yqg.order.dao.*;
-import com.yqg.order.entity.*;
+import com.yqg.common.utils.AddressUtils;
+import com.yqg.common.utils.DESUtils;
+import com.yqg.common.utils.DateUtils;
+import com.yqg.common.utils.OrderNoCreator;
+import com.yqg.common.utils.StringUtils;
+import com.yqg.common.utils.UUIDGenerateUtil;
+import com.yqg.order.dao.OrdBlackDao;
+import com.yqg.order.dao.OrdDao;
+import com.yqg.order.dao.OrdHistoryDao;
+import com.yqg.order.dao.OrdLoanAmoutRecordDao;
+import com.yqg.order.dao.OrdStepDao;
+import com.yqg.order.dao.OrderChangeHistoryDao;
+import com.yqg.order.entity.CouponRecord;
+import com.yqg.order.entity.ManOrderSecondLoanSpec;
+import com.yqg.order.entity.OrdBill;
+import com.yqg.order.entity.OrdBlack;
+import com.yqg.order.entity.OrdDeviceInfo;
+import com.yqg.order.entity.OrdHistory;
+import com.yqg.order.entity.OrdLoanAmoutRecord;
+import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdOrder.P2PLoanStatusEnum;
+import com.yqg.order.entity.OrdStep;
 import com.yqg.service.order.request.GetOrdRepayAmoutRequest;
+import com.yqg.service.order.request.GetOrderStatusRequest;
 import com.yqg.service.order.request.LoanConfirmRequest;
 import com.yqg.service.order.request.OrdRequest;
 import com.yqg.service.order.request.SaveOrderUserUuidRequest;
 import com.yqg.service.order.response.GetOrdRepayAmoutResponse;
 import com.yqg.service.order.response.OrderListResponse;
 import com.yqg.service.order.response.OrderOrderResponse;
+import com.yqg.service.order.response.OrderStatusResponse;
 import com.yqg.service.order.response.PaymentProofResponse;
 import com.yqg.service.pay.RepayService;
 import com.yqg.service.system.service.CouponService;
@@ -30,17 +66,23 @@ import com.yqg.service.user.service.UsrCertificationService;
 import com.yqg.service.user.service.UsrService;
 import com.yqg.system.dao.SysProductDao;
 import com.yqg.system.entity.SysProduct;
-import com.yqg.user.dao.*;
-import com.yqg.user.entity.*;
-import lombok.extern.slf4j.Slf4j;
+import com.yqg.user.dao.LoanUserDao;
+import com.yqg.user.dao.P2PUserDao;
+import com.yqg.user.dao.UsrAddressDetailDao;
+import com.yqg.user.dao.UsrBankDao;
+import com.yqg.user.dao.UsrDao;
+import com.yqg.user.entity.LoanUser;
+import com.yqg.user.entity.P2PUser;
+import com.yqg.user.entity.UsrAddressDetail;
+import com.yqg.user.entity.UsrBank;
+import com.yqg.user.entity.UsrUser;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -67,9 +109,6 @@ public class OrdService {
 
     @Autowired
     private OrdStepDao ordStepDao;
-
-    @Autowired
-    private UserWifiListDal userWifiListDal;
 
     @Autowired
     private OrdBlackDao ordBlackDao;
@@ -125,6 +164,11 @@ public class OrdService {
 
        // throw new ServiceException(ExceptionEnum.ORDER_CAN_NOT_COMMIT);
         // ???????????
+
+        if("".equals(orderRequest.getUserUuid())){
+            throw new ServiceException(ExceptionEnum.SESSION_UN_LOGIN);
+        }
+
         String lockKey = "toOrder" + orderRequest.getUserUuid();
         if (!redisClient.lockRepeatWithSeconds(lockKey, 60)) {
             log.error("???????");
@@ -427,64 +471,35 @@ public class OrdService {
     public void addUserMobileDeviceInfo(OrdRequest request, String orderNo){
 
         OrdDeviceInfo mobileDeviceInfo = new OrdDeviceInfo();
-        mobileDeviceInfo.setDeviceType(request.getDeviceType());
-        mobileDeviceInfo.setDeviceName(request.getDeviceName());
+        mobileDeviceInfo.setDeviceType("");
+        mobileDeviceInfo.setDeviceName("");
         mobileDeviceInfo.setDeviceId("");
-        mobileDeviceInfo.setSystemVersion(request.getSystem_version());
-        mobileDeviceInfo.setPhoneBrand(request.getPhoneBrand());
-        mobileDeviceInfo.setTotalMemory(request.getTotalMemory());
-        mobileDeviceInfo.setRemainMemory(request.getRemainMemory());
-        mobileDeviceInfo.setTotalSpace(request.getTotalSpace());
-        mobileDeviceInfo.setRemainSpace(request.getRemainSpace());
+        mobileDeviceInfo.setSystemVersion("");
+        mobileDeviceInfo.setPhoneBrand("");
+        mobileDeviceInfo.setTotalMemory("");
+        mobileDeviceInfo.setRemainMemory("");
+        mobileDeviceInfo.setTotalSpace("");
+        mobileDeviceInfo.setRemainSpace("");
         mobileDeviceInfo.setIMEI("");
         mobileDeviceInfo.setIMSI("");
-        mobileDeviceInfo.setSimNo(request.getSimNumber());
-        mobileDeviceInfo.setCpuType(request.getCpuType());
+        mobileDeviceInfo.setSimNo("");
+        mobileDeviceInfo.setCpuType("");
         mobileDeviceInfo.setOrderNo(orderNo);
         mobileDeviceInfo.setUserUuid(request.getUserUuid());
 
-        mobileDeviceInfo.setLastPowerOnTime(request.getLastPowerOnTime());
-        mobileDeviceInfo.setDNS(request.getDnsStr());
-        mobileDeviceInfo.setIsRoot(request.getIsRoot());
-        mobileDeviceInfo.setNetType(request.getNet_type());
-        mobileDeviceInfo.setMemoryCardCapacity(request.getMemoryCardCapacity());
-//        mobileDeviceInfo.setWifiList(request.getWifiList());
-        mobileDeviceInfo.setMacAddress(request.getMac());
-        mobileDeviceInfo.setMobileLanguage(request.getMobileLanguage());
-        mobileDeviceInfo.setIPAddress(request.getIPAdress());
-        mobileDeviceInfo.setIsSimulator(request.getIsSimulator());
-        mobileDeviceInfo.setBattery(request.getBattery());
-        mobileDeviceInfo.setPictureNumber(request.getPictureNumber());
-        mobileDeviceInfo.setAndroidId(request.getAndroidId());
+        mobileDeviceInfo.setLastPowerOnTime("");
+        mobileDeviceInfo.setDNS("");
+        mobileDeviceInfo.setIsRoot("");
+        mobileDeviceInfo.setNetType("");
+        mobileDeviceInfo.setMemoryCardCapacity("");
+        mobileDeviceInfo.setMacAddress("");
+        mobileDeviceInfo.setMobileLanguage("");
+        mobileDeviceInfo.setIPAddress("");
+        mobileDeviceInfo.setIsSimulator("");
+        mobileDeviceInfo.setBattery("");
+        mobileDeviceInfo.setPictureNumber("");
+        mobileDeviceInfo.setAndroidId("");
         this.mobileDeviceInfoService.saveMobileDeviceInfo(mobileDeviceInfo);
-
-        if (!StringUtils.isEmpty(request.getWifiList())){
-
-            // wifiList?? ???mongo
-            UserWifiListMongo mongo = new UserWifiListMongo();
-            mongo.setUserUuid(request.getUserUuid());
-            mongo.setDisabled(0);
-            mongo.setOrderNo(orderNo);
-
-                // ??
-            List<UserWifiListMongo> scanList = userWifiListDal.find(mongo);
-            if (CollectionUtils.isEmpty(scanList)){
-
-                mongo.setData(request.getWifiList());
-                mongo.setUpdateTime(new Date());
-                mongo.setCreateTime(new Date());
-                mongo.setUuid(UUIDGenerateUtil.uuid());
-                userWifiListDal.insert(mongo);
-            }else {
-
-                // ???mongo
-                UserWifiListMongo wifiListMongo = scanList.get(0);
-                wifiListMongo.setUpdateTime(new Date());
-                wifiListMongo.setData(request.getWifiList());
-                userWifiListDal.updateById(wifiListMongo);
-            }
-        }
-
     }
 
     /**
@@ -509,6 +524,30 @@ public class OrdService {
             orderObj.setOrderStatusMsg(map.get(VALUE));
             orderResponse.add(orderObj);
         }
+        return orderResponse;
+    }
+
+    /**
+     * budi
+     * @param request
+     */
+    public OrderStatusResponse getOrderStatus(GetOrderStatusRequest request) throws ServiceException {
+        OrdOrder orders = orderDao.getOrderByOrderNo(request.getOrderNo());
+        OrderStatusResponse orderResponse = new OrderStatusResponse();
+        if (orders != null) {
+            orderResponse.setOrderStep(orders.getOrderStep().toString());
+            orderResponse.setOrderNo(orders.getUuid());
+            orderResponse.setAmountApply(StringUtils.formatMoney(orders.getAmountApply().doubleValue()).replaceAll(",",".").toString());
+            // orderObj.setBorrowingTerm(item.getBorrowingTerm().toString());
+            orderResponse.setBorrowingTerm(getProductTotalPeriodToDays(orders.getProductUuid()).toString());
+            Map<String,String> map = boxShowOrderStatus(orders.getStatus());
+            orderResponse.setApplyTime(DateUtils.DateToString2(orders.getApplyTime()));
+            orderResponse.setOrderStatus(map.get(KEY));
+            orderResponse.setOrderStatusMsg(map.get(VALUE));
+            
+            return orderResponse;
+        }
+
         return orderResponse;
     }
 

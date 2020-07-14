@@ -30,7 +30,6 @@ import com.yqg.service.third.izi.response.IziResponse;
 import com.yqg.service.third.jxl.JXLService;
 import com.yqg.service.third.jxl.response.JXLBaseResponse;
 import com.yqg.service.third.jxl.response.JXLBaseResponse.IdentityVerifyData;
-import com.yqg.service.third.yitu.FileHelper;
 import com.yqg.service.third.yitu.YiTuService;
 import com.yqg.service.user.model.*;
 import com.yqg.service.user.request.*;
@@ -60,6 +59,8 @@ import java.util.stream.Collectors;
 public class UsrBaseInfoService {
     @Autowired
     private UsrDao usrDao;
+    @Autowired
+    private UserAttachmentInfoService userAttachmentInfoService;
     @Autowired
     private UsrAttachmentInfoDao usrAttachmentInfoDao;
     @Autowired
@@ -133,7 +134,7 @@ public class UsrBaseInfoService {
         usrUser.setStatus(1);
         List<UsrUser> userList =  this.usrDao.scan(usrUser);
         if (userList.isEmpty()){
-            log.error("?????");
+            log.error("rolesChoose - Pengguna tidak terdaftar");
             throw new ServiceException(ExceptionEnum.USER_NOT_FOUND);
         }
         // ?????0???????????????
@@ -259,7 +260,8 @@ public class UsrBaseInfoService {
         List<OrdOrder> ordList = orderDao.getLatestOrder(identityInfoRequest.getUserUuid());
         String orderNo = CollectionUtils.isEmpty(ordList) ? "" : ordList.get(0).getUuid();
         //izi realName verification
-        userVerifyResultService.initVerifyResult(orderNo,identityInfoRequest.getUserUuid(), UsrVerifyResult.VerifyTypeEnum.IZI_REAL_NAME);
+        // budi: disable izy check nama & ktp
+        /*userVerifyResultService.initVerifyResult(orderNo,identityInfoRequest.getUserUuid(), UsrVerifyResult.VerifyTypeEnum.IZI_REAL_NAME);
         IziResponse iziResponse = iziService.getIdentityCheck3(identityInfoRequest.getName(), identityInfoRequest.getIdCardNo(), orderNo,
                 identityInfoRequest.getUserUuid());
         boolean match = false;
@@ -289,7 +291,7 @@ public class UsrBaseInfoService {
             }
             userVerifyResultService.updateVerifyResult(orderNo, identityInfoRequest.getUserUuid(), jxlBaseResponse == null ? null : JsonUtils.serialize(jxlBaseResponse),
                     jxlMatch ? UsrVerifyResult.VerifyResultEnum.SUCCESS : UsrVerifyResult.VerifyResultEnum.FAILED, UsrVerifyResult.VerifyTypeEnum.KTP);
-        }
+        }*/
         return true;
     }
 
@@ -353,7 +355,7 @@ public class UsrBaseInfoService {
     }
 
     /**
-     * checkQualityOrNot true是质检订单查询 （查询被删除掉的图片url）
+     * checkQualityOrNot true is the quality inspection order query (query the deleted image url)
      * @param userUuid
      * @return
      */
@@ -370,11 +372,11 @@ public class UsrBaseInfoService {
             usrIdentityModel.setIdCardNo(usrUser.getIdCardNo());
             usrIdentityModel.setSex(usrUser.getSex());
 
-            //如果是审核质检， 先查询是否有删除的数据
             boolean idCardFlag = false;
             UsrAttachmentInfo usrAttachmentInfo;
             if (checkQualityOrNot) {
-                usrAttachmentInfo = getUsrAttachmentInfo(userUuid, UsrAttachmentEnum.ID_CARD.getType());
+                //If it is an audit quality inspection, first check whether there is deleted data
+                usrAttachmentInfo = getDisabledUsrAttachmentInfo(userUuid, UsrAttachmentEnum.ID_CARD.getType());
                 if (usrAttachmentInfo != null) {
                     usrIdentityModel.setIdCardUrl(setUsrAttachmentUrl(usrAttachmentInfo));
                     idCardFlag = true;
@@ -394,12 +396,14 @@ public class UsrBaseInfoService {
             boolean handIdFlag = false;
             UsrAttachmentInfo usrAttachmentInfo1;
             if (checkQualityOrNot) {
-                usrAttachmentInfo1 = getUsrAttachmentInfo(userUuid, UsrAttachmentEnum.SELFIE.getType());
+                //If it is an audit quality inspection, first check whether there is deleted data
+                usrAttachmentInfo1 = getDisabledUsrAttachmentInfo(userUuid, UsrAttachmentEnum.SELFIE.getType());
                 if (usrAttachmentInfo1 != null) {
                     usrIdentityModel.setHandIdCardUrl(setUsrAttachmentUrl(usrAttachmentInfo1));
                     handIdFlag = true;
                 } else {
-                    usrAttachmentInfo1 = getUsrAttachmentInfo(userUuid, UsrAttachmentEnum.HAND_ID_CARD.getType());
+                    //If it is an audit quality inspection, first check whether there is deleted data
+                    usrAttachmentInfo1 = getDisabledUsrAttachmentInfo(userUuid, UsrAttachmentEnum.HAND_ID_CARD.getType());
                     if (usrAttachmentInfo1 != null) {
                         usrIdentityModel.setHandIdCardUrl(setUsrAttachmentUrl(usrAttachmentInfo1));
                         handIdFlag = true;
@@ -440,15 +444,19 @@ public class UsrBaseInfoService {
     }
 
     /**
-     * 得到完整访问图片的路径
+     * Get full access to pictures via:
+     * 1. showStreamOnBrowser (imagePath)
+     * 2. usrAttachmentInfo attachmentUrl
      * @param usrAttachmentInfo
      * @return
      */
     public String setUsrAttachmentUrl(UsrAttachmentInfo usrAttachmentInfo) {
         if (!isCashCash(usrAttachmentInfo.getAttachmentUrl())) {
+            log.info("Set attachment url via showStreamOnBrowser");
             return this.imagePath + ImageUtil.encryptUrl(usrAttachmentInfo.getAttachmentSavePath()) + "&sessionId="
                     + LoginSysUserInfoHolder.getUsrSessionId();
         } else {
+            log.info("Set attachment url via attachmentUrl");
             return usrAttachmentInfo.getAttachmentUrl();
         }
     }
@@ -463,10 +471,10 @@ public class UsrBaseInfoService {
         }
         return false;
     }
-    private UsrAttachmentInfo getUsrAttachmentInfo (String userUuid, Integer userAttachmentType) {
+    private UsrAttachmentInfo getDisabledUsrAttachmentInfo(String userUuid, Integer userAttachmentType) {
 
         List<UsrAttachmentInfo> usrAttachmentInfoList = this.usrAttachmentInfoDao
-                .getUsrAttachmentInfo(userUuid, userAttachmentType);
+                .getDisabledUsrAttachmentInfo(userUuid, userAttachmentType);
         if (!usrAttachmentInfoList.isEmpty()){
             return usrAttachmentInfoList.get(0);
         }
@@ -480,14 +488,20 @@ public class UsrBaseInfoService {
      */
     public void checkOrderStep(String orderNo,int orderStep) throws ServiceException{
 
+        if(!StringUtils.isEmpty(orderNo)){
         OrdOrder orderOrder = new OrdOrder();
         orderOrder.setDisabled(0);
         orderOrder.setStatus(OrdStateEnum.SUBMITTING.getCode());
         orderOrder.setUuid(orderNo);
         List<OrdOrder> orderList = this.orderDao.scan(orderOrder);
         if (orderList.isEmpty()){
-            log.error("????????");
+            log.error("checkOrderStep - permohonan tidak sedang dalam proses");
             throw new ServiceException(ExceptionEnum.ORDER_IS_NOT_APPLYING);
+        }
+    }
+        else {
+            log.error("parameter orderNo is empty");
+            throw new ServiceException(ExceptionEnum.ORDER_NOT_FOUND);
         }
     }
 
@@ -540,7 +554,7 @@ public class UsrBaseInfoService {
             this.addAttachments(attachmentModel);
         }
 
-        // 测试依图比对
+        // Test by image comparison
         Long startTime = System.currentTimeMillis();
         UsrAttachmentInfo search = new UsrAttachmentInfo();
         search.setDisabled(0);
@@ -556,21 +570,23 @@ public class UsrBaseInfoService {
 
         if (!CollectionUtils.isEmpty(infoList) && !CollectionUtils.isEmpty(infoList2)) {
 
-            // 身份证正面照
             UsrAttachmentInfo idInfo = infoList.get(0);
             String userIdenIconUrl = idInfo.getAttachmentSavePath();
-            log.info("用户身份证正面照片地址为:"+userIdenIconUrl);
-            String userIdenContent = FileHelper.getImageBase64Content(userIdenIconUrl);
-
-            // 自拍照
+            log.info("User's ID Card url: "+userIdenIconUrl);
+            //ahalim: use userAttachmentInfoService instead
+            //String userIdenContent = FileHelper.getImageBase64Content(userIdenIconUrl);
+            String userIdenContent = userAttachmentInfoService.getBase64AttachmentStream(userIdenIconUrl);
+                    
             UsrAttachmentInfo selInfo = infoList2.get(0);
             String selIconUrl = selInfo.getAttachmentSavePath();
-            log.info("用户自拍照地址为:"+selIconUrl);
-            String selIconContent = FileHelper.getImageBase64Content(selIconUrl);
-
+            log.info("User's selfie url: "+selIconUrl);
+            //ahalim: use userAttachmentInfoService instead
+            //String selIconContent = FileHelper.getImageBase64Content(selIconUrl);
+            String selIconContent = userAttachmentInfoService.getBase64AttachmentStream(selIconUrl);
+                    
             this.yiTuService.verifyFacePackage(userIdenContent,
                     selIconContent, identityInfoRequest.getOrderNo(), identityInfoRequest.getUserUuid(), identityInfoRequest.getSessionId());
-            log.info("实名认证耗时:{}",System.currentTimeMillis() - startTime);
+            log.info("Duration of image verification: {}",System.currentTimeMillis() - startTime);
         }
 
 //      更新订单步骤
@@ -753,7 +769,9 @@ public class UsrBaseInfoService {
         attachmentModel.setAttachmentType(UsrAttachmentEnum.INSURANCE_CARD.getType());
         List<UsrAttachmentInfo> usrAttachmentInfoList = this.getAttachment(attachmentModel);
         if (!usrAttachmentInfoList.isEmpty()){
-            houseWifeInfoResponse.setInsuranceCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
+            //houseWifeInfoResponse.setInsuranceCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
+            //ahalim: get url from local/oss if available
+            houseWifeInfoResponse.setInsuranceCardPhoto(setUsrAttachmentUrl(usrAttachmentInfoList.get(0)));
         }
         return houseWifeInfoResponse;
     }
@@ -848,14 +866,19 @@ public class UsrBaseInfoService {
         attachmentModel.setAttachmentType(UsrAttachmentEnum.INSURANCE_CARD.getType());
         List<UsrAttachmentInfo> usrAttachmentInfoList = this.getAttachment(attachmentModel);
         if (!usrAttachmentInfoList.isEmpty()){
-            usrWorkBaseInfoModel.setInsuranceCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
+            //usrWorkBaseInfoModel.setInsuranceCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
+            //ahalim: get url from local/oss if available
+            usrWorkBaseInfoModel.setInsuranceCardPhoto(setUsrAttachmentUrl(usrAttachmentInfoList.get(0)));
+        
         }
 
 
         attachmentModel.setAttachmentType(UsrAttachmentEnum.KK.getType());
         List<UsrAttachmentInfo> usrAttachmentInfoList2 = this.getAttachment(attachmentModel);
         if (!usrAttachmentInfoList2.isEmpty()){
-            usrWorkBaseInfoModel.setKkCardPhoto(usrAttachmentInfoList2.get(0).getAttachmentUrl());
+            //usrWorkBaseInfoModel.setKkCardPhoto(usrAttachmentInfoList2.get(0).getAttachmentUrl());
+            //ahalim: get url from local/oss if available
+            usrWorkBaseInfoModel.setKkCardPhoto(setUsrAttachmentUrl(usrAttachmentInfoList2.get(0)));
         }
 
 
@@ -1226,12 +1249,16 @@ public class UsrBaseInfoService {
         attachmentModel.setAttachmentType(UsrAttachmentEnum.INSURANCE_CARD.getType());
         List<UsrAttachmentInfo> usrAttachmentInfoList = this.getAttachment(attachmentModel);
         if (!usrAttachmentInfoList.isEmpty()){
-            usrWorkBaseInfoModel.setInsuranceCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
-        }
+            //usrWorkBaseInfoModel.setInsuranceCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
+            //ahalim: get url from local/oss if available
+            usrWorkBaseInfoModel.setInsuranceCardPhoto(setUsrAttachmentUrl(usrAttachmentInfoList.get(0)));
+    }
         attachmentModel.setAttachmentType(UsrAttachmentEnum.KK.getType());
         List<UsrAttachmentInfo> usrAttachmentInfoList2 = this.getAttachment(attachmentModel);
         if (!usrAttachmentInfoList2.isEmpty()){
-            usrWorkBaseInfoModel.setKkCardPhoto(usrAttachmentInfoList2.get(0).getAttachmentUrl());
+            //usrWorkBaseInfoModel.setKkCardPhoto(usrAttachmentInfoList2.get(0).getAttachmentUrl());
+            //ahalim: get url from local/oss if available
+            usrWorkBaseInfoModel.setKkCardPhoto(setUsrAttachmentUrl(usrAttachmentInfoList2.get(0)));
         }
 
         if (usrWorkDetailList.isEmpty() && usrAddressDetailList.isEmpty() && usrBirthAddressDetailList.isEmpty()){
@@ -1619,7 +1646,9 @@ public class UsrBaseInfoService {
         attachmentModel.setAttachmentType(UsrAttachmentEnum.KK.getType());
         List<UsrAttachmentInfo> usrAttachmentInfoList = this.getAttachment(attachmentModel);
         if (!usrAttachmentInfoList.isEmpty()){
-            usrStudentBaseInfoModel.setKkCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
+            //usrStudentBaseInfoModel.setKkCardPhoto(usrAttachmentInfoList.get(0).getAttachmentUrl());
+            //ahalim: get url from local/oss if available
+            usrStudentBaseInfoModel.setKkCardPhoto(setUsrAttachmentUrl(usrAttachmentInfoList.get(0)));
         }
 
         if (usrStudentDetailList.isEmpty() && list.isEmpty()&& birthAddressList.isEmpty()){
@@ -1638,7 +1667,7 @@ public class UsrBaseInfoService {
 //        UsrLinkManInfo usrLinkManInfo = new UsrLinkManInfo();
 //        usrLinkManInfo.setUserUuid(userUuid);
 //        usrLinkManInfo.setDisabled(0);
-        List<UsrLinkManInfo> linkManInfoList = this.usrLinkManDao.getUserContactWithUserUuid(userUuid);
+        List<UsrLinkManInfo> linkManInfoList = this.usrLinkManDao.getUsrLinkManWithUserUuid(userUuid);
         if (!linkManInfoList.isEmpty()){
             for (UsrLinkManInfo usrLinkManInfo1 :linkManInfoList){
                 if (usrLinkManInfo1.getSequence() == 1){

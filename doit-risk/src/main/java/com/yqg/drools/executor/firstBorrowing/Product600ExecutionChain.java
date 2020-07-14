@@ -117,7 +117,7 @@ public class Product600ExecutionChain extends BaseExecutionChain implements Init
             return BaseExecutionChain.DEFAULT_PASS_RESULT;
         } else {
             ruleResultService.disabledOrdBlackWithRemark(order.getUuid(), RuleConstants.REJECT_REASON_NOT_NON_MANUAL);
-            return BaseExecutionChain.DEFAULT_REJECT_RESULT;
+            return BaseExecutionChain.DEFAULT_PASS_RESULT;
         }
 
     }

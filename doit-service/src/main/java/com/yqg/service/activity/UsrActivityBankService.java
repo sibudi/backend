@@ -225,7 +225,8 @@ public class UsrActivityBankService {
         entity.setActualRepayAmout(payAmout);
         entity.setInterest(order.getInterest()+"");
         //Overdue service fee regardless overdue date
-        entity.setOverDueFee(this.repayService.calculateOverDueFee(order));
+        //entity.setOverDueFee(this.repayService.calculateOverDueFee(order));
+        entity.setOverDueFee("0");
         //Actual overdue fee based on overdue date, without limit??? todo:ahalim
         entity.setPenaltyFee(this.repayService.calculatePenaltyFee(order));
         entity.setAmountApply(order.getAmountApply().toString());

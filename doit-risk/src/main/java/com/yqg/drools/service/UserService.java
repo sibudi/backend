@@ -238,6 +238,13 @@ public class UserService {
         return formatNumbers;
     }
 
+    /**
+     * Currently this method is only used to check attachment existannce
+     * Called by:
+     * 1. IdentityExtractor.java
+     * 2. LoanLimitDecreaseExtractor.java
+     * 3. ReborrowingIdentityExtractor.java
+     */
     public UsrAttachmentInfo getAttachmentInfo(UsrAttachmentEnum attachmentType,String userUUID){
         UsrAttachmentInfo searchInfo = new UsrAttachmentInfo();
         searchInfo.setUserUuid(userUUID);

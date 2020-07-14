@@ -12,7 +12,6 @@ import com.yqg.order.dao.OrdBillDao;
 import com.yqg.order.dao.OrdDao;
 import com.yqg.order.dao.OrdDelayRecordDao;
 import com.yqg.order.entity.OrdBill;
-import com.yqg.order.entity.OrdDelayRecord;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdOrder.P2PLoanStatusEnum;
 import com.yqg.service.loan.request.RepayPlan;
@@ -38,7 +37,6 @@ import com.yqg.system.dao.SysBankDao;
 import com.yqg.system.dao.SysProductDao;
 import com.yqg.system.entity.SysBankBasicInfo;
 import com.yqg.system.entity.SysProduct;
-import com.yqg.task.entity.AsyncTaskInfoEntity;
 import com.yqg.user.dao.*;
 import com.yqg.user.entity.*;
 import lombok.extern.slf4j.Slf4j;
@@ -438,11 +436,13 @@ public class P2PService {
         OrdOrder.P2PLoanStatusEnum loanStatus = P2PLoanStatusEnum.getEnumFromValue(status);
         switch (loanStatus) {
             case ISSUING: //放款中
-                // budi: ganti flow 5 -> (asyncTaskInfo -> 20) -> 6, dulu dari 5 langsung ke 6
+                // budi: ganti flow: 5 -> (asyncTaskInfo -> 20) -> 6, dulu dari 5 langsung ke 6
+                // budi: ganti flow: lolos asyncTaskInfo digisign (register & activation only) -> 5 -> lender sign -> 20 -> 6
                 if(contractSignService.isDigitalSignSwitchOpen(order)) {
-                    if (!order.getMarkStatus().equals(status)) {
-                        asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
-                        log.info("insert order {} to asyncTaskInfo", order.getUuid());
+                    if (order.getMarkStatus().equals(P2PLoanStatusEnum.FUNDING.getStatusCode()) && order.getStatus().equals(OrdStateEnum.LOANING.getCode())) {
+                        //asyncTaskService.addTask(order, AsyncTaskInfoEntity.TaskTypeEnum.CONTRACT_SIGN_TASK);
+                        updateOrderStatusAndAddOrderHistory(order, OrdStateEnum.WAITING_SIGN_CONTRACT, status);
+                        log.info("borrower for orderNo: {} already register & activation", order.getUuid());
                     }
                     else{
                         log.info("status order markStatus != status, order {}, status: {}, markstatus {}", 

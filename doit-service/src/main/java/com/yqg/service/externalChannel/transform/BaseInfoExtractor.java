@@ -1,9 +1,18 @@
 package com.yqg.service.externalChannel.transform;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.yqg.common.enums.user.UserSourceEnum;
-import com.yqg.common.enums.user.UsrAddressEnum;
 import com.yqg.common.enums.user.UsrAttachmentEnum;
-import com.yqg.common.utils.*;
+import com.yqg.common.utils.CheakTeleUtils;
+import com.yqg.common.utils.DateUtils;
+import com.yqg.common.utils.JsonUtils;
+import com.yqg.common.utils.StringUtils;
 import com.yqg.service.externalChannel.request.Cash2BaseInfo;
 import com.yqg.service.externalChannel.request.Cash2BaseInfo.ApplyDetail;
 import com.yqg.service.externalChannel.request.Cash2BaseInfo.Cash2UserType;
@@ -11,9 +20,10 @@ import com.yqg.service.externalChannel.request.Cash2BaseInfo.EducationEnum;
 import com.yqg.service.externalChannel.request.Cash2BaseInfo.LoanPurpose;
 import com.yqg.service.externalChannel.request.Cash2BaseInfo.OrderInfo;
 import com.yqg.service.externalChannel.request.Cash2BaseInfo.ReligionEnum;
-import com.yqg.service.order.request.*;
-import com.yqg.service.third.upload.UploadService;
-import com.yqg.service.third.upload.response.UploadResultInfo;
+import com.yqg.service.order.request.OrdRequest;
+import com.yqg.service.order.request.UploadAppsRequest;
+import com.yqg.service.order.request.UploadContactRequest;
+import com.yqg.service.order.request.UploadMsgsRequest;
 import com.yqg.service.user.request.SaveUserPhotoRequest;
 import com.yqg.service.user.request.UsrContactInfoRequest;
 import com.yqg.service.user.request.UsrIdentityInfoRequest;
@@ -26,14 +36,11 @@ import com.yqg.service.user.request.UsrWorkBaseInfoRequest;
 import com.yqg.service.user.request.UsrWorkInfoRequest;
 import com.yqg.user.entity.UsrAttachmentInfo;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import sun.rmi.runtime.Log;
+
+import lombok.extern.slf4j.Slf4j;
 
 /*****
  * @Author zengxiangcai
@@ -43,6 +50,8 @@ import sun.rmi.runtime.Log;
  ****/
 @Slf4j
 @Service
+// Used by BaseInfoService.java -> which used by Cash2BaseInfoController.java 
+// API: /external/cash2/baseInfo
 public class BaseInfoExtractor {
 
     @Autowired
@@ -90,11 +99,11 @@ public class BaseInfoExtractor {
 
             if (baseInfo.getAddInfo() != null && baseInfo.getAddInfo().getDeviceInfo() != null) {
                 Cash2BaseInfo.DeviceInfo deviceInfo = baseInfo.getAddInfo().getDeviceInfo();
-                userRequest.setDeviceId(deviceInfo.getDeviceId());
-                userRequest.setMac(deviceInfo.getMac());
-                userRequest.setIPAdress(deviceInfo.getIp());
-                userRequest.setNet_type(deviceInfo.getNetworkType());
-                userRequest.setSystem_version(deviceInfo.getSystemVersion());
+                userRequest.setDeviceId("");
+                userRequest.setMac("");
+                userRequest.setIPAdress("");
+                userRequest.setNet_type("");
+                userRequest.setSystem_version("");
                 userRequest.setLbsX(
                         deviceInfo.getLongitude() == null ? null
                                 : deviceInfo.getLongitude().toString());
@@ -134,21 +143,18 @@ public class BaseInfoExtractor {
                             deviceInfo.getLatitude() == null ? null : deviceInfo.getLatitude().toString());
 
 
-            ordRequest.setDeviceName(deviceInfo.getDeviceName());
-            ordRequest.setDeviceId(deviceInfo.getDeviceId());
+            ordRequest.setDeviceName("");
+            ordRequest.setDeviceId("");
             ordRequest.setSystem_version(deviceInfo.getSystemVersion());
-            ordRequest.setPhoneBrand(deviceInfo.getDeviceModel());
-            ordRequest.setSystem_version(deviceInfo.getSystemVersion());
-            ordRequest.setSystem_version(deviceInfo.getSystemVersion());
-            ordRequest.setSystem_version(deviceInfo.getSystemVersion());
-            ordRequest.setSystem_version(deviceInfo.getSystemVersion());
-            ordRequest.setTotalMemory(deviceInfo.getMemorySize());
-            ordRequest.setRemainMemory(deviceInfo.getRemainingMemory());//剩余内存
-            ordRequest.setTotalSpace(deviceInfo.getInternalStorageTotal());
-            ordRequest.setRemainSpace(deviceInfo.getInternalStorageUsable());
+            ordRequest.setPhoneBrand("");
+            ordRequest.setSystem_version("");
+            ordRequest.setTotalMemory("");
+            ordRequest.setRemainMemory("");//剩余内存
+            ordRequest.setTotalSpace("");
+            ordRequest.setRemainSpace("");
             ordRequest.setIMEI(deviceInfo.getImei());
-            ordRequest.setIMSI(deviceInfo.getImsi());
-            ordRequest.setCpuType(deviceInfo.getCpuType());
+            ordRequest.setIMSI("");
+            ordRequest.setCpuType("");
             // 格式化处理，传过来的是秒
             try {
                 if (StringUtils.isNotEmpty(deviceInfo.getLastPowerOnTime())) {
@@ -157,31 +163,20 @@ public class BaseInfoExtractor {
                     ordRequest.setLastPowerOnTime(DateUtils.formDate(d1, DateUtils.FMT_YYYY_MM_DD_HH_mm_ss));
                 }
             } catch (Exception e) {
-                ordRequest.setLastPowerOnTime(deviceInfo.getLastPowerOnTime());
+                ordRequest.setLastPowerOnTime("");
             }
 
-            ordRequest.setDnsStr(deviceInfo.getDns());
-            ordRequest.setIsRoot(String.valueOf(deviceInfo.getRootJailBreak()));
-            ordRequest.setNet_type(deviceInfo.getNetworkType());
-            ordRequest.setMemoryCardCapacity(deviceInfo.getMemoryCardSize());
-            ordRequest.setMac(deviceInfo.getMac());
-            ordRequest.setMobileLanguage(deviceInfo.getLanguage());
+            ordRequest.setDnsStr("");
+            ordRequest.setIsRoot("");
+            ordRequest.setNet_type("");
+            ordRequest.setMemoryCardCapacity("");
+            ordRequest.setMac("");
+            ordRequest.setMobileLanguage("");
 
-            ordRequest.setIPAdress(deviceInfo.getIp());
-            ordRequest.setIsSimulator(String.valueOf(deviceInfo.getSimulator()));
-            ordRequest.setBattery(deviceInfo.getBattery());
-            ordRequest.setPictureNumber(String.valueOf(deviceInfo.getImageNum()));
-            if (!CollectionUtils.isEmpty(deviceInfo.getWifiDataList())) {
-                //转为需要的格式
-                List<Map<String, String>> wifiList = deviceInfo.getWifiDataList().stream()
-                        .map(elem -> {
-                            Map<String, String> wifiData = new HashMap<>();
-                            wifiData.put("BSSID", elem.getMac());
-                            wifiData.put("SSID", elem.getName());
-                            return wifiData;
-                        }).collect(Collectors.toList());
-                ordRequest.setWifiList(JsonUtils.serialize(wifiList));
-            }
+            ordRequest.setIPAdress("");
+            ordRequest.setIsSimulator("");
+            ordRequest.setBattery("");
+            ordRequest.setPictureNumber("");
 
             return ordRequest;
         } catch (Exception e) {
@@ -437,122 +432,6 @@ public class BaseInfoExtractor {
         //暂无相关数据
         return attachmentList;
     }
-
-    /***
-     * 获取手机通讯录
-     * @param baseInfo
-     * @return
-     */
-    public UploadContactRequest fetchContactList(Cash2BaseInfo baseInfo) {
-        try {
-
-            UploadContactRequest contactRequest = new UploadContactRequest();
-
-            if (baseInfo.getAddInfo() == null || baseInfo.getAddInfo().getDeviceInfo() == null) {
-                return contactRequest;
-            }
-            Cash2BaseInfo.DeviceInfo deviceInfo = baseInfo.getAddInfo().getDeviceInfo();
-            if (CollectionUtils.isEmpty(deviceInfo.getContactList())) {
-                contactRequest.setContactStr(JsonUtils.serialize(new ArrayList<>()));
-                return contactRequest;
-            } else {
-
-                List<Map<String, String>> contactList = deviceInfo.getContactList().stream()
-                        .map(elem -> {
-                            Map<String, String> dataElem = new HashMap<>();
-                            String time = DateUtils.formDate(new Date(elem.getUpdateTime()),
-                                    DateUtils.FMT_YYYY_MM_DD_HH_mm_ss);
-                            dataElem.put("createTime", time);
-                            dataElem.put("updateTime", time);
-                            dataElem.put("name", elem.getName());
-                            dataElem.put("phone", elem.getNumber());
-                            return dataElem;
-                        }).collect(Collectors.toList());
-                contactRequest.setContactStr(JsonUtils.serialize(contactList));
-                return contactRequest;
-
-            }
-        } catch (Exception e) {
-            log.error("data invalid", e);
-            throw new IllegalArgumentException("invalid param");
-        }
-    }
-
-    /***
-     * 手机短信
-     * @param baseInfo
-     * @return
-     */
-    public UploadMsgsRequest fetchMsgList(Cash2BaseInfo baseInfo) {
-        try {
-
-            UploadMsgsRequest msgRequest = new UploadMsgsRequest();
-            if (baseInfo.getAddInfo() == null || baseInfo.getAddInfo().getDeviceInfo() == null) {
-                return msgRequest;
-            }
-            Cash2BaseInfo.DeviceInfo deviceInfo = baseInfo.getAddInfo().getDeviceInfo();
-
-            if (CollectionUtils.isEmpty(deviceInfo.getSmsList())) {
-                msgRequest.setMessageListStr(JsonUtils.serialize(new ArrayList<>()));
-                return msgRequest;
-            } else {
-
-                List<Map<String, String>> msgList = deviceInfo.getSmsList().stream().map(elem -> {
-                    Map<String, String> dataElem = new HashMap<>();
-                    dataElem.put("date", elem.getTime());
-                    dataElem.put("phoneNumber", elem.getNumber());
-                    dataElem.put("smsbody", elem.getContent());
-                    dataElem.put("type", elem.getType());
-                    return dataElem;
-                }).collect(Collectors.toList());
-                msgRequest.setMessageListStr(JsonUtils.serialize(msgList));
-                return msgRequest;
-            }
-        } catch (Exception e) {
-            log.error("data invalid", e);
-            throw new IllegalArgumentException("invalid param");
-        }
-    }
-
-    /***
-     * 获取手机通话记录
-     * @param baseInfo
-     * @return
-     */
-    public UploadCallRecordsRequest fetchCallRecordList(Cash2BaseInfo baseInfo) {
-        try {
-
-            UploadCallRecordsRequest msgRequest = new UploadCallRecordsRequest();
-            if (baseInfo.getAddInfo() == null || baseInfo.getAddInfo().getDeviceInfo() == null) {
-                return msgRequest;
-            }
-            Cash2BaseInfo.DeviceInfo deviceInfo = baseInfo.getAddInfo().getDeviceInfo();
-
-            if (CollectionUtils.isEmpty(deviceInfo.getTelList())) {
-                msgRequest.setCallRecordsStr(JsonUtils.serialize(new ArrayList<>()));
-                return msgRequest;
-            } else {
-
-                List<Map<String, String>> callRecordList = deviceInfo.getTelList().stream()
-                        .map(elem -> {
-                            Map<String, String> dataElem = new HashMap<>();
-                            dataElem.put("date", elem.getTime());
-                            dataElem.put("number", elem.getNumber());
-                            dataElem.put("name", elem.getName());
-                            dataElem.put("duration",
-                                    elem.getDuration() == null ? null : elem.getDuration().toString());
-                            dataElem.put("type", elem.getType());
-                            return dataElem;
-                        }).collect(Collectors.toList());
-                msgRequest.setCallRecordsStr(JsonUtils.serialize(callRecordList));
-                return msgRequest;
-            }
-        } catch (Exception e) {
-            log.error("data invalid", e);
-            throw new IllegalArgumentException("invalid param");
-        }
-    }
-
 
     /***
      * 获取手机安装的app

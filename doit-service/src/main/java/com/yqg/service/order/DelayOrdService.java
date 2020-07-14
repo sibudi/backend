@@ -118,7 +118,8 @@ public class DelayOrdService {
         // 30天
         dateList.add(30);
         //Overdue service fee regardless overdue date
-        response.setOverDueFee(Float.parseFloat(this.repayService.calculateOverDueFee(order)));
+        //response.setOverDueFee(Float.parseFloat(this.repayService.calculateOverDueFee(order)));
+        response.setOverDueFee(Float.parseFloat("0"));
         //Actual overdue fee based on overdue date, without limit??? todo:ahalim
         response.setPenaltyFee(Float.parseFloat(this.repayService.calculatePenaltyFee(order)));
         // 如果还款金额大于本金的1.2倍
@@ -205,13 +206,17 @@ public class DelayOrdService {
                 //Actual overdue fee based on overdue date, without limit
                 BigDecimal penaltyFee = new BigDecimal(this.repayService.calculatePenaltyFee(order));
                 //ahalim: getRealPenaltyFee logic need to be fixed
+                /*BigDecimal realPenaltyFee =  getRealPenaltyFee(order.getAmountApply()
+                        ,order.getInterest()
+                        ,new BigDecimal(this.repayService.calculateOverDueFee(order)),penaltyFee);*/
                 BigDecimal realPenaltyFee =  getRealPenaltyFee(order.getAmountApply()
                         ,order.getInterest()
-                        ,new BigDecimal(this.repayService.calculateOverDueFee(order)),penaltyFee);
+                        ,BigDecimal.ZERO,penaltyFee);
                 // BigDecimal realPenaltyFee = getRealPenaltyFee(order);
                 update.setPenaltyFee(realPenaltyFee+"");
                 //Overdue service fee regardless overdue date
-                update.setOverDueFee(this.repayService.calculateOverDueFee(order));
+                //update.setOverDueFee(this.repayService.calculateOverDueFee(order));
+                update.setOverDueFee("0");
                 //(AmountApply - repayAmount) * delayDay * SysParamContants.DELAYORDER_OF_FEE
                 update.setDelayFee(order.getAmountApply().subtract(new BigDecimal(request.getRepayNum()))
                         .multiply(new BigDecimal(request.getDelayDay()))
@@ -227,12 +232,16 @@ public class DelayOrdService {
                 //Actual overdue fee based on overdue date, without limit
                 BigDecimal penaltyFee = new BigDecimal(this.repayService.calculatePenaltyFee(order));
                 //Todo ahalim: getRealPenaltyFee logic need to be fixed
+                /*BigDecimal realPenaltyFee =  getRealPenaltyFee(order.getAmountApply()
+                        ,order.getInterest()
+                        ,new BigDecimal(this.repayService.calculateOverDueFee(order)),penaltyFee);*/
                 BigDecimal realPenaltyFee =  getRealPenaltyFee(order.getAmountApply()
                         ,order.getInterest()
-                        ,new BigDecimal(this.repayService.calculateOverDueFee(order)),penaltyFee);
+                        ,BigDecimal.ZERO,penaltyFee);
                 record.setPenaltyFee(realPenaltyFee+"");
                 //Overdue service fee regardless overdue date
-                record.setOverDueFee(this.repayService.calculateOverDueFee(order));
+                //record.setOverDueFee(this.repayService.calculateOverDueFee(order));
+                record.setOverDueFee("0");
                 //(AmountApply - repayAmount) * delayDay * SysParamContants.DELAYORDER_OF_FEE
                 record.setDelayFee(order.getAmountApply().subtract(new BigDecimal(request.getRepayNum()))
                     .multiply(new BigDecimal(request.getDelayDay()))

@@ -1,31 +1,39 @@
 package com.yqg.drools.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.yqg.common.enums.order.BlackListTypeEnum;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.common.utils.StringUtils;
-import com.yqg.risk.dao.FlowRuleSetDao;
-import com.yqg.risk.dao.RiskResultDao;
 import com.yqg.drools.beans.RuleSetExecutedResult;
 import com.yqg.drools.executor.ExecutorUtil;
 import com.yqg.drools.extract.BaseExtractor;
-import com.yqg.drools.model.*;
+import com.yqg.drools.model.DeviceModel;
+import com.yqg.drools.model.KeyConstant;
+import com.yqg.drools.model.RUserInfo;
 import com.yqg.drools.model.base.RuleConditionModel;
 import com.yqg.drools.model.base.RuleResult;
 import com.yqg.drools.model.base.RuleSetEnum;
 import com.yqg.drools.processor.ExecutorPreProcessor;
 import com.yqg.drools.service.SpecifiedProductRuleService.Product100RMBCheckResult;
-import com.yqg.service.user.service.UserRiskService;
-import com.yqg.service.util.RuleConstants;
 import com.yqg.order.entity.OrdDeviceInfo;
 import com.yqg.order.entity.OrdOrder;
+import com.yqg.risk.dao.FlowRuleSetDao;
+import com.yqg.risk.dao.RiskResultDao;
 import com.yqg.service.order.OrdService;
+import com.yqg.service.user.service.UserRiskService;
+import com.yqg.service.util.RuleConstants;
 import com.yqg.system.entity.SysAutoReviewRule;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /*****
  * @Author zengxiangcai
@@ -177,13 +185,10 @@ public class RuleApplicationService {
         try {
 
             List<Object> facts = fetchRuleFacts(order, allRules, specifiedProduct100RMBRuleSet);
-            //将需要的已经计算好的规则参数放入计算中
+            //Put the required calculated rule parameters into the calculation
             boolean existsConditionModel = false;
             for(Object obj: existsFacts){
                 if(obj instanceof RUserInfo){
-                    facts.add(obj);
-                }
-                if(obj instanceof UserCallRecordsModel){
                     facts.add(obj);
                 }
                 if(obj instanceof DeviceModel){

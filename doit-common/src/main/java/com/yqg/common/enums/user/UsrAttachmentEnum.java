@@ -1,25 +1,25 @@
 package com.yqg.common.enums.user;
 
 public enum UsrAttachmentEnum {
-    ID_CARD(0),//身份证正面照
-    HAND_ID_CARD(1),//手持身份证照
-    FACE(2),//人脸照
-    VIDEO(3),//视频
-    CREDIT_CARD(4),//信用卡
-    SIM(5),//驾驶证
-    NPWP(6),//税卡 ----->  7月6号已替换成护照
-    KK(7),//家庭卡
-    PAYROLL(8),//工资单
-    BANK_CARD_RECORD(9),//银行卡流水
-    STUDENT_CARD(10),//学生证
-    SCHOLARSHIP(11),//奖学金证书
-    ENGLISH(12),//英语证书
-    COMPUTER(13),//计算机证书
-    SCHOOL_CARD(14),//校园卡
-    OTHER_CERTIFICATION(15), //其他大赛证书
-    WORK_PROOF(16),//工作证明
-    INSURANCE_CARD(17), //保险卡
-    SELFIE(18); //自拍照
+    ID_CARD(0),//Front photo of ID card
+    HAND_ID_CARD(1),//Hand held ID card
+    FACE(2),//Face photo
+    VIDEO(3), //Video
+    CREDIT_CARD(4), //Credit card
+    SIM(5), // Driver's license
+    NPWP(6), // Tax Card -----> July 6th has been replaced with a passport
+    KK(7), //Family Card
+    PAYROLL(8), //Payroll
+    BANK_CARD_RECORD(9),//Bank card flow
+    STUDENT_CARD(10),//Student ID
+    SCHOLARSHIP(11),//Scholarship certificate
+    ENGLISH(12),//English certificate
+    COMPUTER(13),//Computer certificate
+    SCHOOL_CARD(14),//Campus card
+    OTHER_CERTIFICATION(15), //Other competition certificate
+    WORK_PROOF(16),//Proof of work
+    INSURANCE_CARD(17), //insurance card
+    SELFIE(18); //Selfie
 
     private int type;
 

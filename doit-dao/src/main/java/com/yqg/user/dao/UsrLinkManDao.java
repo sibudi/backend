@@ -16,7 +16,7 @@ import java.util.List;
 public interface UsrLinkManDao extends BaseMapper<UsrLinkManInfo> {
 
     @Select("SELECT * FROM usrLinkManInfo where  disabled = 0 and sequence in(1,2,3) and userUuid = #{userUuid}")
-    List<UsrLinkManInfo> getUserContactWithUserUuid(@Param("userUuid") String userUuid);
+    List<UsrLinkManInfo> getUsrLinkManWithUserUuid(@Param("userUuid") String userUuid);
 
     @Select("<script>"
             + "select count(1) from usrLinkManInfo where disabled=0 and sequence in (1,2) and contactsMobile in "

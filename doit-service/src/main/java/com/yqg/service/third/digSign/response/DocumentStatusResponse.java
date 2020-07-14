@@ -20,6 +20,7 @@ public class DocumentStatusResponse {
         private String result;
         private String notif;
         private String info;
+        private String link;
 
         private List<DocumentUser> waiting;
         private List<DocumentUser> signed;

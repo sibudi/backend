@@ -1,0 +1,158 @@
+server:
+  port: 8083
+
+mysql:
+  datasource:
+    readSize: 2
+    type: com.alibaba.druid.pool.DruidDataSource
+    write:
+      name: yishu
+      url: jdbc:mysql://doit-polardb.uat.doitglotech.cloud:3306/doit?useUnicode=true&characterEncoding=utf-8
+      username: doit
+      password: 9p!U4M&o3*ANk#
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: stat
+      maxActive: 300
+      initialSize: 1
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+    read01:
+      name: yishu
+      url: jdbc:mysql://doit-polardb.uat.doitglotech.cloud:3306/doit?useUnicode=true&characterEncoding=utf-8
+      username: doit
+      password: 9p!U4M&o3*ANk#
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: stat
+      maxActive: 300
+      initialSize: 1
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+    read02:
+      name: yishu
+      url: jdbc:mysql://doit-polardb.uat.doitglotech.cloud:3306/doit?useUnicode=true&characterEncoding=utf-8
+      username: doit
+      password: 9p!U4M&o3*ANk#
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: stat
+      maxActive: 300
+      initialSize: 1
+      maxWait: 60000
+      minIdle: 1
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxOpenPreparedStatements: 20
+jedis:
+  pool:
+    database: 1
+    password: doit2019
+    timeout: 3000
+    config:
+      maxTotal: 500         #连接池的最大数据库连接数。设为0表示无限制,如果是jedis 2.4以后用redis.maxTotal
+      maxIdle: 10          #最大空闲数
+      minIdle: 0
+      maxWaitMillis: 100000    # 最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+    sentinel:
+      master: mymaster
+      nodes: redis-A-01.uat.doitglotech.cloud:26379
+
+mongo:
+  repleSet: mongo-A-01.uat.doitglotech.cloud:37837,
+  username: do-it-use
+  password: do-it-pwd
+  dbName: do-it
+  connectionsPerHost: 20
+  threadsAllowedToBlockForConnectionMultiplier: 10
+pay:
+  loanUrl: http://api.uat.doitglotech.cloud/payment/v2/disburse #:8888/payment/v2/disburse
+  loanExpenseUrl: http://api.uat.doitglotech.cloud/payment/disburse #:8888/payment/disburse
+  cheakLoanUrl: http://api.uat.doitglotech.cloud/payment/ #:8888/payment/
+  cheakRepayUrl: http://api.uat.doitglotech.cloud/repayment/ #:8888/repayment/
+  inactiveOrderUrl: http://api.uat.doitglotech.cloud/payment/inactive/ #:8888/payment/inactive/
+  transferOrderUrl: http://api.uat.doitglotech.cloud/fund/fee/transfer/ #:8888/fund/fee/transfer/
+  repaymentSendToRdnUrl: http://api.uat.doitglotech.cloud/repayment/BulkRdnRepayment/ #case sensitive
+  token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJwYXltZW50IiwiZXhwIjoxODQ4OTY3MjQwfQ.5FLd74a7FENNxeg3rDrOXTos9tk8iQUmD3LNkSvmch-dtqZjdMlB-rdIDchNp4UJydOMlTyyP_ZrkmFNXX4pcA
+HttpUrl:
+  #smsUrl: http://api.uat.doitglotech.cloud/sms/send #:8899/sms/send
+  smsUrl: http://invalid_url.doitglotech.co.id/sms/send #:8899/sms/send
+  #smsUrlTwilio: http://api.uat.doitglotech.cloud/sms/login/code #:8899/sms/login/code
+  #smsUrlTwilioVerify: http://api.uat.doitglotech.cloud/sms/login/verify #:8899/sms/login/verify
+p2p:
+  #repaySuccessUrl: http://10.24.30.70:9090/doit/investment/getNormalRefundTask
+  host: http://lenderapi.uat.doitglotech.cloud
+  url:
+    #推送标的
+    sendCreditorInfo: /api-order/doit/sendCreditorinfo
+    #是否有再投
+    haveInvesting: /api-order/doit/haveInvesting
+    #查询订单状态
+    checkOrderStatus: /api-order/doit/selectScatterstandard
+    #还款
+    userRepay: /api-order/doit/userRepay
+    #推送还款计划
+    sendRepayPlan: /api-order/doit/repaymentPlan/addRepaymentPlan
+    #查询账单状态
+    checkOrderBillStatus: /api-order/doit/repaymentPlan/findStatus
+
+SmsChannelType:
+  type: ZENZIVA
+des:
+  file:
+    path: /SECRET/des-test.cer
+third:
+  cashcash:
+    #订单状态回调地址
+    orderStatusFeedback: http://testloanapi.cashcash.id/call-back/order-status
+    #订单审核结果回调地址
+    orderCheckResultFeedback: http://testloanapi.cashcash.id/call-back/approval-result
+    #银行卡绑卡结果回调地址
+    cardCash2Url: http://testloanapi.cashcash.id/call-back/bind-bank-status
+    #aesKey
+    aesKey: 27oovmz7gueaud8l
+    initVector: abc123rty456nji7
+    md5Token: KY8GZ-42A0A-Q8OXB-HOJJY-4U8UM-KLTGM
+    appId: 10000
+    version: 1
+    partnerName: UangUang
+    #partnerKey: 8uv4g8z33rcg6mh5ejziq5b8h
+    partnerKey: invalid_key
+risk:
+  checkUserLevel: http:127.0.0.1:8084/loan-limit/firstReBorrowing
+spring:
+  freemarker:
+    checkTemplateLocation: false
+  http:
+    encoding:
+      force: false
+
+endpoints.enabled: false
+
+notification.service.url: https://notificationapi-uat.doitglotech.co.id
+notification.service.token: lgezRLxR84n$9@
+notification.service.origin: https://doit-pay-uat.doitglotech.co.id
+slack.webhook.url: https://hooks.slack.com/services/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
+
+alicloud.runtime: LOCAL
+alicloud.localProfile: default
+alicloud.oss.endpoint: https://oss-ap-southeast-5-internal.aliyuncs.com
+alicloud.oss.bucketName: doit-attachment-5263863254564512

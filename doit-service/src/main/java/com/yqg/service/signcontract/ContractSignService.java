@@ -25,6 +25,7 @@ import com.yqg.service.task.AsyncTaskService;
 import com.yqg.service.third.digSign.DigiSignService;
 import com.yqg.service.third.digSign.DocumentService;
 import com.yqg.service.third.digSign.response.DigiSignUserStatusEnum;
+import com.yqg.service.third.digSign.response.DocumentStatusResponse;
 import com.yqg.service.third.sms.SmsServiceUtil;
 import com.yqg.service.user.service.UsrService;
 import com.yqg.signcontract.entity.OrderContract;
@@ -121,7 +122,11 @@ public class ContractSignService {
             OrdStateEnum orderPassStatus = OrdStateEnum.getEnum(order.getStatus());
             if (activationResult) {
                 // Score OK, Digisign success
-                orderPassStatus = OrdStateEnum.WAITING_SIGN_CONTRACT;
+                // budi: setelah activationResult jangan diubah 20, karena lender belum sign
+                // budi: langsung LOANING karena selain status = 2, 17, tidak masuk waitingList digisign lagi
+
+                orderPassStatus = OrdStateEnum.LOANING;
+                
             } else if (orderCheckService.histSpecifiedProductWithDecreasedCreditLimit(order.getUuid())) {
                 // Score not OK, Digisign skipped
                 orderPassStatus = OrdStateEnum.WAITING_CONFIRM;
@@ -254,7 +259,7 @@ public class ContractSignService {
             DigiSignUserStatusEnum userStatus = digSignService.checkUserStatus(userUuid);
             if (userStatus.equals(DigiSignUserStatusEnum.ACTIVATED)) {
                 //已经激活则作激活的相应处理
-                confirmUserActivation(userUuid, DEFAULT_USER_ACTIVATION_CALLBACK_RESPONSE);
+                confirmUserActivation(userUuid, DEFAULT_USER_ACTIVATION_CALLBACK_RESPONSE, orderNo);
             }
 
             CustomHttpResponse respData = JsonUtils.deserialize(activationRequest.get().getResponseData(), CustomHttpResponse.class);
@@ -264,10 +269,23 @@ public class ContractSignService {
 
         } else if (step.getSignStep() == SignStepEnum.DIGI_SIGN_ACTIVATION_CONFIRMED.getCode() && step.getStepResult() == StepResultEnum.SUCCESS.getCode()) {
             //用户已经确认激活--》防止协议文档发送失败，发送文档
-            boolean documentSuccess = digSignService.sendDocument(userUuid, orderNo);
+            // budi: setelah borrower activation, jangan langsung sendDocument, cek document status dulu
+            //boolean documentSuccess = digSignService.sendDocument(userUuid, orderNo);
+            boolean documentSuccess = false;
+            DocumentStatusResponse documentResponse =  new DocumentStatusResponse();
+            try {
+                documentResponse = checkDocumentStatus(orderNo);
+                if (documentResponse.getJSONFile().getStatus().compareToIgnoreCase("waiting") == 0 && documentResponse.getJSONFile().getWaiting().size() == 1) {
+                    documentSuccess = true; // lender signed, borrower not yet
+                }
+            } catch (Exception e) {
+                log.info("check-document-status exception, orderNo: " + orderNo, e);
+            }
+            
             boolean sendSignSuccess = false;
-            if (documentSuccess) {
+            if (documentSuccess) { 
                 //调用签约返回签约接口，返回签约数据
+                // borrower gets the sign url after the lender has signed the docs
                 sendSignSuccess = digSignService.signContract(userUuid, orderNo);
             }
 
@@ -276,6 +294,7 @@ public class ContractSignService {
                 boolean signCompleted = digSignService.isDocumentSigned(orderNo);
                 if (signCompleted) {
                     //已经签章调用相应的信息改状态
+                    // if lender and borrower have signed
                     this.confirmSignContract(orderNo, DEFAULT_SIGN_CALLBACK_RESPONSE);
                 }
                 //已经成功的调用了签约相关api，返回签约页面
@@ -289,8 +308,10 @@ public class ContractSignService {
                 }
                 //
                 CustomHttpResponse respData = JsonUtils.deserialize(signApiResult.get().getResponseData(), CustomHttpResponse.class);
+                DocumentStatusResponse savedResponse = JsonUtils.deserialize(respData.getContent(),DocumentStatusResponse.class);
+                
                 return new SignInfoResponse(SignInfoResponse.SignStepEnum.TO_SIGN_CONTRACT.name(),
-                        Base64Utils.encode(respData.getContent().getBytes()), -1L);
+                        Base64Utils.encode(savedResponse.getJSONFile().getLink().getBytes()), -1L);
             } else {
                 //如果没有成功，进入等待页面
                 String interval = redisClient.get(RedisContants.DIGITAL_SIGN_STATUS_CHECK_INTERVAL);
@@ -313,7 +334,7 @@ public class ContractSignService {
      *
      * @param userUuid
      */
-    public void confirmUserActivation(String userUuid, String response) {
+    public void confirmUserActivation(String userUuid, String response, String orderNo) {
         //successs: "{\"rc\":\"00\",\"notif\":\"Proses Aktivasi Berhasil\",\"username\":\"Admin111\"}\n"
         boolean success = false;
         if (StringUtils.isNotEmpty(response)) {
@@ -337,13 +358,44 @@ public class ContractSignService {
                         : StepResultEnum.FAILED, response);
         if (success) {
             //激活成功，发送签约文档
-            boolean documentSuccess = digSignService.sendDocument(userUuid, currentOrder.get().getUuid());
+            // budi: jika borrower sudah active, jangan langsung sendDocument, cek document status dulu
+            //boolean documentSuccess = digSignService.sendDocument(userUuid, currentOrder.get().getUuid());
+            boolean documentSuccess = false;
+            DocumentStatusResponse documentResponse =  new DocumentStatusResponse();
+            try {
+                documentResponse = checkDocumentStatus(orderNo);
+            } catch (Exception e) {
+                log.info("check-document-status exception, orderNo: " + orderNo, e);
+            }
+            if (documentResponse.getJSONFile().getStatus().compareToIgnoreCase("waiting") == 0 && documentResponse.getJSONFile().getWaiting().size() == 1) {
+                documentSuccess = true;
+            }
+
             if (documentSuccess) {
                 //调用签约返回签约接口，返回签约数据
                 digSignService.signContract(userUuid, currentOrder.get().getUuid());
             }
         }
     }
+
+    public DocumentStatusResponse checkDocumentStatus(String orderNo) throws Exception {
+
+        DocumentStatusResponse documentResponse = new DocumentStatusResponse();
+        try {
+
+            CustomHttpResponse response = digSignService.checkDocumentStatus(orderNo);
+            documentResponse = JsonUtils.deserialize(response.getContent(), DocumentStatusResponse.class);
+            
+//            log.info("waiting to signed status: {}, waiting email: {}", documentResponse.getJSONFile().getStatus(), documentResponse.getJSONFile().getWaiting().get(0).getEmail());
+        } catch (Exception e1) {
+
+            log.info("check-document-status exception, orderNo: " + orderNo, e1);
+//            throw new ServiceException(ExceptionEnum.SYSTEM_TIMEOUT);
+        }
+
+        return documentResponse;
+    }
+
 
     /**
      * 用户签约确认

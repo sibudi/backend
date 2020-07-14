@@ -170,6 +170,7 @@ public class ExcelUtil {
         fileDirPath.append(fileType.getValue());// ????
         fileDirPath.append(File.separator);
         File destDir = new File(fileDirPath.toString());
+        //ahalim no need to use getParentFile() because this method is only for directory
         if (!destDir.exists()) {
             destDir.mkdirs();
         }

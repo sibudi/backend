@@ -19,4 +19,25 @@ public class Base64FileResponse {
         private String info;
         private String file;
     }
+
+    public enum resultType{
+        //ref: Digisign API documentation
+        SUCCESS("00", "Success"),
+        DATA_NOT_FOUND("05", "Data not found");
+
+        private String code;
+        private String message;
+        
+        private resultType(String code, String message){
+            this.code = code;
+            this.message = message;
+        }
+        
+        public String getCode() {
+            return this.code;
+        }
+        public String getMessage() {
+            return this.message;
+        }
+    }
 }

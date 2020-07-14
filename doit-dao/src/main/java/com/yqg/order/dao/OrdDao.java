@@ -1264,6 +1264,9 @@ public interface OrdDao extends BaseMapper<OrdOrder> {
             "</script>")
     List<OrdOrder> getOrderByOrderNos(@Param("orderNos") List<String> orderNos);
 
+    @Select("select * from ordOrder where disabled=0 and uuid = #{orderNo}")
+    OrdOrder getOrderByOrderNo(@Param("orderNo") String orderNo);
+
     // 各渠道每周机审通过率（取最近3周）
     @Select("select  date_format(o.createTime,'%x年-第%v周')as week,\n" +
             "\n" +

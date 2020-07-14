@@ -35,7 +35,6 @@ import com.yqg.service.system.service.SysParamService;
 import com.yqg.service.third.izi.IziService;
 import com.yqg.service.third.izi.IziWhatsAppService;
 import com.yqg.service.third.izi.response.IziResponse;
-import com.yqg.service.third.yitu.FileHelper;
 import com.yqg.service.third.yitu.YiTuService;
 import com.yqg.service.user.request.*;
 import com.yqg.service.user.service.UsrPINService;
@@ -91,6 +90,8 @@ public class UsrService {
     private UsrPINService pinService;
     @Autowired
     private UsrCertificationDao usrCertificationDao;
+    @Autowired
+    private UserAttachmentInfoService userAttachmentInfoService;
     @Autowired
     private UsrAttachmentInfoDao usrAttachmentInfoDao;
     @Autowired
@@ -156,15 +157,15 @@ public class UsrService {
         feedBack.setUpdateTime(new Date());
         feedBack.setCreateTime(new Date());
         feedBack.setUuid(UUIDGenerateUtil.uuid());
-        feedBack.setNetType(usrFeedBackRequest.getNet_type());
-        feedBack.setSystemVersion(usrFeedBackRequest.getSystem_version());
+        feedBack.setNetType("");
+        feedBack.setSystemVersion("");
         feedBack.setAppVersion(usrFeedBackRequest.getClient_version());
         feedBack.setClientType(usrFeedBackRequest.getClient_type());
         feedBack.setChannelSn(usrFeedBackRequest.getChannel_sn());
         feedBack.setChannelName(usrFeedBackRequest.getChannel_name());
         feedBack.setDeviceId(UUID.randomUUID().toString());
-        feedBack.setResolution(usrFeedBackRequest.getResolution());
-        feedBack.setIPAdress(usrFeedBackRequest.getIPAdress());
+        feedBack.setResolution("");
+        feedBack.setIPAdress("");
         feedBack.setSourceType(usrFeedBackRequest.getSourceType());
         feedBack.setCollectionName(usrFeedBackRequest.getCollectionName());
         this.usrFeedBackDao.insert(feedBack);
@@ -453,24 +454,6 @@ public class UsrService {
             registerDeviceInfo.setDeviceNumber(deviceNumber);
             registerDeviceInfo.setDisabled(0);
 
-            Boolean isWhiteUser = false;
-            if (!StringUtils.isEmpty(usrRequst.getMac())) {
-                // 首先检查是否在设备白名单里面
-                SysDeviceIdWhiteList whiteScan = new SysDeviceIdWhiteList();
-                whiteScan.setDeviceId(deviceNumber);
-                whiteScan.setDisabled(0);
-                List<SysDeviceIdWhiteList> whiteLists = this.sysDeviceIdWhiteListDao.scan(whiteScan);
-                if (CollectionUtils.isEmpty(whiteLists)) {
-                    // 在检查该设备是否注册过
-                    List<RegisterDeviceInfo> registerDeviceInfoList = registerDeviceInfoDao.scan(registerDeviceInfo);
-                    if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
-                        log.info("??????????", registerDeviceInfoList);
-                        throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
-                    }
-                } else {
-                    isWhiteUser = true;
-                }
-            }
             UsrUser user = new UsrUser();
             //???????????0??0???
             String mobileNumber = CheakTeleUtils.telephoneNumberValid2(usrRequst.getMobileNumber());
@@ -508,21 +491,13 @@ public class UsrService {
             user.setEmailAddress(DESUtils.decrypt(usrRequst.getEmail()));
             this.usrDao.insert(user);
 
-            //???????????????
-            if (!StringUtils.isEmpty(deviceNumber)) {
-                //????????
-                if (!isWhiteUser) {
+            registerDeviceInfo.setUserUuid(user.getUuid());
+            registerDeviceInfo.setIpAddress("");
+            registerDeviceInfo.setDeviceType(usrRequst.getClient_type());
+            registerDeviceInfo.setMacAddress("");
+            registerDeviceInfo.setFcmToken(usrRequst.getFcmToken());
 
-                    registerDeviceInfo.setUserUuid(user.getUuid());
-                    registerDeviceInfo.setIpAddress(usrRequst.getIPAdress());
-                    registerDeviceInfo.setDeviceType(usrRequst.getClient_type());
-                    registerDeviceInfo.setMacAddress(usrRequst.getMac());
-                    registerDeviceInfo.setFcmToken(usrRequst.getFcmToken());
-                    registerDeviceInfo.setIpAddress(usrRequst.getIPAdress());
-                    this.registerDeviceInfoDao.insert(registerDeviceInfo);
-                }
-            }
-            //????????
+            this.registerDeviceInfoDao.insert(registerDeviceInfo);
             usrRequst.setUserUuid(user.getUuid());
             this.addUsrLoginHistory(usrRequst);
             return this.generateSession(user, 0);
@@ -541,25 +516,7 @@ public class UsrService {
         //registerDeviceInfo.setDisabled(0);
 
         Boolean isWhiteUser = false;
-        if (!StringUtils.isEmpty(deviceNumber)) {
-
-            // 首先检查是否在设备白名单里面
-            SysDeviceIdWhiteList whiteScan = new SysDeviceIdWhiteList();
-            whiteScan.setDeviceId(deviceNumber);
-            whiteScan.setDisabled(0);
-            List<SysDeviceIdWhiteList> whiteLists = this.sysDeviceIdWhiteListDao.scan(whiteScan);
-            if (CollectionUtils.isEmpty(whiteLists)) {
-
-                // 在检查该设备是否注册过
-                List<RegisterDeviceInfo> registerDeviceInfoList = registerDeviceInfoDao.scan(registerDeviceInfo);
-                if (!CollectionUtils.isEmpty(registerDeviceInfoList)) {
-                    log.info("??????????", registerDeviceInfoList);
-                    throw new ServiceException(ExceptionEnum.USER_REGIST_DEVICENO_IDENTICAL);
-                }
-            } else {
-                isWhiteUser = true;
-            }
-        }
+        
         UsrUser user = new UsrUser();
         //???????????0??0???
         String mobileNumber = CheakTeleUtils.telephoneNumberValid2(usrRequst.getMobileNumber());
@@ -597,19 +554,12 @@ public class UsrService {
         user.setEmailAddress(DESUtils.encrypt(usrRequst.getEmail()));
         this.usrDao.insert(user);
 
-        //???????????????
-        if (!StringUtils.isEmpty(deviceNumber)) {
-            //????????
-            if (!isWhiteUser) {
-                registerDeviceInfo.setUserUuid(user.getUuid());
-                registerDeviceInfo.setIpAddress(usrRequst.getIPAdress());
-                registerDeviceInfo.setDeviceType(usrRequst.getClient_type());
-                registerDeviceInfo.setMacAddress(usrRequst.getMac());
-                registerDeviceInfo.setFcmToken(usrRequst.getFcmToken());
-                this.registerDeviceInfoDao.insert(registerDeviceInfo);
-            }
-        }
-        //????????
+        registerDeviceInfo.setUserUuid(user.getUuid());
+        registerDeviceInfo.setIpAddress("");
+        registerDeviceInfo.setDeviceType(usrRequst.getClient_type());
+        registerDeviceInfo.setMacAddress("");
+        registerDeviceInfo.setFcmToken(usrRequst.getFcmToken());
+        this.registerDeviceInfoDao.insert(registerDeviceInfo);
         usrRequst.setUserUuid(user.getUuid());
         this.addUsrLoginHistory(usrRequst);
     }
@@ -669,21 +619,9 @@ public class UsrService {
                 regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
                 regDeviceInfo.setDeviceNumber(deviceNumber);
                 regDeviceInfo.setDeviceType(usrRequst.getClient_type());
-                regDeviceInfo.setMacAddress(usrRequst.getMac());
-                regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
+                regDeviceInfo.setMacAddress("");
+                regDeviceInfo.setIpAddress("");
                 registerDeviceInfoDao.update(regDeviceInfo);
-            }
-            else{
-                if(!StringUtils.isEmpty(usrRequst.getMac())){
-                    RegisterDeviceInfo regDeviceInfo = new RegisterDeviceInfo();
-                    regDeviceInfo.setUserUuid(users.get(0).getUuid());
-                    regDeviceInfo.setFcmToken(usrRequst.getFcmToken());
-                    regDeviceInfo.setDeviceNumber(deviceNumber);
-                    regDeviceInfo.setDeviceType(usrRequst.getClient_type());
-                    regDeviceInfo.setMacAddress(usrRequst.getMac());
-                    regDeviceInfo.setIpAddress(usrRequst.getIPAdress());
-                    registerDeviceInfoDao.insert(regDeviceInfo);
-                }
             }
         }
         catch(DataIntegrityViolationException e){
@@ -707,12 +645,12 @@ public class UsrService {
 
         UsrLoginHistory usrLoginHistory = new UsrLoginHistory();
         usrLoginHistory.setUserUuid(usrRequst.getUserUuid());
-        usrLoginHistory.setDeviceNomber(deviceNumber);
+        usrLoginHistory.setDeviceNomber("");
         usrLoginHistory.setDeviceType(usrRequst.getClient_type());
-        usrLoginHistory.setMacAddress(usrRequst.getMac());
-        usrLoginHistory.setIpAddress(usrRequst.getIPAdress());
-        usrLoginHistory.setNetworkType(usrRequst.getNet_type());
-        usrLoginHistory.setMobileSysVersionNo(usrRequst.getSystem_version());
+        usrLoginHistory.setMacAddress("");
+        usrLoginHistory.setIpAddress("");
+        usrLoginHistory.setNetworkType("");
+        usrLoginHistory.setMobileSysVersionNo("");
         usrLoginHistory.setMarketChannelNo(usrRequst.getChannel_sn());
         usrLoginHistory.setApplicationVersionNo(usrRequst.getClient_version());
         usrLoginHistory.setLbsX(usrRequst.getLbsX());
@@ -915,7 +853,7 @@ public class UsrService {
             }
         }
 
-        // 2????  3????  4 facebook
+        // 2 FACE_IDENTITY  3 VIDEO_IDENTITY  4 facebook
         int certiType = infoRequest.getCertificationType();
         switch (certiType) {
 
@@ -930,9 +868,11 @@ public class UsrService {
                     // ??????????
                     UsrAttachmentInfo idInfo = infoList.get(0);
                     // ????
-                    String userIdenIconUrl = idInfo.getAttachmentUrl();
+                    //String userIdenIconUrl = idInfo.getAttachmentUrl();
                     String faceIdenIconUrl = infoRequest.getCertificationData();
-                    String userIdenContent = FileHelper.getImageStrFromUrl(userIdenIconUrl);
+                    //ahalim: use userAttachmentInfoService instead
+                    //String userIdenContent = FileHelper.getImageStrFromUrl(userIdenIconUrl);
+                    String userIdenContent = userAttachmentInfoService.getBase64AttachmentStream(idInfo.getAttachmentSavePath());
                     this.yiTuService.verifyFacePackage(userIdenContent,
                             faceIdenIconUrl, infoRequest.getOrderNo(), infoRequest.getUserUuid(), infoRequest.getSessionId());
 
@@ -1220,6 +1160,9 @@ public class UsrService {
 
     // ??userUuid  ?? user
     public UsrUser getUserByUuid(String userUuid) {
+
+        if(!"".equals(userUuid))
+        {
         UsrUser user = new UsrUser();
         user.setUuid(userUuid);
         user.setDisabled(0);
@@ -1229,6 +1172,9 @@ public class UsrService {
             return user;
         }
         return users.get(0);
+        }
+
+        return new UsrUser();
     }
 
     /**
@@ -1581,9 +1527,9 @@ public class UsrService {
                         newRegDeviceInfo.setUserUuid(request.getUserUuid());
                         newRegDeviceInfo.setDeviceNumber(deviceNumber);
                         newRegDeviceInfo.setDeviceType(request.getClient_type());
-                        newRegDeviceInfo.setIpAddress(request.getIPAdress());
+                        newRegDeviceInfo.setIpAddress("");
                         newRegDeviceInfo.setFcmToken(request.getFcmToken());
-                        newRegDeviceInfo.setMacAddress(request.getMac());
+                        newRegDeviceInfo.setMacAddress("");
                         registerDeviceInfoDao.insert(newRegDeviceInfo);
     
                         redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());
@@ -1613,9 +1559,9 @@ public class UsrService {
                             newRegDeviceInfo.setUserUuid(request.getUserUuid());
                             newRegDeviceInfo.setDeviceNumber(deviceNumber);
                             newRegDeviceInfo.setDeviceType(request.getClient_type());
-                            newRegDeviceInfo.setIpAddress(request.getIPAdress());
+                            newRegDeviceInfo.setIpAddress("");
                             newRegDeviceInfo.setFcmToken(request.getFcmToken());
-                            newRegDeviceInfo.setMacAddress(request.getMac());
+                            newRegDeviceInfo.setMacAddress("");
                             registerDeviceInfoDao.insert(newRegDeviceInfo);
     
                             redisClient.set("fcm_" + request.getUserUuid(), request.getFcmToken());

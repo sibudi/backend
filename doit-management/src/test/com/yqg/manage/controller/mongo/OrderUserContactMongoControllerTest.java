@@ -1,6 +1,9 @@
 package com.yqg.manage.controller.mongo;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
 import com.yqg.ManageApplication;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,9 +18,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-
-import static org.junit.Assert.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @Transactional
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -36,47 +36,14 @@ public class OrderUserContactMongoControllerTest {
     }
 
     @Test
-    public void orderUserContactMongoByOrderNo() throws Exception {
+    public void getOrderEmergencyContact() throws Exception {
 
         String str = "{\n" +
                 "  \"orderNo\n\":\"1\",\n" +
                 "}";
 
 
-        ResultActions resultActions = mockMvc.perform(post("/manage/orderUserContactMongoByOrderNo")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(str));
-
-        resultActions.andExpect(MockMvcResultMatchers.status().isOk());
-    }
-
-    @Test
-    public void orderUserCallRecordMongoByUuid() throws Exception {
-
-        String str = "{\n" +
-                "  \"uuid\n\":\"123\",\n" +
-                "  \"dataType\":\"1\",\n" +
-                "  \"orderNo\n\":\"1\",\n" +
-                "  \"channel\":\"1\",\n" +
-                "}";
-
-
-        ResultActions resultActions = mockMvc.perform(post("/manage/orderUserCallRecordMongoByUuid")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(str));
-
-        resultActions.andExpect(MockMvcResultMatchers.status().isOk());
-    }
-
-    @Test
-    public void frequentOrderUserCallRecordMongo() throws Exception {
-
-        String str = "{\n" +
-                "  \"orderNo\n\":\"1\",\n" +
-                "}";
-
-
-        ResultActions resultActions = mockMvc.perform(post("/manage/frequentOrderUserCallRecordMongo")
+        ResultActions resultActions = mockMvc.perform(post("/manage/getOrderEmergencyContact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(str));
 

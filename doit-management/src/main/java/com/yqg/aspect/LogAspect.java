@@ -30,7 +30,7 @@ public class LogAspect {
 
     private static List<String> NOLOGURILIST = ImmutableList.of("getOrderUserDataMongo","getOrderUserDataSql","getTwilioMP3"
     ,"getUserFeedBackList","orderUserDataMongo","orderUserDataSql","twilioMP3"
-            ,"userFeedBackList","sendSmsBatch","getSendSmsBatch");
+            ,"userFeedBackList","sendSmsBatch","getSendSmsBatch","healthcheck");
 
     @Pointcut("execution(public * com.yqg.manage.controller..*(..))")
     public void login() {
@@ -58,7 +58,8 @@ public class LogAspect {
                     || requestUri.contains("showStreamOnBrowser")
                     || requestUri.contains("addUserToBlackList")
                     || requestUri.contains("sendSmsBatch")
-                    || requestUri.contains("addBlackListByFile")) {
+                    || requestUri.contains("addBlackListByFile")
+                    || requestUri.contains("/healthcheck")) {
                 return;
             }
             StringBuffer strBuffer = new StringBuffer();

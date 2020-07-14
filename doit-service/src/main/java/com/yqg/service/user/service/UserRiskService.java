@@ -1,56 +1,55 @@
 
 package com.yqg.service.user.service;
 
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.vdurmont.emoji.EmojiParser;
 import com.yqg.common.constants.SysParamContants;
 import com.yqg.common.enums.order.BlackListTypeEnum;
-import com.yqg.common.enums.system.ExceptionEnum;
 import com.yqg.common.enums.user.UsrAddressEnum;
-import com.yqg.common.exceptions.ServiceExceptionSpec;
-import com.yqg.common.utils.DESUtils;
 import com.yqg.common.utils.JsonUtils;
 import com.yqg.externalChannel.entity.ExternalOrderRelation;
-import com.yqg.mongo.dao.UserCallRecordsDal;
-import com.yqg.mongo.entity.UserCallRecordsMongo;
 import com.yqg.order.dao.OrdBlackDao;
 import com.yqg.order.entity.OrdBlack;
 import com.yqg.order.entity.OrdDeviceInfo;
 import com.yqg.order.entity.OrdOrder;
 import com.yqg.order.entity.OrdRiskRecord;
 import com.yqg.risk.entity.FraudUserInfo;
-import com.yqg.risk.entity.OrderScore;
 import com.yqg.risk.repository.OrderRiskRecordRepository;
 import com.yqg.service.externalChannel.enums.ExternalChannelEnum;
 import com.yqg.service.externalChannel.service.ExternalChannelDataService;
 import com.yqg.service.order.OrdDeviceInfoService;
 import com.yqg.service.order.OrderCheckService;
-import com.yqg.service.risk.service.OrderModelScoreService;
 import com.yqg.service.system.service.SysAutoReviewRuleService;
 import com.yqg.service.system.service.SysParamService;
-import com.yqg.service.third.advance.AdvanceService;
-import com.yqg.service.third.advance.response.BlacklistCheckResponse;
-import com.yqg.service.third.advance.response.MultiPlatformResponse;
-import com.yqg.service.user.response.FrequentOrderUserCallRecordResponse;
-import com.yqg.service.user.response.OrderUserCallRecordResponse;
-import com.yqg.service.util.RuleConstants;
 import com.yqg.system.entity.SysAutoReviewRule;
 import com.yqg.user.dao.UsrDao;
 import com.yqg.user.dao.UsrProductRecordDao;
-import com.yqg.user.entity.*;
-import lombok.extern.slf4j.Slf4j;
+import com.yqg.user.entity.UsrAddressDetail;
+import com.yqg.user.entity.UsrHouseWifeDetail;
+import com.yqg.user.entity.UsrLinkManInfo;
+import com.yqg.user.entity.UsrProductRecord;
+import com.yqg.user.entity.UsrUser;
+import com.yqg.user.entity.UsrWorkDetail;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -68,10 +67,6 @@ public class UserRiskService {
     private OrdBlackDao ordBlackDao;
     @Autowired
     private SysAutoReviewRuleService sysAutoReviewRuleService;
-
-    @Autowired
-    private UserCallRecordsDal userCallRecordsDal;
-
     @Autowired
     private UserBackupLinkmanService userBackupLinkmanService;
     @Autowired
@@ -112,15 +107,6 @@ public class UserRiskService {
             rejectTimes = dbResultList.size();
         }
         return rejectTimes;
-    }
-
-    public List<String> getUppercaseRelativeWords() {
-        SysAutoReviewRule rule = sysAutoReviewRuleService.getRuleConfigByName(BlackListTypeEnum.CONTACT_RELATIVE_COUNT.getMessage());
-        if (rule == null) {
-            return new ArrayList<>();
-        } else {
-            return Arrays.asList(rule.getRuleData().toUpperCase().split("#"));
-        }
     }
 
     /***
@@ -385,19 +371,6 @@ public class UserRiskService {
             targetUser.setIpAddress(ordDeviceInfo.get().getIPAddress());
             targetUser.setPictureCount(ordDeviceInfo.get().getPictureNumber());
         }
-        try {
-            List<FrequentOrderUserCallRecordResponse> commonContactUsers = this.frequentOrderUserCallRecordMongo1(order.getUuid());
-            if (!CollectionUtils.isEmpty(commonContactUsers)) {
-                targetUser.setFirstCommonContactTel(commonContactUsers.get(0).getMobile());
-                // targetUser.setFirstCommonContactName(commonContactUsers.get(0).getRealName());
-                if (commonContactUsers.size() > 1) {
-                    targetUser.setSecondCommonContactTel(commonContactUsers.get(1).getMobile());
-                    //targetUser.setSecondCommonContactName(commonContactUsers.get(1).getRealName());
-                }
-            }
-        } catch (Exception e) {
-            log.error("get common contact user error", e);
-        }
         return targetUser;
     }
 
@@ -412,129 +385,6 @@ public class UserRiskService {
         return userDetailService.getUserAddressList(userUuid);
     }
 
-
-
-    /**
-     * 获得经常使用的两个联系人，若小于两个使用紧急联系人  （祥才专用)
-     *
-     * @param orderNo
-     * @return
-     */
-    public List<FrequentOrderUserCallRecordResponse> frequentOrderUserCallRecordMongo1(String orderNo) throws ServiceExceptionSpec {
-        if (StringUtils.isEmpty(orderNo)) {
-            throw new ServiceExceptionSpec(ExceptionEnum.MANAGE_SEARCH_ERROR);
-        }
-        UserCallRecordsMongo search = new UserCallRecordsMongo();
-        search.setOrderNo(orderNo);
-        search.setDisabled(0);
-        List<UserCallRecordsMongo> resultMongo = this.userCallRecordsDal.find(search);
-        //全部数据集合
-        List<FrequentOrderUserCallRecordResponse> response = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(resultMongo)) {
-            UserCallRecordsMongo dataResult = resultMongo.get(0);
-            //获得电话记录
-            String callRecordStr = dataResult.getData();
-            if (!StringUtils.isEmpty(callRecordStr)) {
-                List<LinkedHashMap> callRecordList = JsonUtils.deserialize(callRecordStr, List.class);
-                //全部有效数据集合
-                List<OrderUserCallRecordResponse> allCallRecord = new ArrayList<>();
-                //封装数据到list中
-                if (!CollectionUtils.isEmpty(callRecordList)) {
-                    for (LinkedHashMap callRecord : callRecordList) {
-                        OrderUserCallRecordResponse orderUser = new OrderUserCallRecordResponse();
-
-                        if (StringUtils.isEmpty(String.valueOf(callRecord.get("number")))
-                                || "0".equals(callRecord.get("duration"))
-                                || "Unreported contacts".equals(String.valueOf(callRecord.get("name")))
-                                || "未备注联系人".equals(String.valueOf(callRecord.get("name")))
-                                || judgeOver30Days(String.valueOf(callRecord.get("date")),dataResult.getCreateTime())) {
-                            continue;
-                        }
-                        String duration = String.valueOf(callRecord.get("duration"));
-                        orderUser.setMobile(String.valueOf(callRecord.get("number")));
-                        orderUser.setRealName(String.valueOf(callRecord.get("name")));
-                        orderUser.setCallTime(String.valueOf(callRecord.get("date")));
-                        orderUser.setDuration("null".equals(duration) || StringUtils.isEmpty(duration) ? 0 : Integer.parseInt(duration));
-                        allCallRecord.add(orderUser);
-                    }
-                    //将电话号码相同的时长相加，并且其他字段取第一条
-                    List<OrderUserCallRecordResponse> result = new ArrayList<>();
-                    //用于去重判断
-                    List<String> phones = new ArrayList<>();
-                    for (OrderUserCallRecordResponse callRecord : allCallRecord) {
-                        if (phones.contains(callRecord.getMobile())) {
-                            continue;
-                        }
-                        OrderUserCallRecordResponse recordResponse = new OrderUserCallRecordResponse();
-                        //这里复制最新的数据
-                        BeanUtils.copyProperties(callRecord, recordResponse);
-                        //判断重复加上当前手机号
-                        phones.add(callRecord.getMobile());
-                        Integer count = 0;
-                        for (OrderUserCallRecordResponse record : allCallRecord) {
-                            if (callRecord.getMobile().equals(record.getMobile())) {
-                                count += record.getDuration();
-                            }
-                        }
-                        recordResponse.setDuration(count);
-                        result.add(recordResponse);
-                    }
-                    //电话号码只能是 628 +628 08 开头的长度>9 <=12
-                    result = result.stream().filter(elem -> {
-                        String phoneStr = elem.getMobile();
-                        return phoneStr.length() > 9 && phoneStr.length() <= 15 &&
-                                (phoneStr.startsWith("628") || phoneStr.startsWith("+628") || phoneStr.startsWith("08"));
-                    }).collect(Collectors.toList());
-
-                    if (!CollectionUtils.isEmpty(result)) {
-                        this.sortOrderUserCallRecordByDuration(result);
-                        FrequentOrderUserCallRecordResponse response1 = new FrequentOrderUserCallRecordResponse();
-                        String realName = filterEmoji(result.get(0).getRealName());
-                        response1.setRealName(realName);
-                        response1.setMobile(result.get(0).getMobile());
-                        response.add(response1);
-
-                        if (!CollectionUtils.isEmpty(result) && result.size() > 1) {
-                            //处理用户姓名一样，手机号码不同的情况（08和+628和628是同一个电话号码)
-                            if (!StringUtils.isEmpty(result.get(1).getRealName()) &&
-                                    result.get(1).getRealName().equals(result.get(0).getRealName())
-                                    && judgePhoneNum(result.get(0).getMobile(), result.get(1).getMobile())) {
-                                if (result.size() > 2) {
-                                    FrequentOrderUserCallRecordResponse response2 = new FrequentOrderUserCallRecordResponse();
-                                    String realName1 = filterEmoji(result.get(2).getRealName());
-                                    response2.setRealName(realName1);
-                                    response2.setMobile(result.get(2).getMobile());
-                                    response.add(response2);
-                                }
-                            } else {
-                                FrequentOrderUserCallRecordResponse response2 = new FrequentOrderUserCallRecordResponse();
-                                String realName2 = filterEmoji(result.get(1).getRealName());
-                                response2.setRealName(realName2);
-                                response2.setMobile(result.get(1).getMobile());
-                                response.add(response2);
-                            }
-
-                        }
-
-                    }
-                }
-
-            }
-        }
-        logger.info("通话记录中的联系人：" + response.size());
-
-        for (FrequentOrderUserCallRecordResponse res : response) {
-            String mobile = res.getMobile();
-            if (!StringUtils.isEmpty(mobile)) {
-                if (mobile.startsWith("62")) {
-                    res.setMobile(mobile.replaceFirst("62", "0"));
-                } else if (mobile.startsWith("+62")) {
-                    res.setMobile(mobile.replaceFirst("\\+62", "0"));
-                }
-            }
-        }
-        return response;
-    }
 
     /**
      * 判断日期是否超过30天
@@ -562,18 +412,6 @@ public class UserRiskService {
             log.error("parse error with date: " + date, e);
         }
         return false;
-    }
-
-    private void sortOrderUserCallRecordByDuration(List<OrderUserCallRecordResponse> result) {
-        if (CollectionUtils.isEmpty(result)) {
-            return;
-        }
-        Collections.sort(result, new Comparator<OrderUserCallRecordResponse>() {
-            @Override
-            public int compare(OrderUserCallRecordResponse ord1, OrderUserCallRecordResponse ord2) {
-                return 0 - ord1.getDuration().compareTo(ord2.getDuration());
-            }
-        });
     }
 
     /**
